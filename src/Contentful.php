@@ -78,6 +78,38 @@ class Contentful
         return $this->buildResponseFromRaw($response->json());
     }
 
+    /**
+     * @param string $id
+     * @param string $spaceName
+     * @return EntryInterface
+     * @throws Exception\ResourceUnavailableException
+     */
+    public function getEntry($id, $spaceName = null)
+    {
+        $spaceData = $this->getSpaceDataForName($spaceName);
+        $request = $this->guzzle->createRequest('GET', $this->getEndpointUrl(sprintf('/spaces/%s/entries/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API));
+        $this->setAuthHeaderOnRequest($request, $spaceData['access_token']);
+
+        try {
+            $response = $this->guzzle->send($request);
+        } catch (RequestException $e) {
+            throw new ResourceUnavailableException($e->getResponse(), sprintf('The entry with ID "%s" from the space "%s" was unavailable.', $id, $spaceName), 0, $e);
+        }
+        if ($response->getStatusCode() !== '200') {
+            throw new ResourceUnavailableException(
+                $response,
+                sprintf(
+                    'The space "%s" was not available. Contentful returned a "%s - %s" response.',
+                    $spaceName,
+                    $response->getStatusCode(),
+                    $response->getReasonPhrase()
+                )
+            );
+        }
+
+        return $this->buildResponseFromRaw($response->json());
+    }
+
     private function getSpaceDataForName($spaceName = null)
     {
         if ($spaceName) {

@@ -17,14 +17,14 @@ class ResourceUnavailableException extends \RuntimeException implements Exceptio
      * @param int               $code
      * @param \Exception        $previous
      */
-    public function __construct(ResponseInterface $response, $message = '', $code = 0, \Exception $previous = null)
+    public function __construct(ResponseInterface $response = null, $message = '', $code = 0, \Exception $previous = null)
     {
         $this->response = $response;
         parent::__construct($message, $code, $previous);
     }
 
     /**
-     * @return \GuzzleHttp\Message\ResponseInterface
+     * @return \GuzzleHttp\Message\ResponseInterface|null
      */
     public function getResponse()
     {
