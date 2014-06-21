@@ -55,27 +55,12 @@ class Contentful
     public function getSpace($spaceName = null)
     {
         $spaceData = $this->getSpaceDataForName($spaceName);
-        $request = $this->guzzle->createRequest('GET', $this->getEndpointUrl(sprintf('/spaces/%s', $spaceData['key']), self::CONTENT_DELIVERY_API));
-        $this->setAuthHeaderOnRequest($request, $spaceData['access_token']);
 
-        try {
-            $response = $this->guzzle->send($request);
-        } catch (RequestException $e) {
-            throw new ResourceUnavailableException($e->getResponse(), sprintf('The space "%s" was unavailable.', $spaceName), 0, $e);
-        }
-        if ($response->getStatusCode() !== '200') {
-            throw new ResourceUnavailableException(
-                $response,
-                sprintf(
-                    'The space "%s" was not available. Contentful returned a "%s - %s" response.',
-                    $spaceName,
-                    $response->getStatusCode(),
-                    $response->getReasonPhrase()
-                )
-            );
-        }
-
-        return $this->buildResponseFromRaw($response->json());
+        return $this->doRequest(
+            $spaceData,
+            $this->getEndpointUrl(sprintf('/spaces/%s', $spaceData['key']), self::CONTENT_DELIVERY_API),
+            sprintf('The space "%s" was unavailable.', $spaceName)
+        );
     }
 
     /**
@@ -87,20 +72,35 @@ class Contentful
     public function getEntry($id, $spaceName = null)
     {
         $spaceData = $this->getSpaceDataForName($spaceName);
-        $request = $this->guzzle->createRequest('GET', $this->getEndpointUrl(sprintf('/spaces/%s/entries/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API));
+
+        return $this->doRequest(
+            $spaceData,
+            $this->getEndpointUrl(sprintf('/spaces/%s/entries/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
+            sprintf('The entry with ID "%s" from the space "%s" was unavailable.', $id, $spaceName)
+        );
+    }
+
+    /**
+     * @param array  $spaceData
+     * @param string $endpointUrl
+     * @param string $exceptionMessage
+     * @return ResourceInterface
+     */
+    private function doRequest($spaceData, $endpointUrl, $exceptionMessage)
+    {
+        $request = $this->guzzle->createRequest('GET', $endpointUrl);
         $this->setAuthHeaderOnRequest($request, $spaceData['access_token']);
 
         try {
             $response = $this->guzzle->send($request);
         } catch (RequestException $e) {
-            throw new ResourceUnavailableException($e->getResponse(), sprintf('The entry with ID "%s" from the space "%s" was unavailable.', $id, $spaceName), 0, $e);
+            throw new ResourceUnavailableException($e->getResponse(), $exceptionMessage, 0, $e);
         }
         if ($response->getStatusCode() !== '200') {
             throw new ResourceUnavailableException(
                 $response,
                 sprintf(
-                    'The space "%s" was not available. Contentful returned a "%s - %s" response.',
-                    $spaceName,
+                    $exceptionMessage . ' Contentful returned a "%s - %s" response.',
                     $response->getStatusCode(),
                     $response->getReasonPhrase()
                 )
