@@ -36,6 +36,13 @@ interface MetadataInterface
     public function getContentType();
 
     /**
+     * Gets the link type. (Only applicable for Link resources.)
+     *
+     * @return string|null
+     */
+    public function getLinkType();
+
+    /**
      * Gets the revision number of this resource.
      *
      * @return int

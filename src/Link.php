@@ -2,45 +2,15 @@
 
 namespace Markup\Contentful;
 
-class Link
+class Link implements MetadataInterface
 {
-    /**
-     * The type of resource that is linked.
-     *
-     * @var string
-     */
-    private $type;
+    use MetadataAccessTrait;
 
     /**
-     * The ID for the linked resource.
-     *
-     * @var string
+     * @param MetadataInterface $metadata
      */
-    private $id;
-
-    /**
-     * @param string $type
-     * @param string $id
-     */
-    public function __construct($type, $id)
+    public function __construct(MetadataInterface $metadata)
     {
-        $this->type = $type;
-        $this->id = $id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getType()
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return string
-     */
-    public function getId()
-    {
-        return $this->id;
+        $this->metadata = $metadata;
     }
 }

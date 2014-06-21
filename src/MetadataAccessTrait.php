@@ -50,6 +50,14 @@ trait MetadataAccessTrait
     }
 
     /**
+     * @return string|null
+     */
+    public function getLinkType()
+    {
+        return $this->getMetadata()->getLinkType();
+    }
+
+    /**
      * @return int
      */
     public function getRevision()

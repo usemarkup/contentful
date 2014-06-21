@@ -28,6 +28,15 @@ class ResourceBuilder
                 }
 
                 return new Space($data['name'], $metadata, $locales, $defaultLocale);
+            case 'Entry':
+                $fields = [];
+                foreach ($data['fields'] as $name => $fieldData) {
+                    $fields[$name] = ($this->isResourceData($fieldData)) ? $this->buildFromData($fieldData) : $fieldData;
+                }
+
+                return new Entry($fields, $metadata);
+            case 'Link':
+                return new Link($metadata);
             default:
                 break;
         }
@@ -52,6 +61,9 @@ class ResourceBuilder
         if (isset($sys['contentType'])) {
             $metadata->setContentType($this->buildFromData($sys['contentType']));
         }
+        if (isset($sys['linkType'])) {
+            $metadata->setLinkType($sys['linkType']);
+        }
         if (isset($sys['revision'])) {
             $metadata->setRevision(intval($sys['revision']));
         }
@@ -64,4 +76,15 @@ class ResourceBuilder
 
         return $metadata;
     }
-} 
+
+    /**
+     * Tests whether the provided data represents a resource, or a link to a resource.
+     *
+     * @param array $data
+     * @return bool
+     */
+    private function isResourceData($data)
+    {
+        return is_array($data) && array_key_exists('sys', $data) && isset($data['sys']['type']);
+    }
+}

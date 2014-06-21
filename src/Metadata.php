@@ -25,6 +25,11 @@ class Metadata implements MetadataInterface
     private $contentType;
 
     /**
+     * @var string
+     */
+    private $linkType;
+
+    /**
      * @var int
      */
     private $revision;
@@ -101,6 +106,25 @@ class Metadata implements MetadataInterface
     public function getContentType()
     {
         return $this->contentType;
+    }
+
+    /**
+     * @param string $linkType
+     * @return self
+     */
+    public function setLinkType($linkType)
+    {
+        $this->linkType = $linkType;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLinkType()
+    {
+        return $this->linkType;
     }
 
     /**
