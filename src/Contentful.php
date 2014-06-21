@@ -97,7 +97,7 @@ class Contentful
      */
     private function getDomainForApi($api)
     {
-        return (self::CONTENT_MANAGEMENT_API) ? 'api.contentful.com' : 'cdn.contentful.com';
+        return ($api === self::CONTENT_MANAGEMENT_API) ? 'api.contentful.com' : 'cdn.contentful.com';
     }
 
     private function getEndpointUrl($path, $api)
@@ -114,6 +114,10 @@ class Contentful
         $request->setHeader('Authorization', sprintf('Bearer %s', $accessToken));
     }
 
+    /**
+     * @param array $data
+     * @return ResourceInterface
+     */
     private function buildResponseFromRaw(array $data)
     {
         static $resourceBuilder;
