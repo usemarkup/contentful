@@ -102,6 +102,47 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(['rainbows', 'fish'], $entry->getFields()['likes']);
     }
 
+    public function testGetAsset()
+    {
+        $data = [
+            'sys' => [
+                'type' => 'Asset',
+                'id' => 'nyancat',
+                'space' => [
+                    'sys' => [
+                        'type' => 'Link',
+                        'linkType' => 'Space',
+                        'id' => 'example',
+                    ],
+                ],
+                'createdAt' => '2013-03-26T00:13:37.123Z',
+                'updatedAt' => '2013-03-26T00:13:37.123Z',
+                'revision' => 1,
+            ],
+            'fields' => [
+                'title' => 'Nyan cat',
+                'description' => 'A typical picture of Nyancat including the famous rainbow trail.',
+                'file' => [
+                    'fileName' => 'nyancat.png',
+                    'contentType' => 'image/png',
+                    'details' => [
+                        'image' => [
+                            'width' => 250,
+                            'height' => 250,
+                        ],
+                        'size' => 12273,
+                    ],
+                    'url' => '//images.contentful.com/cfexampleapi/4gp6taAwW4CmSgumq2ekUm/9da0cd1936871b8d72343e895a00d611/Nyan_cat_250px_frame.png',
+                ],
+            ],
+        ];
+        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
+        $this->mockAdapter->setResponse($response);
+        $asset = $this->contentful->getAsset('nyancat');
+        $this->assertInstanceOf('Markup\Contentful\AssetInterface', $asset);
+        $this->assertEquals(1, $asset->getRevision());
+    }
+
     private function getSuccessMockResponse($data, $accessToken)
     {
         return function (TransactionInterface $transaction) use ($data, $accessToken) {

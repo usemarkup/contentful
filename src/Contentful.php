@@ -81,6 +81,22 @@ class Contentful
     }
 
     /**
+     * @param string $id
+     * @param string $spaceName
+     * @return AssetInterface
+     */
+    public function getAsset($id, $spaceName = null)
+    {
+        $spaceData = $this->getSpaceDataForName($spaceName);
+
+        return $this->doRequest(
+            $spaceData,
+            $this->getEndpointUrl(sprintf('/spaces/%s/assets/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
+            sprintf('The asset with ID "%s" from the space "%s" was unavailable.', $id, $spaceName)
+        );
+    }
+
+    /**
      * @param array  $spaceData
      * @param string $endpointUrl
      * @param string $exceptionMessage

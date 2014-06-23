@@ -35,6 +35,18 @@ class ResourceBuilder
                 }
 
                 return new Entry($fields, $metadata);
+            case 'Asset':
+                return new Asset(
+                    $data['fields']['title'],
+                    $data['fields']['description'],
+                    new AssetFile(
+                        $data['fields']['file']['fileName'],
+                        $data['fields']['file']['contentType'],
+                        $data['fields']['file']['details'],
+                        $data['fields']['file']['url']
+                    ),
+                    $metadata
+                );
             case 'Link':
                 return new Link($metadata);
             default:
