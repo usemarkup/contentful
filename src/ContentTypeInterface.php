@@ -15,6 +15,8 @@ interface ContentTypeInterface extends ResourceInterface
     public function getDescription();
 
     /**
+     * Returns the content type fields, keyed by ID.
+     *
      * @return ContentTypeField[]
      */
     public function getFields();

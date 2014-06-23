@@ -126,4 +126,51 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(12273, $asset->getFileSizeInBytes());
         $this->assertEquals('nyancat', $asset->getId());
     }
+
+    public function testBuildContentType()
+    {
+        $data = [
+            'sys' => [
+                'type' => 'ContentType',
+                'id' => 'cat',
+            ],
+            'name' => 'Cat',
+            'description' => 'Meow.',
+            'fields' => [
+                [
+                    'id' => 'name',
+                    'name' => 'Name',
+                    'type' => 'Text',
+                    'localized' => true,
+                ],
+                [
+                    'id' => 'diary',
+                    'name' => 'Diary',
+                    'type' => 'Text',
+                ],
+                [
+                    'id' => 'likes',
+                    'name' => 'Likes',
+                    'type' => 'Array',
+                    'items' => [
+                        'type' => 'Symbol',
+                    ],
+                ],
+                [
+                    'id' => 'lifes',
+                    'name' => 'Lifes left',
+                    'type' => 'Integer',
+                ],
+            ],
+        ];
+        $contentType = $this->builder->buildFromData($data);
+        $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
+        $this->assertEquals('Cat', $contentType->getName());
+        $fields = $contentType->getFields();
+        $this->assertContainsOnlyInstancesOf('Markup\Contentful\ContentTypeField', $fields);
+        $this->assertTrue($fields['name']->isLocalized());
+        $this->assertFalse($fields['likes']->isLocalized());
+        $this->assertEquals([], $fields['lifes']->getItems());
+        $this->assertEquals(['type' => 'Symbol'], $fields['likes']->getItems());
+    }
 }

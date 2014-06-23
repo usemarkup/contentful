@@ -47,6 +47,33 @@ class ResourceBuilder
                     ),
                     $metadata
                 );
+            case 'ContentType':
+                $buildContentTypeField = function ($fieldData) {
+                    $options = [];
+                    if (isset($fieldData['localized'])) {
+                        $options['localized'] = $fieldData['localized'];
+                    }
+                    if (isset($fieldData['required'])) {
+                        $options['required'] = $fieldData['required'];
+                    }
+                    return new ContentTypeField(
+                        $fieldData['id'],
+                        $fieldData['name'],
+                        $fieldData['type'],
+                        (isset($fieldData['items'])) ? $fieldData['items'] : [],
+                        $options
+                    );
+                };
+
+                return new ContentType(
+                    $data['name'],
+                    $data['description'],
+                    array_map(function ($fieldData) use ($buildContentTypeField) {
+                        return $buildContentTypeField($fieldData);
+                    }, $data['fields']),
+                    $metadata,
+                    (isset($data['displayField'])) ? $buildContentTypeField($data['displayField']) : null
+                );
             case 'Link':
                 return new Link($metadata);
             default:

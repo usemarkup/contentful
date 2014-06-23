@@ -29,12 +29,12 @@ class ContentType implements ContentTypeInterface
 
     /**
      * @param string             $name
-     * @param MetadataInterface  $metadata
      * @param string             $description
      * @param ContentTypeField[] $fields
+     * @param MetadataInterface  $metadata
      * @param ContentTypeField   $displayField
      */
-    public function __construct($name, MetadataInterface $metadata, $description, $fields, ContentTypeField $displayField)
+    public function __construct($name, $description, $fields, MetadataInterface $metadata, ContentTypeField $displayField = null)
     {
         $this->name = $name;
         $this->metadata = $metadata;
@@ -64,7 +64,12 @@ class ContentType implements ContentTypeInterface
      */
     public function getFields()
     {
-        return $this->fields;
+        $fields = [];
+        foreach ($this->fields as $field) {
+            $fields[$field->getId()] = $field;
+        }
+
+        return $fields;
     }
 
     /**

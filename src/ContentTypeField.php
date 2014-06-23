@@ -94,7 +94,7 @@ class ContentTypeField
     /**
      * @return bool
      */
-    public function getIsLocalized()
+    public function isLocalized()
     {
         return $this->isLocalized;
     }
@@ -102,7 +102,7 @@ class ContentTypeField
     /**
      * @return bool
      */
-    public function getIsRequired()
+    public function isRequired()
     {
         return $this->isRequired;
     }

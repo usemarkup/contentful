@@ -97,6 +97,22 @@ class Contentful
     }
 
     /**
+     * @param string $id
+     * @param string $spaceName
+     * @return ContentTypeInterface
+     */
+    public function getContentType($id, $spaceName = null)
+    {
+        $spaceData = $this->getSpaceDataForName($spaceName);
+
+        return $this->doRequest(
+            $spaceData,
+            $this->getEndpointUrl(sprintf('/spaces/%s/content_types/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
+            sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName)
+        );
+    }
+
+    /**
      * @param array  $spaceData
      * @param string $endpointUrl
      * @param string $exceptionMessage

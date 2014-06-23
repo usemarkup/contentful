@@ -143,6 +143,49 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, $asset->getRevision());
     }
 
+    public function testGetContentType()
+    {
+        $data = [
+            'sys' => [
+                'type' => 'ContentType',
+                'id' => 'cat',
+            ],
+            'name' => 'Cat',
+            'description' => 'Meow.',
+            'fields' => [
+                [
+                    'id' => 'name',
+                    'name' => 'Name',
+                    'type' => 'Text',
+                    'localized' => true,
+                ],
+                [
+                    'id' => 'diary',
+                    'name' => 'Diary',
+                    'type' => 'Text',
+                ],
+                [
+                    'id' => 'likes',
+                    'name' => 'Likes',
+                    'type' => 'Array',
+                    'items' => [
+                        'type' => 'Symbol',
+                    ],
+                ],
+                [
+                    'id' => 'lifes',
+                    'name' => 'Lifes left',
+                    'type' => 'Integer',
+                ],
+            ],
+        ];
+        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
+        $this->mockAdapter->setResponse($response);
+        $contentType = $this->contentful->getContentType('cat');
+        $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
+        $this->assertEquals('Meow.', $contentType->getDescription());
+    }
+
     private function getSuccessMockResponse($data, $accessToken)
     {
         return function (TransactionInterface $transaction) use ($data, $accessToken) {
