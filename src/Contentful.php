@@ -25,8 +25,13 @@ class Contentful
     private $guzzle;
 
     /**
+     * @var int
+     */
+    private $defaultIncludeLevel;
+
+    /**
      * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value.
-     * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), and 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach)
+     * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), and 'include_level' (the levels of linked content to include in responses by default)
      */
     public function __construct(array $spaces, array $options = [])
     {
@@ -45,6 +50,7 @@ class Contentful
                 $emitter->attach($subscriber);
             }
         }
+        $this->defaultIncludeLevel = (isset($options['include_level'])) ? intval($options['include_level']) : 0;
     }
 
     /**
@@ -52,31 +58,34 @@ class Contentful
      * @return SpaceInterface
      * @throws Exception\ResourceUnavailableException
      */
-    public function getSpace($spaceName = null)
+    public function getSpace($spaceName = null, array $options = [])
     {
         $spaceData = $this->getSpaceDataForName($spaceName);
 
         return $this->doRequest(
             $spaceData,
             $this->getEndpointUrl(sprintf('/spaces/%s', $spaceData['key']), self::CONTENT_DELIVERY_API),
-            sprintf('The space "%s" was unavailable.', $spaceName)
+            sprintf('The space "%s" was unavailable.', $spaceName),
+            $options
         );
     }
 
     /**
      * @param string $id
      * @param string $spaceName
+     * @param array  $options A set of options for the fetch, including 'include_level' being how many levels to include
      * @return EntryInterface
      * @throws Exception\ResourceUnavailableException
      */
-    public function getEntry($id, $spaceName = null)
+    public function getEntry($id, $spaceName = null, array $options = [])
     {
         $spaceData = $this->getSpaceDataForName($spaceName);
 
         return $this->doRequest(
             $spaceData,
             $this->getEndpointUrl(sprintf('/spaces/%s/entries/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
-            sprintf('The entry with ID "%s" from the space "%s" was unavailable.', $id, $spaceName)
+            sprintf('The entry with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
+            $options
         );
     }
 
@@ -85,14 +94,15 @@ class Contentful
      * @param string $spaceName
      * @return AssetInterface
      */
-    public function getAsset($id, $spaceName = null)
+    public function getAsset($id, $spaceName = null, array $options = [])
     {
         $spaceData = $this->getSpaceDataForName($spaceName);
 
         return $this->doRequest(
             $spaceData,
             $this->getEndpointUrl(sprintf('/spaces/%s/assets/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
-            sprintf('The asset with ID "%s" from the space "%s" was unavailable.', $id, $spaceName)
+            sprintf('The asset with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
+            $options
         );
     }
 
@@ -101,14 +111,15 @@ class Contentful
      * @param string $spaceName
      * @return ContentTypeInterface
      */
-    public function getContentType($id, $spaceName = null)
+    public function getContentType($id, $spaceName = null, array $options = [])
     {
         $spaceData = $this->getSpaceDataForName($spaceName);
 
         return $this->doRequest(
             $spaceData,
             $this->getEndpointUrl(sprintf('/spaces/%s/content_types/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
-            sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName)
+            sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
+            $options
         );
     }
 
@@ -118,11 +129,16 @@ class Contentful
      * @param string $exceptionMessage
      * @return ResourceInterface
      */
-    private function doRequest($spaceData, $endpointUrl, $exceptionMessage)
+    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, array $options)
     {
+        $options = $this->mergeOptions($options);
         $request = $this->guzzle->createRequest('GET', $endpointUrl);
         $this->setAuthHeaderOnRequest($request, $spaceData['access_token']);
         $this->setApiVersionHeaderOnRequest($request);
+        //set the include level
+        if (null !== $options['include_level']) {
+            $request->getQuery()->set('include', $options['include_level']);
+        }
 
         try {
             $response = $this->guzzle->send($request);
@@ -200,5 +216,14 @@ class Contentful
         }
 
         return $resourceBuilder->buildFromData($data);
+    }
+
+    private function mergeOptions(array $options)
+    {
+        $defaultOptions = [
+            'include_level' => $this->defaultIncludeLevel,
+        ];
+
+        return array_merge($defaultOptions, $options);
     }
 }
