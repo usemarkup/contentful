@@ -38,7 +38,7 @@ class ResourceBuilder
             case 'Asset':
                 return new Asset(
                     $data['fields']['title'],
-                    $data['fields']['description'],
+                    (isset($data['fields']['description'])) ? $data['fields']['description'] : '',
                     new AssetFile(
                         $data['fields']['file']['fileName'],
                         $data['fields']['file']['contentType'],
