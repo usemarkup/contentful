@@ -11,6 +11,11 @@ class ResourceBuilder
      */
     public function buildFromData(array $data)
     {
+        if ($this->isArrayResourceData($data)) {
+            return array_map(function ($resourceData) {
+                return $this->buildFromData($resourceData);
+            }, $data);
+        }
         $metadata = $this->buildMetadataFromSysData($data['sys']);
         if (!$metadata->getType()) {
             throw new \InvalidArgumentException('Resource data must always have a type in its system properties.');
@@ -125,5 +130,19 @@ class ResourceBuilder
     private function isResourceData($data)
     {
         return is_array($data) && array_key_exists('sys', $data) && isset($data['sys']['type']);
+    }
+
+    private function isArrayResourceData($data)
+    {
+        if (!is_array($data) || empty($data)) {
+            return false;
+        }
+        foreach ($data as $datum) {
+            if (!$this->isResourceData($datum)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -173,4 +173,76 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals([], $fields['lifes']->getItems());
         $this->assertEquals(['type' => 'Symbol'], $fields['likes']->getItems());
     }
+
+    public function testBuildEntryArray()
+    {
+        $data = [
+            [
+                'sys' => [
+                    'type' => 'Entry',
+                    'id' => 'cat',
+                    'space' => [
+                        'sys' => [
+                            'type' => 'Link',
+                            'linkType' => 'Space',
+                            'id' => 'example',
+                        ],
+                    ],
+                    'createdAt' => '2013-03-26T00:13:37.123Z',
+                    'updatedAt' => '2013-03-26T00:13:37.123Z',
+                    'revision' => 1,
+                ],
+                'fields' => [
+                    'name' => 'Nyan cat',
+                    'color' => 'Rainbow',
+                    'nyan' => true,
+                    'birthday' => '2011-04-02T00:00:00.000Z',
+                    'diary' => 'Nyan cat has an epic rainbow trail.',
+                    'likes' => ['rainbows', 'fish'],
+                    'bestFriend' => [
+                        'sys' => [
+                            'type' => 'Link',
+                            'linkType' => 'Entry',
+                            'id' => 'happycat',
+                        ],
+                    ],
+                ]
+            ],
+            [
+                'sys' => [
+                    'type' => 'Entry',
+                    'id' => 'cat2',
+                    'space' => [
+                        'sys' => [
+                            'type' => 'Link',
+                            'linkType' => 'Space',
+                            'id' => 'example',
+                        ],
+                    ],
+                    'createdAt' => '2013-03-26T00:13:37.123Z',
+                    'updatedAt' => '2013-03-26T00:13:37.123Z',
+                    'revision' => 1,
+                ],
+                'fields' => [
+                    'name' => 'Nyan cat',
+                    'color' => 'Rainbow',
+                    'nyan' => true,
+                    'birthday' => '2011-04-02T00:00:00.000Z',
+                    'diary' => 'Nyan cat has an epic rainbow trail.',
+                    'likes' => ['rainbows', 'fish'],
+                    'bestFriend' => [
+                        'sys' => [
+                            'type' => 'Link',
+                            'linkType' => 'Entry',
+                            'id' => 'happycat',
+                        ],
+                    ],
+                ]
+            ],
+        ];
+        $entries = $this->builder->buildFromData($data);
+        $this->assertCount(2, $entries);
+        $this->assertContainsOnlyInstancesOf('Markup\Contentful\EntryInterface', $entries);
+        $this->assertEquals('cat2', $entries[1]->getId());
+    }
 }
