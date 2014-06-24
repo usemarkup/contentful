@@ -2,7 +2,7 @@
 
 namespace Markup\Contentful;
 
-interface EntryInterface extends ResourceInterface
+interface EntryInterface extends ResourceInterface, \ArrayAccess
 {
     /**
      * Gets the list of field values in the entry, keyed by fields. Could be scalars, DateTime objects, or links.
