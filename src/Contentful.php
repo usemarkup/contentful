@@ -122,6 +122,7 @@ class Contentful
     {
         $request = $this->guzzle->createRequest('GET', $endpointUrl);
         $this->setAuthHeaderOnRequest($request, $spaceData['access_token']);
+        $this->setApiVersionHeaderOnRequest($request);
 
         try {
             $response = $this->guzzle->send($request);
@@ -176,6 +177,15 @@ class Contentful
     private function setAuthHeaderOnRequest(RequestInterface $request, $accessToken)
     {
         $request->setHeader('Authorization', sprintf('Bearer %s', $accessToken));
+    }
+
+    /**
+     * @param RequestInterface $request
+     */
+    private function setApiVersionHeaderOnRequest(RequestInterface $request)
+    {
+        //specify version 1 header
+        $request->setHeader('Content-Type', 'application/vnd.contentful.delivery.v1+json');
     }
 
     /**
