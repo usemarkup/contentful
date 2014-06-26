@@ -66,6 +66,7 @@ class Contentful
             $spaceData,
             $this->getEndpointUrl(sprintf('/spaces/%s', $spaceData['key']), self::CONTENT_DELIVERY_API),
             sprintf('The space "%s" was unavailable.', $spaceName),
+            self::CONTENT_DELIVERY_API,
             $options
         );
     }
@@ -85,6 +86,7 @@ class Contentful
             $spaceData,
             $this->getEndpointUrl(sprintf('/spaces/%s/entries/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
             sprintf('The entry with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
+            self::CONTENT_DELIVERY_API,
             $options
         );
     }
@@ -102,6 +104,7 @@ class Contentful
             $spaceData,
             $this->getEndpointUrl(sprintf('/spaces/%s/assets/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
             sprintf('The asset with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
+            self::CONTENT_DELIVERY_API,
             $options
         );
     }
@@ -119,6 +122,7 @@ class Contentful
             $spaceData,
             $this->getEndpointUrl(sprintf('/spaces/%s/content_types/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
             sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
+            self::CONTENT_DELIVERY_API,
             $options
         );
     }
@@ -143,14 +147,15 @@ class Contentful
      * @param array  $spaceData
      * @param string $endpointUrl
      * @param string $exceptionMessage
+     * @param string $api
      * @return ResourceInterface
      */
-    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, array $options)
+    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, array $options)
     {
         $options = $this->mergeOptions($options);
         $request = $this->guzzle->createRequest('GET', $endpointUrl);
         $this->setAuthHeaderOnRequest($request, $spaceData['access_token']);
-        $this->setApiVersionHeaderOnRequest($request);
+        $this->setApiVersionHeaderOnRequest($request, $api);
         //set the include level
         if (null !== $options['include_level']) {
             $request->getQuery()->set('include', $options['include_level']);
@@ -219,10 +224,10 @@ class Contentful
     /**
      * @param RequestInterface $request
      */
-    private function setApiVersionHeaderOnRequest(RequestInterface $request)
+    private function setApiVersionHeaderOnRequest(RequestInterface $request, $api)
     {
         //specify version 1 header
-        $request->setHeader('Content-Type', 'application/vnd.contentful.delivery.v1+json');
+        $request->setHeader('Content-Type', sprintf('application/vnd.contentful.%s.v1+json', ($api === self::CONTENT_MANAGEMENT_API) ? 'management' : 'delivery'));
     }
 
     /**
