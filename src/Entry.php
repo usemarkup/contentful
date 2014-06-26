@@ -12,6 +12,16 @@ class Entry implements EntryInterface
     private $fields;
 
     /**
+     * @var array
+     */
+    private $resolvedLinks;
+
+    /**
+     * @var callable
+     */
+    private $resolveLinkFunction;
+
+    /**
      * @param array             $fields
      * @param MetadataInterface $metadata
      */
@@ -19,10 +29,11 @@ class Entry implements EntryInterface
     {
         $this->fields = $fields;
         $this->metadata = $metadata;
+        $this->resolvedLinks = [];
     }
 
     /**
-     * Gets the list of field values in the entry, keyed by fields. Could be scalars, DateTime objects, or links.
+     * Gets the list of field values in the entry, keyed by fields. Could be scalars, DateTime objects, or links. Links will not resolve or be resolved.
      *
      * @return array
      */
@@ -39,6 +50,15 @@ class Entry implements EntryInterface
     {
         if (!isset($this->fields[$key])) {
             return null;
+        }
+        if (null !== $this->resolveLinkFunction) {
+            if ($this->fields[$key] instanceof Link) {
+                if (!isset($this->resolvedLinks[$key])) {
+                    $this->resolvedLinks[$key] = call_user_func($this->resolveLinkFunction, $this->fields[$key]);
+                }
+
+                return $this->resolvedLinks[$key];
+            }
         }
 
         return $this->fields[$key];
@@ -76,5 +96,16 @@ class Entry implements EntryInterface
     public function offsetUnset($offset)
     {
         throw new \BadMethodCallException('Cannot unset a field');
+    }
+
+    /**
+     * @param callable $function
+     * @return self
+     */
+    public function setResolveLinkFunction(callable $function)
+    {
+        $this->resolveLinkFunction = $function;
+
+        return $this;
     }
 }

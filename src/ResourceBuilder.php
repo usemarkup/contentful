@@ -6,6 +6,11 @@ namespace Markup\Contentful;
 class ResourceBuilder
 {
     /**
+     * @var callable
+     */
+    private $resolveLinkFunction;
+
+    /**
      * @param array $data
      * @return mixed A Contentful resource.
      */
@@ -38,8 +43,12 @@ class ResourceBuilder
                 foreach ($data['fields'] as $name => $fieldData) {
                     $fields[$name] = ($this->isResourceData($fieldData)) ? $this->buildFromData($fieldData) : $fieldData;
                 }
+                $entry = new Entry($fields, $metadata);
+                if (null !== $this->resolveLinkFunction) {
+                    $entry->setResolveLinkFunction($this->resolveLinkFunction);
+                }
 
-                return new Entry($fields, $metadata);
+                return $entry;
             case 'Asset':
                 return new Asset(
                     $data['fields']['title'],
@@ -84,6 +93,16 @@ class ResourceBuilder
             default:
                 break;
         }
+    }
+
+    /**
+     * @param callable $function
+     */
+    public function setResolveLinkFunction(callable $function)
+    {
+        $this->resolveLinkFunction = $function;
+
+        return $this;
     }
 
     /**
@@ -132,6 +151,12 @@ class ResourceBuilder
         return is_array($data) && array_key_exists('sys', $data) && isset($data['sys']['type']);
     }
 
+    /**
+     * Tests whether the provided data represents an array of resource data, or an array of links to resources.
+     *
+     * @param mixed $data
+     * @return bool
+     */
     private function isArrayResourceData($data)
     {
         if (!is_array($data) || empty($data)) {

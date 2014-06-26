@@ -124,6 +124,22 @@ class Contentful
     }
 
     /**
+     * @param Link $link
+     * @return ResourceInterface
+     */
+    public function resolveLink(Link $link, $spaceName = null, array $options = [])
+    {
+        switch ($link->getLinkType()) {
+            case 'Entry':
+                return $this->getEntry($link->getId(), $spaceName, $options);
+            case 'Asset':
+                return $this->getAsset($link->getId(), $spaceName, $options);
+            default:
+                throw new \InvalidArgumentException(sprintf('Tried to resolve unknown link type "%s".', $link->getLinkType()));
+        }
+    }
+
+    /**
      * @param array  $spaceData
      * @param string $endpointUrl
      * @param string $exceptionMessage
@@ -181,6 +197,11 @@ class Contentful
         return ($api === self::CONTENT_MANAGEMENT_API) ? 'api.contentful.com' : 'cdn.contentful.com';
     }
 
+    /**
+     * @param string $path
+     * @param string $api
+     * @return string
+     */
     private function getEndpointUrl($path, $api)
     {
         return sprintf('https://%s%s', $this->getDomainForApi($api), $path);
@@ -213,6 +234,9 @@ class Contentful
         static $resourceBuilder;
         if (empty($resourceBuilder)) {
             $resourceBuilder = new ResourceBuilder();
+            $resourceBuilder->setResolveLinkFunction(function (Link $link) {
+                return $this->resolveLink($link);
+            });
         }
 
         return $resourceBuilder->buildFromData($data);
