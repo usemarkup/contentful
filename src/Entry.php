@@ -32,6 +32,19 @@ class Entry implements EntryInterface
     }
 
     /**
+     * @param string $key
+     * @return mixed|null
+     */
+    public function getField($key)
+    {
+        if (!isset($this->fields[$key])) {
+            return null;
+        }
+
+        return $this->fields[$key];
+    }
+
+    /**
      * @param mixed $offset
      * @return bool true on success or false on failure
      */
@@ -46,11 +59,7 @@ class Entry implements EntryInterface
      */
     public function offsetGet($offset)
     {
-        if (!isset($this->fields[$offset])) {
-            return null;
-        }
-
-        return $this->fields[$offset];
+        return $this->getField($offset);
     }
 
     /**

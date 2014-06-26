@@ -26,11 +26,17 @@ class EntryTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Markup\Contentful\EntryInterface', $this->entry);
     }
 
-    public function testGetFieldUsingArrayAccess()
+    public function testGetFieldsUsingArrayAccess()
     {
         $this->assertTrue(isset($this->entry['foo']));
         $this->assertFalse(isset($this->entry['unknown']));
         $this->assertEquals('bar', $this->entry['foo']);
         $this->assertNull($this->entry['unknown']);
+    }
+
+    public function testGetField()
+    {
+        $this->assertEquals('bar', $this->entry->getField('foo'));
+        $this->assertNull($this->entry->getField('unknown'));
     }
 }

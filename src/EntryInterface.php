@@ -10,4 +10,11 @@ interface EntryInterface extends ResourceInterface, \ArrayAccess
      * @return array
      */
     public function getFields();
+
+    /**
+     * Gets an individual field value, or null if the field is not defined.
+     *
+     * @return mixed
+     */
+    public function getField($key);
 } 
