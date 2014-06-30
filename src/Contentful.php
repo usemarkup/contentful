@@ -67,6 +67,7 @@ class Contentful
             $this->getEndpointUrl(sprintf('/spaces/%s', $spaceData['key']), self::CONTENT_DELIVERY_API),
             sprintf('The space "%s" was unavailable.', $spaceName),
             self::CONTENT_DELIVERY_API,
+            [],
             $options
         );
     }
@@ -87,6 +88,28 @@ class Contentful
             $this->getEndpointUrl(sprintf('/spaces/%s/entries/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
             sprintf('The entry with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             self::CONTENT_DELIVERY_API,
+            [],
+            $options
+        );
+    }
+
+    /**
+     * @param FilterInterface $filters
+     * @param string          $spaceName
+     * @param array           $options
+     * @return EntryInterface[]
+     * @throws Exception\ResourceUnavailableException
+     */
+    public function getEntries(array $filters = [], $spaceName = null, array $options = [])
+    {
+        $spaceData = $this->getSpaceDataForName($spaceName);
+
+        return $this->doRequest(
+            $spaceData,
+            $this->getEndpointUrl(sprintf('/spaces/%s/entries', $spaceData['key']), self::CONTENT_DELIVERY_API),
+            sprintf('The entries from the space "%s" were unavailable.', $spaceName),
+            self::CONTENT_DELIVERY_API,
+            $filters,
             $options
         );
     }
@@ -105,6 +128,7 @@ class Contentful
             $this->getEndpointUrl(sprintf('/spaces/%s/assets/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
             sprintf('The asset with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             self::CONTENT_DELIVERY_API,
+            [],
             $options
         );
     }
@@ -123,6 +147,7 @@ class Contentful
             $this->getEndpointUrl(sprintf('/spaces/%s/content_types/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
             sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             self::CONTENT_DELIVERY_API,
+            [],
             $options
         );
     }
@@ -144,13 +169,14 @@ class Contentful
     }
 
     /**
-     * @param array  $spaceData
-     * @param string $endpointUrl
-     * @param string $exceptionMessage
-     * @param string $api
+     * @param array             $spaceData
+     * @param string            $endpointUrl
+     * @param string            $exceptionMessage
+     * @param string            $api
+     * @param FilterInterface[] $filters
      * @return ResourceInterface
      */
-    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, array $options)
+    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, array $filters, array $options)
     {
         $options = $this->mergeOptions($options);
         $request = $this->guzzle->createRequest('GET', $endpointUrl);
@@ -159,6 +185,13 @@ class Contentful
         //set the include level
         if (null !== $options['include_level']) {
             $request->getQuery()->set('include', $options['include_level']);
+        }
+        //set filters onto the request
+        foreach ($filters as $filter) {
+            /**
+             * @var FilterInterface $filter
+             */
+            $request->getQuery()->set($filter->getKey(), $filter->getValue());
         }
 
         try {

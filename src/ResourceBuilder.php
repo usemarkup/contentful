@@ -12,13 +12,15 @@ class ResourceBuilder
 
     /**
      * @param array $data
+     * @param IncludesEnvelope $includesEnvelope An envelope of already-resolved entries and assets.
      * @return mixed A Contentful resource.
      */
-    public function buildFromData(array $data)
+    public function buildFromData(array $data, IncludesEnvelope $includesEnvelope = null)
     {
+        $includesEnvelope = $includesEnvelope ?: new IncludesEnvelope();
         if ($this->isArrayResourceData($data)) {
-            return array_map(function ($resourceData) {
-                return $this->buildFromData($resourceData);
+            return array_map(function ($resourceData) use ($includesEnvelope) {
+                return $this->buildFromData($resourceData, $includesEnvelope);
             }, $data);
         }
         $metadata = $this->buildMetadataFromSysData($data['sys']);
@@ -42,10 +44,10 @@ class ResourceBuilder
                 $fields = [];
                 foreach ($data['fields'] as $name => $fieldData) {
                     if ($this->isResourceData($fieldData)) {
-                        $fields[$name] = $this->buildFromData($fieldData);
+                        $fields[$name] = $this->buildFromData($fieldData, $includesEnvelope);
                     } elseif ($this->isArrayResourceData($fieldData)) {
-                        $fields[$name] = array_map(function ($itemData) {
-                            return $this->buildFromData($itemData);
+                        $fields[$name] = array_map(function ($itemData) use ($includesEnvelope) {
+                            return $this->buildFromData($itemData, $includesEnvelope);
                         }, $fieldData);
                     } else {
                         $fields[$name] = $fieldData;
@@ -97,10 +99,41 @@ class ResourceBuilder
                     (isset($data['displayField'])) ? $buildContentTypeField($data['displayField']) : null
                 );
             case 'Link':
+                switch ($metadata->getLinkType()) {
+                    case 'Entry':
+                        $entry = $includesEnvelope->findEntry($metadata->getId());
+                        if ($entry) {
+                            return $entry;
+                        }
+                        break;
+                    case 'Asset':
+                        $asset = $includesEnvelope->findAsset($metadata->getId());
+                        if ($asset) {
+                            return $asset;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
                 return new Link($metadata);
+            case 'Array':
+                $arrayIncludesEnvelope = $this->buildIncludesEnvelope((isset($data['includes'])) ? $data['includes'] : []);
+
+                return new ResourceArray(
+                    array_map(function ($itemData) use ($arrayIncludesEnvelope) {
+                        return $this->buildFromData($itemData, $arrayIncludesEnvelope);
+                    }, $data['items']),
+                    intval($data['total']),
+                    intval($data['limit']),
+                    intval($data['skip']),
+                    $arrayIncludesEnvelope
+                );
             default:
                 break;
         }
+
+        return null;
     }
 
     /**
@@ -177,5 +210,26 @@ class ResourceBuilder
         }
 
         return true;
+    }
+
+    /**
+     * @param array $includesData Raw data from a search response in an 'includes' node
+     * @return IncludesEnvelope
+     */
+    private function buildIncludesEnvelope(array $includesData)
+    {
+        $envelope = new IncludesEnvelope();
+        if (isset($includesData['Entry'])) {
+            foreach ($includesData['Entry'] as $entryData) {
+                $envelope->insertEntry($this->buildFromData($entryData));
+            }
+        }
+        if (isset($includesData['Asset'])) {
+            foreach ($includesData['Asset'] as $assetData) {
+                $envelope->insertAsset($this->buildFromData($assetData));
+            }
+        }
+
+        return $envelope;
     }
 }

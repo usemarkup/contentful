@@ -27,12 +27,18 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
     private $limit;
 
     /**
+     * @var IncludesEnvelope
+     */
+    private $includesEnvelope;
+
+    /**
      * @param  $items
      * @param int $total
      * @param int $skip
      * @param int $limit
+     * @param IncludesEnvelope $envelope
      */
-    public function __construct($items, $total, $skip, $limit)
+    public function __construct($items, $total, $skip, $limit, IncludesEnvelope $envelope = null)
     {
         if ($items instanceof \Iterator) {
             $this->items = $items;
@@ -46,6 +52,7 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
         $this->total = $total;
         $this->skip = $skip;
         $this->limit = $limit;
+        $this->includesEnvelope = $envelope ?: new IncludesEnvelope();
     }
 
     /**
@@ -80,6 +87,14 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
     public function getIterator()
     {
         return $this->items;
+    }
+
+    /**
+     * @return IncludesEnvelope
+     */
+    public function getIncludesEnvelope()
+    {
+        return $this->includesEnvelope;
     }
 
     /**

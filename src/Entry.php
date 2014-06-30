@@ -48,6 +48,9 @@ class Entry implements EntryInterface
      */
     public function getField($key)
     {
+        if ($key === 'bestFriend') {
+
+        }
         if (!isset($this->fields[$key])) {
             return null;
         }
