@@ -16,6 +16,12 @@ trait SimpleValueTrait
      */
     public function getValue()
     {
+        if ($this->value instanceof \DateTime) {
+            $this->value->setTimezone(new \DateTimeZone('UTC'));
+
+            return $this->value->format('Y-m-d\TH:i:s\Z');
+        }
+
         return $this->value;
     }
 } 
