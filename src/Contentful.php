@@ -30,6 +30,11 @@ class Contentful
     private $defaultIncludeLevel;
 
     /**
+     * @var bool
+     */
+    private $useDynamicEntries;
+
+    /**
      * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value.
      * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), and 'include_level' (the levels of linked content to include in responses by default)
      */
@@ -50,6 +55,7 @@ class Contentful
                 $emitter->attach($subscriber);
             }
         }
+        $this->useDynamicEntries = !isset($options['dynamic_entries']) || $options['dynamic_entries'];
         $this->defaultIncludeLevel = (isset($options['include_level'])) ? intval($options['include_level']) : 0;
     }
 
@@ -275,6 +281,7 @@ class Contentful
             $resourceBuilder->setResolveLinkFunction(function (Link $link) {
                 return $this->resolveLink($link);
             });
+            $resourceBuilder->setUseDynamicEntries($this->useDynamicEntries);
         }
 
         return $resourceBuilder->buildFromData($data);

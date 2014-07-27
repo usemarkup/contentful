@@ -18,6 +18,8 @@ class ContentType implements ContentTypeInterface
     private $description;
 
     /**
+     * The fields, keyed by ID.
+     *
      * @var ContentTypeField[]
      */
     private $fields;
@@ -39,7 +41,10 @@ class ContentType implements ContentTypeInterface
         $this->name = $name;
         $this->metadata = $metadata;
         $this->description = $description;
-        $this->fields = $fields;
+        $this->fields = [];
+        foreach ($fields as $field) {
+            $this->fields[$field->getId()] = $field;
+        }
         $this->displayField = $displayField;
     }
 
@@ -60,16 +65,24 @@ class ContentType implements ContentTypeInterface
     }
 
     /**
-     * @return \Markup\Contentful\ContentTypeField[]
+     * @return ContentTypeField[]
      */
     public function getFields()
     {
-        $fields = [];
-        foreach ($this->fields as $field) {
-            $fields[$field->getId()] = $field;
+        return $this->fields;
+    }
+
+    /**
+     * @param string $fieldId
+     * @return ContentTypeField
+     */
+    public function getField($fieldId)
+    {
+        if (!isset($this->fields[$fieldId])) {
+            return null;
         }
 
-        return $fields;
+        return $this->fields[$fieldId];
     }
 
     /**

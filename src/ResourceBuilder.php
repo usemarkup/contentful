@@ -11,6 +11,11 @@ class ResourceBuilder
     private $resolveLinkFunction;
 
     /**
+     * @var bool
+     */
+    private $useDynamicEntries;
+
+    /**
      * @param array $data
      * @param IncludesEnvelope $includesEnvelope An envelope of already-resolved entries and assets.
      * @return mixed A Contentful resource.
@@ -56,6 +61,13 @@ class ResourceBuilder
                 $entry = new Entry($fields, $metadata);
                 if (null !== $this->resolveLinkFunction) {
                     $entry->setResolveLinkFunction($this->resolveLinkFunction);
+                }
+                if ($this->useDynamicEntries) {
+                    $contentType = $metadata->getContentType();
+                    if ($contentType instanceof Link) {
+                        $contentType = call_user_func($this->resolveLinkFunction, $contentType);
+                    }
+                    $entry = new DynamicEntry($entry, $contentType);
                 }
 
                 return $entry;
@@ -138,10 +150,22 @@ class ResourceBuilder
 
     /**
      * @param callable $function
+     * @return self
      */
     public function setResolveLinkFunction(callable $function)
     {
         $this->resolveLinkFunction = $function;
+
+        return $this;
+    }
+
+    /**
+     * @param bool $useDynamicEntries
+     * @return self
+     */
+    public function setUseDynamicEntries($useDynamicEntries)
+    {
+        $this->useDynamicEntries = $useDynamicEntries;
 
         return $this;
     }

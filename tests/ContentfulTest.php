@@ -29,6 +29,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $this->mockAdapter = new MockAdapter();
         $this->options = [
             'guzzle_adapter' => $this->mockAdapter,
+            'dynamic_entries' => false,
         ];
         $this->contentful = new Contentful($this->spaces, $this->options);
     }
