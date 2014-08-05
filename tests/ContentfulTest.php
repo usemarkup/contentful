@@ -8,6 +8,8 @@ use GuzzleHttp\Message\Response;
 use GuzzleHttp\Stream\Stream;
 use Markup\Contentful\Contentful;
 use Markup\Contentful\Filter\EqualFilter;
+use Markup\Contentful\Filter\LessThanFilter;
+use Markup\Contentful\Property\FieldProperty;
 use Markup\Contentful\Property\SystemProperty;
 use Mockery as m;
 
@@ -191,7 +193,107 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
 
     public function testGetEntries()
     {
-        $data = [
+        $response = $this->getSuccessMockResponse($this->getEntriesData(), '235345lj34h53j4h');
+        $this->mockAdapter->setResponse($response);
+        $entries = $this->contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
+        $this->assertInstanceOf('Markup\Contentful\ResourceArray', $entries);
+        $this->assertCount(1, $entries);
+        $entry = array_values(iterator_to_array($entries))[0];
+        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
+        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
+    }
+
+    public function testCacheMissDoesFetch()
+    {
+        $response = $this->getSuccessMockResponse($this->getEntriesData(), '235345lj34h53j4h');
+        $this->mockAdapter->setResponse($response);
+        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $cachePool = $this->getMockCachePool();
+        $cacheItem = $this->getMockCacheItem();
+        $cachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->once()
+            ->andReturn($cacheItem);
+        $cacheItem
+            ->shouldReceive('isHit')
+            ->once()
+            ->andReturn(false);
+        $cacheItem
+            ->shouldReceive('set')
+            ->once();
+        $contentful = new Contentful($this->spaces, $this->options, $cachePool);
+        $filters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
+        $contentful->getEntries($filters);
+    }
+
+    public function testCacheHitUsesCacheAndDoesNotFetch()
+    {
+        $response = $this->getExplodyResponse();
+        $this->mockAdapter->setResponse($response);
+        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $cachePool = $this->getMockCachePool();
+        $cacheItem = $this->getMockCacheItem();
+        $cachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->once()
+            ->andReturn($cacheItem);
+        $cacheItem
+            ->shouldReceive('isHit')
+            ->once()
+            ->andReturn(true);
+        $cacheItem
+            ->shouldReceive('get')
+            ->andReturn(json_encode($this->getEntriesData()));
+        $contentful = new Contentful($this->spaces, $this->options, $cachePool);
+        $filters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
+        $entries = $contentful->getEntries($filters);
+        $entry = array_values(iterator_to_array($entries))[0];
+        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
+        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
+    }
+
+    public function testFlushCache()
+    {
+        $cachePool = $this->getMockCachePool();
+        $cachePool
+            ->shouldReceive('clear')
+            ->once();
+        $contentful = new Contentful($this->spaces, $this->options, $cachePool);
+        $contentful->flushCache();
+    }
+
+    private function getSuccessMockResponse($data, $accessToken)
+    {
+        return function (TransactionInterface $transaction) use ($data, $accessToken) {
+            $request = $transaction->getRequest();
+            $this->assertEquals('Bearer ' . $accessToken, $request->getHeader('Authorization'));
+
+            return new Response(200, [], Stream::factory(json_encode($data)));
+        };
+    }
+
+    private function getExplodyResponse()
+    {
+        return function (TransactionInterface $transaction) {
+            $this->fail();
+        };
+    }
+
+    private function getMockCachePool()
+    {
+        return m::mock('Psr\Cache\CacheItemPoolInterface')->shouldIgnoreMissing();
+    }
+
+    private function getMockCacheItem()
+    {
+        return m::mock('Psr\Cache\CacheItemInterface')->shouldIgnoreMissing();
+    }
+
+    private function getEntriesData()
+    {
+        return [
             'sys' => [
                 'type' => 'Array',
             ],
@@ -366,23 +468,5 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
-        $entries = $this->contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
-        $this->assertInstanceOf('Markup\Contentful\ResourceArray', $entries);
-        $this->assertCount(1, $entries);
-        $entry = array_values(iterator_to_array($entries))[0];
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
-    }
-
-    private function getSuccessMockResponse($data, $accessToken)
-    {
-        return function (TransactionInterface $transaction) use ($data, $accessToken) {
-            $request = $transaction->getRequest();
-            $this->assertEquals('Bearer ' . $accessToken, $request->getHeader('Authorization'));
-
-            return new Response(200, [], Stream::factory(json_encode($data)));
-        };
     }
 }

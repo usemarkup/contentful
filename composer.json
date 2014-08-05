@@ -15,12 +15,19 @@
         }
     ],
     "require": {
-        "guzzlehttp/guzzle": "~4.0"
+        "guzzlehttp/guzzle": "~4.0",
+        "psr/cache": "dev-master"
     },
     "require-dev": {
         "phpunit/phpunit": "4.1.*",
         "mockery/mockery": "~0.9"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/Crell/Cache.git"
+        }
+    ],
     "autoload": {
         "psr-4": { "Markup\\Contentful\\": "src/" }
     }

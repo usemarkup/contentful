@@ -7,7 +7,9 @@ use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Event\SubscriberInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Message\RequestInterface;
+use Markup\Contentful\Cache\NullCacheItemPool;
 use Markup\Contentful\Exception\ResourceUnavailableException;
+use Psr\Cache\CacheItemPoolInterface;
 
 class Contentful
 {
@@ -25,6 +27,11 @@ class Contentful
     private $guzzle;
 
     /**
+     * @var CacheItemPoolInterface
+     */
+    private $cache;
+
+    /**
      * @var int
      */
     private $defaultIncludeLevel;
@@ -37,8 +44,9 @@ class Contentful
     /**
      * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value.
      * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), and 'include_level' (the levels of linked content to include in responses by default)
+     * @param CacheItemPoolInterface $cache
      */
-    public function __construct(array $spaces, array $options = [])
+    public function __construct(array $spaces, array $options = [], CacheItemPoolInterface $cache = null)
     {
         $this->spaces = $spaces;
         $guzzleOptions = [];
@@ -55,6 +63,7 @@ class Contentful
                 $emitter->attach($subscriber);
             }
         }
+        $this->cache = $cache ?: new NullCacheItemPool();
         $this->useDynamicEntries = !isset($options['dynamic_entries']) || $options['dynamic_entries'];
         $this->defaultIncludeLevel = (isset($options['include_level'])) ? intval($options['include_level']) : 0;
     }
@@ -73,6 +82,7 @@ class Contentful
             $this->getEndpointUrl(sprintf('/spaces/%s', $spaceData['key']), self::CONTENT_DELIVERY_API),
             sprintf('The space "%s" was unavailable.', $spaceName),
             self::CONTENT_DELIVERY_API,
+            'space',
             [],
             $options
         );
@@ -94,6 +104,7 @@ class Contentful
             $this->getEndpointUrl(sprintf('/spaces/%s/entries/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
             sprintf('The entry with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             self::CONTENT_DELIVERY_API,
+            'entry',
             [],
             $options
         );
@@ -115,6 +126,7 @@ class Contentful
             $this->getEndpointUrl(sprintf('/spaces/%s/entries', $spaceData['key']), self::CONTENT_DELIVERY_API),
             sprintf('The entries from the space "%s" were unavailable.', $spaceName),
             self::CONTENT_DELIVERY_API,
+            'entries',
             $filters,
             $options
         );
@@ -134,6 +146,7 @@ class Contentful
             $this->getEndpointUrl(sprintf('/spaces/%s/assets/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
             sprintf('The asset with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             self::CONTENT_DELIVERY_API,
+            'asset',
             [],
             $options
         );
@@ -153,6 +166,7 @@ class Contentful
             $this->getEndpointUrl(sprintf('/spaces/%s/content_types/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
             sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             self::CONTENT_DELIVERY_API,
+            'content_type',
             [],
             $options
         );
@@ -175,16 +189,33 @@ class Contentful
     }
 
     /**
+     * Flushes the whole cache. Returns true if flush was successful, false otherwise.
+     *
+     * @return bool
+     */
+    public function flushCache()
+    {
+        return $this->cache->clear();
+    }
+
+    /**
      * @param array             $spaceData
      * @param string            $endpointUrl
      * @param string            $exceptionMessage
      * @param string            $api
+     * @param string            $queryType The query type - e.g. "entries" for getEntries(), "asset" for getAsset(), etc
      * @param FilterInterface[] $filters
      * @return ResourceInterface
      */
-    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, array $filters, array $options)
+    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, $queryType = null, array $filters, array $options)
     {
         $options = $this->mergeOptions($options);
+        //only use cache if this is a Content Delivery API request
+        $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $filters);
+        $cacheItem = $this->cache->getItem($cacheKey);
+        if ($api === self::CONTENT_DELIVERY_API && $cacheItem->isHit()) {
+            return $this->buildResponseFromRaw(json_decode($cacheItem->get(), $assoc = true));
+        }
         $request = $this->guzzle->createRequest('GET', $endpointUrl);
         $this->setAuthHeaderOnRequest($request, $spaceData['access_token']);
         $this->setApiVersionHeaderOnRequest($request, $api);
@@ -214,6 +245,11 @@ class Contentful
                     $response->getReasonPhrase()
                 )
             );
+        }
+        //save into cache
+        if ($api === self::CONTENT_DELIVERY_API) {
+            $cacheItem->set(json_encode($response->json()));
+            $this->cache->save($cacheItem);
         }
 
         return $this->buildResponseFromRaw($response->json());
@@ -294,5 +330,33 @@ class Contentful
         ];
 
         return array_merge($defaultOptions, $options);
+    }
+
+    /**
+     * @param string $spaceKey
+     * @param string $queryType
+     * @param FilterInterface[] $filters
+     * @return string
+     */
+    private function generateCacheKey($spaceKey, $queryType, array $filters = [])
+    {
+        $key = $spaceKey . '-' . $queryType;
+        if (count($filters) > 0) {
+            //sort filters by name, then key
+            $filterSort = function (FilterInterface $filter1, FilterInterface $filter2) {
+                $nameCompare = strcmp($filter1->getName(), $filter2->getName());
+                if ($nameCompare !== 0) {
+                    return $nameCompare;
+                }
+
+                return strcmp($filter1->getKey(), $filter2->getKey());
+            };
+            usort($filters, $filterSort);
+            $key .= '-' . implode(',', array_map(function (FilterInterface $filter) {
+                return sprintf('(%s)%s:%s', $filter->getName(), $filter->getKey(), $filter->getValue());
+            }, $filters));
+        }
+
+        return $key;
     }
 }
