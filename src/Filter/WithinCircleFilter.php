@@ -8,6 +8,8 @@ use Markup\Contentful\PropertyInterface;
 
 class WithinCircleFilter implements FilterInterface
 {
+    use ClassBasedNameTrait;
+
     /**
      * @var PropertyInterface
      */

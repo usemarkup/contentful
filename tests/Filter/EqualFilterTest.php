@@ -42,4 +42,9 @@ class EqualFilterTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals($this->value, $this->filter->getValue());
     }
+
+    public function testGetName()
+    {
+        $this->assertEquals('equal', $this->filter->getName());
+    }
 }

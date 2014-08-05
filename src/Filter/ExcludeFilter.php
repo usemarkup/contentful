@@ -6,6 +6,8 @@ use Markup\Contentful\PropertyInterface;
 
 class ExcludeFilter extends PropertyFilter
 {
+    use ClassBasedNameTrait;
+
     /**
      * @var array
      */

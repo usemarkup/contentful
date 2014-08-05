@@ -6,7 +6,7 @@ use Markup\Contentful\PropertyInterface;
 
 abstract class AbstractComparisonFilter extends PropertyFilter
 {
-    use SimpleValueTrait;
+    use SimpleValueTrait, ClassBasedNameTrait;
 
     /**
      * @param PropertyInterface $property

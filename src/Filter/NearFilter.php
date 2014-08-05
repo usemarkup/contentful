@@ -11,6 +11,8 @@ use Markup\Contentful\PropertyInterface;
  */
 class NearFilter implements FilterInterface
 {
+    use ClassBasedNameTrait;
+
     /**
      * @var PropertyInterface
      */

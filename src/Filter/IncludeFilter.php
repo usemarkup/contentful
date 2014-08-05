@@ -9,6 +9,8 @@ use Markup\Contentful\PropertyInterface;
  */
 class IncludeFilter extends PropertyFilter
 {
+    use ClassBasedNameTrait;
+
     /**
      * @var array
      */

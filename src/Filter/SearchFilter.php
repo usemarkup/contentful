@@ -10,7 +10,7 @@ use Markup\Contentful\PropertyInterface;
  */
 class SearchFilter implements FilterInterface
 {
-    use SimpleValueTrait;
+    use SimpleValueTrait, ClassBasedNameTrait;
     
     const OPERATOR_ALL_PROPERTIES = 'query';
 

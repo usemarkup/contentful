@@ -39,4 +39,9 @@ class WithinCircleFilterTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals('15,40,42', $this->filter->getValue());
     }
+
+    public function testGetName()
+    {
+        $this->assertEquals('within_circle', $this->filter->getName());
+    }
 }

@@ -6,6 +6,8 @@ use Markup\Contentful\FilterInterface;
 
 class ContentTypeFilter implements FilterInterface
 {
+    use ClassBasedNameTrait;
+
     const KEY = 'content_type';
 
     /**

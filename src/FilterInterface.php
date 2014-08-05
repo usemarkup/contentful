@@ -17,4 +17,11 @@ interface FilterInterface
      * @return string
      */
     public function getValue();
+
+    /**
+     * The name for the filter (e.g. an EqualFilter would be called 'equal', etc)
+     *
+     * @return string
+     */
+    public function getName();
 } 

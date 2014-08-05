@@ -8,6 +8,8 @@ use Markup\Contentful\PropertyInterface;
 
 class WithinRectangleFilter implements FilterInterface
 {
+    use ClassBasedNameTrait;
+
     /**
      * @var PropertyInterface
      */

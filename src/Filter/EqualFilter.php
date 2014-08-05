@@ -9,7 +9,7 @@ use Markup\Contentful\PropertyInterface;
  */
 class EqualFilter extends PropertyFilter
 {
-    use SimpleValueTrait;
+    use SimpleValueTrait, ClassBasedNameTrait;
 
     /**
      * @param PropertyInterface $property
