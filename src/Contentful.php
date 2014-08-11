@@ -42,11 +42,10 @@ class Contentful
     private $useDynamicEntries;
 
     /**
-     * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value.
+     * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value and a 'cache' value which is a cache that follows PSR-6.
      * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), and 'include_level' (the levels of linked content to include in responses by default)
-     * @param CacheItemPoolInterface $cache
      */
-    public function __construct(array $spaces, array $options = [], CacheItemPoolInterface $cache = null)
+    public function __construct(array $spaces, array $options = [])
     {
         $this->spaces = $spaces;
         $guzzleOptions = [];
@@ -63,7 +62,6 @@ class Contentful
                 $emitter->attach($subscriber);
             }
         }
-        $this->cache = $cache ?: new NullCacheItemPool();
         $this->useDynamicEntries = !isset($options['dynamic_entries']) || $options['dynamic_entries'];
         $this->defaultIncludeLevel = (isset($options['include_level'])) ? intval($options['include_level']) : 0;
     }
@@ -193,9 +191,11 @@ class Contentful
      *
      * @return bool
      */
-    public function flushCache()
+    public function flushCache($spaceName = null)
     {
-        return $this->cache->clear();
+        $spaceData = $this->getSpaceDataForName($spaceName);
+
+        return $this->ensureCache($spaceData['cache'])->clear();
     }
 
     /**
@@ -212,7 +212,8 @@ class Contentful
         $options = $this->mergeOptions($options);
         //only use cache if this is a Content Delivery API request
         $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $filters);
-        $cacheItem = $this->cache->getItem($cacheKey);
+        $cache = $this->ensureCache($spaceData['cache']);
+        $cacheItem = $cache->getItem($cacheKey);
         if ($api === self::CONTENT_DELIVERY_API && $cacheItem->isHit()) {
             return $this->buildResponseFromRaw(json_decode($cacheItem->get(), $assoc = true));
         }
@@ -249,7 +250,7 @@ class Contentful
         //save into cache
         if ($api === self::CONTENT_DELIVERY_API) {
             $cacheItem->set(json_encode($response->json()));
-            $this->cache->save($cacheItem);
+            $cache->save($cacheItem);
         }
 
         return $this->buildResponseFromRaw($response->json());
@@ -257,15 +258,16 @@ class Contentful
 
     private function getSpaceDataForName($spaceName = null)
     {
+        $defaultData = ['cache' => null];
         if ($spaceName) {
             if (!array_key_exists($spaceName, $this->spaces)) {
                 throw new \InvalidArgumentException(sprintf('The space with name "%s" is not known to this client.', $spaceName));
             }
 
-            return $this->spaces[$spaceName];
+            return array_merge($defaultData, $this->spaces[$spaceName]);
         }
 
-        return array_values($this->spaces)[0];
+        return array_merge($defaultData, array_values($this->spaces)[0]);
     }
 
     /**
@@ -358,5 +360,20 @@ class Contentful
         }
 
         return $key;
+    }
+
+    /**
+     * Ensures a cache by passing through a passed in cache, or returning a null cache if arg is not a cache.
+     *
+     * @param mixed $candidate
+     * @return CacheItemPoolInterface
+     */
+    private function ensureCache($candidate)
+    {
+        if (!$candidate instanceof CacheItemPoolInterface) {
+            return new NullCacheItemPool();
+        }
+
+        return $candidate;
     }
 }

@@ -222,7 +222,8 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $cacheItem
             ->shouldReceive('set')
             ->once();
-        $contentful = new Contentful($this->spaces, $this->options, $cachePool);
+        $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool]]);
+        $contentful = new Contentful($spaces, $this->options);
         $filters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $contentful->getEntries($filters);
     }
@@ -246,7 +247,8 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $cacheItem
             ->shouldReceive('get')
             ->andReturn(json_encode($this->getEntriesData()));
-        $contentful = new Contentful($this->spaces, $this->options, $cachePool);
+        $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool]]);
+        $contentful = new Contentful($spaces, $this->options);
         $filters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $entries = $contentful->getEntries($filters);
         $entry = array_values(iterator_to_array($entries))[0];
@@ -260,8 +262,9 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $cachePool
             ->shouldReceive('clear')
             ->once();
-        $contentful = new Contentful($this->spaces, $this->options, $cachePool);
-        $contentful->flushCache();
+        $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool]]);
+        $contentful = new Contentful($spaces, $this->options);
+        $contentful->flushCache('test');
     }
 
     private function getSuccessMockResponse($data, $accessToken)
