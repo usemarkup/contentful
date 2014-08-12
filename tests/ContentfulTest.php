@@ -9,6 +9,8 @@ use GuzzleHttp\Stream\Stream;
 use Markup\Contentful\Contentful;
 use Markup\Contentful\Filter\EqualFilter;
 use Markup\Contentful\Filter\LessThanFilter;
+use Markup\Contentful\Link;
+use Markup\Contentful\Metadata;
 use Markup\Contentful\Property\FieldProperty;
 use Markup\Contentful\Property\SystemProperty;
 use Mockery as m;
@@ -267,6 +269,25 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $contentful->flushCache('test');
     }
 
+    public function testResolveContentTypeLink()
+    {
+        $response = $this->getSuccessMockResponse($this->getContentTypeData(), '235345lj34h53j4h');
+        $this->mockAdapter->setResponse($response);
+        $data = [
+            'type' => 'Link',
+            'linkType' => 'ContentType',
+            'id' => '45jhb6kjehgej4h5',
+        ];
+        $metadata = new Metadata();
+        $metadata->setType($data['type']);
+        $metadata->setLinkType($data['linkType']);
+        $metadata->setId($data['id']);
+        $link = new Link($metadata);
+        $contentType = $this->contentful->resolveLink($link);
+        $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
+        $this->assertEquals('cat', $contentType->getId());//of course, in a real situation this would be the same as the ID in the link - but this is the ID in the mock data
+    }
+
     private function getSuccessMockResponse($data, $accessToken)
     {
         return function (TransactionInterface $transaction) use ($data, $accessToken) {
@@ -468,6 +489,48 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                             'locale' => 'en-US',
                         ],
                     ],
+                ],
+            ],
+        ];
+    }
+
+    private function getContentTypeData()
+    {
+        return [
+            'sys' => [
+                'type' => 'ContentType',
+                'id' => 'cat',
+            ],
+            'name' => 'Cat',
+            'description' => 'Meow.',
+            'fields' => [
+                [
+                    'id' => 'name',
+                    'name' => 'Name',
+                    'type' => 'Text',
+                ],
+                [
+                    'id' => 'diary',
+                    'name' => 'Diary',
+                    'type' => 'Text',
+                ],
+                [
+                    'id' => 'likes',
+                    'name' => 'Likes',
+                    'type' => 'Array',
+                    'items' => [
+                        'type' => 'Symbol',
+                    ]
+                ],
+                [
+                    'id' => 'bestFriend',
+                    'name' => 'Best Friend',
+                    'type' => 'Link',
+                ],
+                [
+                    'id' => 'lifes',
+                    'name' => 'Lifes',
+                    'type' => 'Integer',
                 ],
             ],
         ];

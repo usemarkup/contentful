@@ -181,6 +181,8 @@ class Contentful
                 return $this->getEntry($link->getId(), $spaceName, $options);
             case 'Asset':
                 return $this->getAsset($link->getId(), $spaceName, $options);
+            case 'ContentType':
+                return $this->getContentType($link->getId(), $spaceName, $options);
             default:
                 throw new \InvalidArgumentException(sprintf('Tried to resolve unknown link type "%s".', $link->getLinkType()));
         }
