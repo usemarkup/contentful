@@ -286,6 +286,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $contentType = $this->contentful->resolveLink($link);
         $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
         $this->assertEquals('cat', $contentType->getId());//of course, in a real situation this would be the same as the ID in the link - but this is the ID in the mock data
+        $this->assertEquals('Name', $contentType->getDisplayField()->getName());
     }
 
     private function getSuccessMockResponse($data, $accessToken)
@@ -533,6 +534,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                     'type' => 'Integer',
                 ],
             ],
+            'displayField' => 'name',
         ];
     }
 }

@@ -25,7 +25,7 @@ class ContentType implements ContentTypeInterface
     private $fields;
 
     /**
-     * @var ContentTypeField
+     * @var string
      */
     private $displayField;
 
@@ -36,7 +36,7 @@ class ContentType implements ContentTypeInterface
      * @param MetadataInterface  $metadata
      * @param ContentTypeField   $displayField
      */
-    public function __construct($name, $description, $fields, MetadataInterface $metadata, ContentTypeField $displayField = null)
+    public function __construct($name, $description, $fields, MetadataInterface $metadata, $displayField = null)
     {
         $this->name = $name;
         $this->metadata = $metadata;
@@ -90,6 +90,10 @@ class ContentType implements ContentTypeInterface
      */
     public function getDisplayField()
     {
-        return $this->displayField;
+        if (null === $this->displayField) {
+            return null;
+        }
+
+        return $this->getField($this->displayField);
     }
 }

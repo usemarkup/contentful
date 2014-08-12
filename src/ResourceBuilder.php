@@ -108,7 +108,7 @@ class ResourceBuilder
                         return $buildContentTypeField($fieldData);
                     }, $data['fields']),
                     $metadata,
-                    (isset($data['displayField'])) ? $buildContentTypeField($data['displayField']) : null
+                    (isset($data['displayField'])) ? $data['displayField'] : null
                 );
             case 'Link':
                 switch ($metadata->getLinkType()) {
