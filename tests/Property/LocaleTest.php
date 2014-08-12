@@ -8,8 +8,7 @@ class LocaleTest extends \PHPUnit_Framework_TestCase
 {
     protected function setUp()
     {
-        $this->localeString = 'fr_FR';
-        $this->localeProp = new Locale($this->localeString);
+        $this->localeProp = new Locale();
     }
 
     public function testIsProperty()
@@ -24,6 +23,6 @@ class LocaleTest extends \PHPUnit_Framework_TestCase
 
     public function testToString()
     {
-        $this->assertEquals($this->localeString, strval($this->localeProp));
+        $this->assertEquals('locale', strval($this->localeProp));
     }
 }
