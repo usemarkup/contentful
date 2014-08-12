@@ -16,7 +16,7 @@ class ResourceArrayTest extends \PHPUnit_Framework_TestCase
     {
         $item1 = $this->getMockEntry();
         $item2 = $this->getMockEntry();
-        $items = new \ArrayIterator([$item1, $item2]);
+        $items = new \ArrayIterator(['item1' => $item1, 'item2' => $item2]);
         $total = 22;
         $skip = 20;
         $limit = 10;
@@ -25,6 +25,8 @@ class ResourceArrayTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(20, $array->getSkip());
         $this->assertEquals(10, $array->getLimit());
         $this->assertEquals([$item1, $item2], iterator_to_array($array));
+        //array access
+        $this->assertSame($item1, $array[0]);
     }
 
     private function getMockEntry()

@@ -2,12 +2,12 @@
 
 namespace Markup\Contentful;
 
-class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
+class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface, \ArrayAccess
 {
     use MetadataAccessTrait;
 
     /**
-     * @var \Iterator
+     * @var array
      */
     private $items;
 
@@ -40,12 +40,10 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
      */
     public function __construct($items, $total, $skip, $limit, IncludesEnvelope $envelope = null)
     {
-        if ($items instanceof \Iterator) {
-            $this->items = $items;
-        } elseif ($items instanceof \Traversable) {
-            $this->items = new \IteratorIterator($items);
+        if ($items instanceof \Traversable) {
+            $this->items = array_values(iterator_to_array($items));
         } elseif (is_array($items)) {
-            $this->items = new \ArrayIterator($items);
+            $this->items = array_values($items);
         } else {
             throw new \InvalidArgumentException('Items parameter should be an array or a traversable object.');
         }
@@ -86,7 +84,7 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
      */
     public function getIterator()
     {
-        return $this->items;
+        return new \ArrayIterator($this->items);
     }
 
     /**
@@ -104,10 +102,47 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
      */
     public function count()
     {
-        if (!$this->items instanceof \Countable) {
-            return count(iterator_to_array($this->items));
+        return count($this->items);
+    }
+
+    /**
+     * @return bool
+     */
+    public function offsetExists($offset)
+    {
+        return isset($this->items[$offset]);
+    }
+
+    /**
+     * @param mixed $offset
+     * @return ResourceInterface|null
+     */
+    public function offsetGet($offset)
+    {
+        if (!isset($this->items[$offset])) {
+            return null;
         }
 
-        return count($this->items);
+        return $this->items[$offset];
+    }
+
+    /**
+     * @param mixed $offset <p>
+     * @param mixed $value  <p>
+     * @return void
+     * @throws \BadMethodCallException
+     */
+    public function offsetSet($offset, $value)
+    {
+        throw new \BadMethodCallException();
+    }
+
+    /**
+     * @param mixed $offset
+     * @return void
+     */
+    public function offsetUnset($offset)
+    {
+        throw new \BadMethodCallException();
     }
 }
