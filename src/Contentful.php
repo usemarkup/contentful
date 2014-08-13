@@ -81,6 +81,7 @@ class Contentful
             sprintf('The space "%s" was unavailable.', $spaceName),
             self::CONTENT_DELIVERY_API,
             'space',
+            '',
             [],
             $options
         );
@@ -103,6 +104,7 @@ class Contentful
             sprintf('The entry with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             self::CONTENT_DELIVERY_API,
             'entry',
+            strval($id),
             [],
             $options
         );
@@ -125,6 +127,7 @@ class Contentful
             sprintf('The entries from the space "%s" were unavailable.', $spaceName),
             self::CONTENT_DELIVERY_API,
             'entries',
+            '',
             $filters,
             $options
         );
@@ -145,6 +148,7 @@ class Contentful
             sprintf('The asset with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             self::CONTENT_DELIVERY_API,
             'asset',
+            strval($id),
             [],
             $options
         );
@@ -165,6 +169,7 @@ class Contentful
             sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             self::CONTENT_DELIVERY_API,
             'content_type',
+            strval($id),
             [],
             $options
         );
@@ -206,14 +211,15 @@ class Contentful
      * @param string            $exceptionMessage
      * @param string            $api
      * @param string            $queryType The query type - e.g. "entries" for getEntries(), "asset" for getAsset(), etc
+     * @param string            $cacheDisambiguator A string that can disambiguate the individual query, beyond any filter provided
      * @param FilterInterface[] $filters
      * @return ResourceInterface
      */
-    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, $queryType = null, array $filters, array $options)
+    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, $queryType = null, $cacheDisambiguator = '', array $filters, array $options)
     {
         $options = $this->mergeOptions($options);
         //only use cache if this is a Content Delivery API request
-        $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $filters);
+        $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $cacheDisambiguator, $filters);
         $cache = $this->ensureCache($spaceData['cache']);
         $cacheItem = $cache->getItem($cacheKey);
         if ($api === self::CONTENT_DELIVERY_API && $cacheItem->isHit()) {
@@ -339,12 +345,16 @@ class Contentful
     /**
      * @param string $spaceKey
      * @param string $queryType
+     * @param string $disambiguator
      * @param FilterInterface[] $filters
      * @return string
      */
-    private function generateCacheKey($spaceKey, $queryType, array $filters = [])
+    private function generateCacheKey($spaceKey, $queryType, $disambiguator, array $filters = [])
     {
         $key = $spaceKey . '-' . $queryType;
+        if ($disambiguator) {
+            $key .= ':' . $disambiguator;
+        }
         if (count($filters) > 0) {
             //sort filters by name, then key
             $filterSort = function (FilterInterface $filter1, FilterInterface $filter2) {
