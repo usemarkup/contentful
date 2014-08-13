@@ -76,7 +76,7 @@ class DynamicEntry implements EntryInterface
     {
         $coercedFields = [];
         foreach (array_keys($this->entry->getFields()) as $key) {
-            $coercedFields[] = $this->getCoercedField($key);
+            $coercedFields[$key] = $this->getCoercedField($key);
         }
 
         return $coercedFields;
