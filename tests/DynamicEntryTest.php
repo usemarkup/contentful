@@ -10,7 +10,7 @@ class DynamicEntryTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->entry = m::mock('Markup\Contentful\Entry');
-        $this->contentType = m::mock('Markup\Contentful\ContentType');
+        $this->contentType = m::mock('Markup\Contentful\ContentType')->shouldIgnoreMissing();
         $this->entry
             ->shouldReceive('getContentType')
             ->andReturn($this->contentType);
@@ -76,5 +76,16 @@ class DynamicEntryTest extends \PHPUnit_Framework_TestCase
         $location = $this->dynamicEntry->getField($key);
         $this->assertInstanceOf('Markup\Contentful\Location', $location);
         $this->assertEquals(42, $location->getLongitude());
+    }
+
+    public function testUnknownMethodCallsOnField()
+    {
+        $method = 'foo';
+        $value = 'baz';
+        $this->entry
+            ->shouldReceive('getField')
+            ->with($method)
+            ->andReturn($value);
+        $this->assertEquals($value, $this->dynamicEntry->$method());
     }
 }

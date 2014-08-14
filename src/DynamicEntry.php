@@ -7,6 +7,8 @@ namespace Markup\Contentful;
  */
 class DynamicEntry implements EntryInterface
 {
+    use EntryUnknownMethodTrait;
+
     /**
      * @var EntryInterface
      */

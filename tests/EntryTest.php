@@ -54,4 +54,10 @@ class EntryTest extends \PHPUnit_Framework_TestCase
         $entry->setResolveLinkFunction($callback);
         $this->assertSame($asset, $entry['asset']);
     }
+
+    public function testUnknownMethodFallsBackToFieldLookup()
+    {
+        $this->assertEquals('bar', $this->entry->foo());
+        $this->assertEquals(null, $this->entry->baz());
+    }
 }

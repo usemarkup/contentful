@@ -4,7 +4,7 @@ namespace Markup\Contentful;
 
 class Entry implements EntryInterface
 {
-    use MetadataAccessTrait;
+    use MetadataAccessTrait, EntryUnknownMethodTrait;
 
     /**
      * @var array
