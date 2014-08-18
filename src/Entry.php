@@ -59,7 +59,7 @@ class Entry implements EntryInterface
 
                 return $this->resolvedLinks[$key];
             }
-            if (is_array($this->fields[$key]) && array_values($this->fields[$key])[0] instanceof Link) {
+            if (is_array($this->fields[$key]) && count($this->fields[$key]) > 0 && array_values($this->fields[$key])[0] instanceof Link) {
                 if (!isset($this->resolvedLinks[$key])) {
                     $this->resolvedLinks[$key] = array_map(function ($link) {
                         return call_user_func($this->resolveLinkFunction, $link);
