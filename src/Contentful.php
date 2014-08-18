@@ -223,7 +223,10 @@ class Contentful
         $cache = $this->ensureCache($spaceData['cache']);
         $cacheItem = $cache->getItem($cacheKey);
         if ($api === self::CONTENT_DELIVERY_API && $cacheItem->isHit()) {
-            return $this->buildResponseFromRaw(json_decode($cacheItem->get(), $assoc = true));
+            $cacheItemJson = $cacheItem->get();
+            if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
+                return $this->buildResponseFromRaw(json_decode($cacheItemJson, $assoc = true));
+            }
         }
         $request = $this->guzzle->createRequest('GET', $endpointUrl);
         $this->setAuthHeaderOnRequest($request, $spaceData['access_token']);
