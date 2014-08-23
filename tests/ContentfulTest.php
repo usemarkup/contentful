@@ -10,6 +10,7 @@ use Markup\Contentful\Contentful;
 use Markup\Contentful\Filter\EqualFilter;
 use Markup\Contentful\Filter\LessThanFilter;
 use Markup\Contentful\Link;
+use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Metadata;
 use Markup\Contentful\Property\FieldProperty;
 use Markup\Contentful\Property\SystemProperty;
@@ -287,6 +288,19 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
         $this->assertEquals('cat', $contentType->getId());//of course, in a real situation this would be the same as the ID in the link - but this is the ID in the mock data
         $this->assertEquals('Name', $contentType->getDisplayField()->getName());
+    }
+
+    public function testQueryIsLoggedIfLoggerTrue()
+    {
+        $response = $this->getSuccessMockResponse($this->getEntriesData(), '235345lj34h53j4h');
+        $this->mockAdapter->setResponse($response);
+        $contentful = new Contentful($this->spaces, array_merge($this->options, ['logger' => true]));
+        $entries = $contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
+        $logs = $contentful->getLogs();
+        $this->assertCount(1, $logs);
+        $this->assertContainsOnlyInstancesOf('Markup\Contentful\Log\LogInterface', $logs);
+        $log = reset($logs);
+        $this->assertEquals(LogInterface::RESOURCE_ENTRY, $log->getResourceType());
     }
 
     private function getSuccessMockResponse($data, $accessToken)

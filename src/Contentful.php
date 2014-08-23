@@ -9,6 +9,10 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Message\RequestInterface;
 use Markup\Contentful\Cache\NullCacheItemPool;
 use Markup\Contentful\Exception\ResourceUnavailableException;
+use Markup\Contentful\Log\LoggerInterface;
+use Markup\Contentful\Log\LogInterface;
+use Markup\Contentful\Log\NullLogger;
+use Markup\Contentful\Log\StandardLogger;
 use Psr\Cache\CacheItemPoolInterface;
 
 class Contentful
@@ -30,6 +34,11 @@ class Contentful
      * @var CacheItemPoolInterface
      */
     private $cache;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     /**
      * @var int
@@ -64,6 +73,11 @@ class Contentful
         }
         $this->useDynamicEntries = !isset($options['dynamic_entries']) || $options['dynamic_entries'];
         $this->defaultIncludeLevel = (isset($options['include_level'])) ? intval($options['include_level']) : 0;
+        if (!isset($options['logger']) || false === $options['logger']) {
+            $this->logger = new NullLogger();
+        } else {
+            $this->logger = ($options['logger'] instanceof LoggerInterface) ? $options['logger'] : new StandardLogger();
+        }
     }
 
     /**
@@ -206,6 +220,16 @@ class Contentful
     }
 
     /**
+     * Gets any collected logs.
+     *
+     * @return array<LogInterface>
+     */
+    public function getLogs()
+    {
+        return $this->logger->getLogs();
+    }
+
+    /**
      * @param array             $spaceData
      * @param string            $endpointUrl
      * @param string            $exceptionMessage
@@ -217,6 +241,7 @@ class Contentful
      */
     private function doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, $queryType = null, $cacheDisambiguator = '', array $filters, array $options)
     {
+        $timer = $this->logger->getStartedTimer();
         $options = $this->mergeOptions($options);
         //only use cache if this is a Content Delivery API request
         $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $cacheDisambiguator, $filters);
@@ -225,6 +250,8 @@ class Contentful
         if ($api === self::CONTENT_DELIVERY_API && $cacheItem->isHit()) {
             $cacheItemJson = $cacheItem->get();
             if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
+                $this->logger->log(sprintf('Fetched response from cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType));
+
                 return $this->buildResponseFromRaw(json_decode($cacheItemJson, $assoc = true));
             }
         }
@@ -263,8 +290,29 @@ class Contentful
             $cacheItem->set(json_encode($response->json()));
             $cache->save($cacheItem);
         }
+        $this->logger->log(sprintf('Fetched a fresh response from URL "%s".', $request->getUrl()), false, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType));
 
         return $this->buildResponseFromRaw($response->json());
+    }
+
+    /**
+     * @param string $queryType
+     * @return string
+     */
+    private function getLogResourceTypeForQueryType($queryType)
+    {
+        $map = [
+            'entry' => LogInterface::RESOURCE_ENTRY,
+            'entries' => LogInterface::RESOURCE_ENTRY,
+            'asset' => LogInterface::RESOURCE_ASSET,
+            'assets' => LogInterface::RESOURCE_ASSET,
+            'content_type' => LogInterface::RESOURCE_CONTENT_TYPE,
+        ];
+        if (!isset($map[$queryType])) {
+            return null;
+        }
+
+        return $map[$queryType];
     }
 
     private function getSpaceDataForName($spaceName = null)
