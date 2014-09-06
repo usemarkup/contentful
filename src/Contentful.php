@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Message\RequestInterface;
 use GuzzleHttp\Message\ResponseInterface;
 use Markup\Contentful\Cache\NullCacheItemPool;
+use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
@@ -191,15 +192,19 @@ class Contentful
      */
     public function resolveLink(Link $link, $spaceName = null, array $options = [])
     {
-        switch ($link->getLinkType()) {
-            case 'Entry':
-                return $this->getEntry($link->getId(), $spaceName, $options);
-            case 'Asset':
-                return $this->getAsset($link->getId(), $spaceName, $options);
-            case 'ContentType':
-                return $this->getContentType($link->getId(), $spaceName, $options);
-            default:
-                throw new \InvalidArgumentException(sprintf('Tried to resolve unknown link type "%s".', $link->getLinkType()));
+        try {
+            switch ($link->getLinkType()) {
+                case 'Entry':
+                    return $this->getEntry($link->getId(), $spaceName, $options);
+                case 'Asset':
+                    return $this->getAsset($link->getId(), $spaceName, $options);
+                case 'ContentType':
+                    return $this->getContentType($link->getId(), $spaceName, $options);
+                default:
+                    throw new \InvalidArgumentException(sprintf('Tried to resolve unknown link type "%s".', $link->getLinkType()));
+            }
+        } catch (ResourceUnavailableException $e) {
+            throw new LinkUnresolvableException($link);
         }
     }
 

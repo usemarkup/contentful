@@ -2,6 +2,8 @@
 
 namespace Markup\Contentful;
 
+use Markup\Contentful\Exception\LinkUnresolvableException;
+
 class Entry implements EntryInterface
 {
     use MetadataAccessTrait, EntryUnknownMethodTrait;
@@ -54,16 +56,28 @@ class Entry implements EntryInterface
         if (null !== $this->resolveLinkFunction) {
             if ($this->fields[$key] instanceof Link) {
                 if (!isset($this->resolvedLinks[$key])) {
-                    $this->resolvedLinks[$key] = call_user_func($this->resolveLinkFunction, $this->fields[$key]);
+                    try {
+                        $resolvedLink = call_user_func($this->resolveLinkFunction, $this->fields[$key]);
+                    } catch (LinkUnresolvableException $e) {
+                        $resolvedLink = null;
+                    }
+                    $this->resolvedLinks[$key] = $resolvedLink;
                 }
 
                 return $this->resolvedLinks[$key];
             }
             if (is_array($this->fields[$key]) && count($this->fields[$key]) > 0 && array_values($this->fields[$key])[0] instanceof Link) {
                 if (!isset($this->resolvedLinks[$key])) {
-                    $this->resolvedLinks[$key] = array_map(function ($link) {
-                        return call_user_func($this->resolveLinkFunction, $link);
-                    }, $this->fields[$key]);
+                    $this->resolvedLinks[$key] = array_filter(array_map(function ($link) {
+                        try {
+                            $resolvedLink = call_user_func($this->resolveLinkFunction, $link);
+                        } catch (LinkUnresolvableException $e) {
+                            //if the link is unresolvable we should consider it not published and return null so this is filtered out
+                            return null;
+                        }
+
+                        return $resolvedLink;
+                    }, $this->fields[$key]));
                 }
 
                 return $this->resolvedLinks[$key];

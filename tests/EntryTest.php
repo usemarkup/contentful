@@ -3,6 +3,7 @@
 namespace Markup\Contentful\Tests;
 
 use Markup\Contentful\Entry;
+use Markup\Contentful\Exception\LinkUnresolvableException;
 use Mockery as m;
 
 class EntryTest extends \PHPUnit_Framework_TestCase
@@ -59,5 +60,34 @@ class EntryTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals('bar', $this->entry->foo());
         $this->assertEquals(null, $this->entry->baz());
+    }
+
+    public function testUnresolvedLinkFiltersOutFromList()
+    {
+        $link = m::mock('Markup\Contentful\Link')->shouldIgnoreMissing();
+        $callback = function ($link) {
+            throw new LinkUnresolvableException($link);
+        };
+        $fields = [
+            'assets' => [$link],
+        ];
+        $entry = new Entry($fields, $this->metadata);
+        $entry->setResolveLinkFunction($callback);
+        $assets = $entry['assets'];
+        $this->assertCount(0, $assets);
+    }
+
+    public function testUnresolvedSingleLinkEmitsNull()
+    {
+        $link = m::mock('Markup\Contentful\Link')->shouldIgnoreMissing();
+        $callback = function ($link) {
+            throw new LinkUnresolvableException($link);
+        };
+        $fields = [
+            'asset' => $link,
+        ];
+        $entry = new Entry($fields, $this->metadata);
+        $entry->setResolveLinkFunction($callback);
+        $this->assertNull($entry['asset']);
     }
 }
