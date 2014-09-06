@@ -32,11 +32,6 @@ class Contentful
     private $guzzle;
 
     /**
-     * @var CacheItemPoolInterface
-     */
-    private $cache;
-
-    /**
      * @var LoggerInterface
      */
     private $logger;
