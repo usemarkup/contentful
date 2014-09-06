@@ -7,6 +7,7 @@ use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Event\SubscriberInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Message\RequestInterface;
+use GuzzleHttp\Message\ResponseInterface;
 use Markup\Contentful\Cache\NullCacheItemPool;
 use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Log\LoggerInterface;
@@ -125,13 +126,13 @@ class Contentful
     }
 
     /**
-     * @param FilterInterface $filters
-     * @param string          $spaceName
-     * @param array           $options
+     * @param ParameterInterface[] $parameters
+     * @param string               $spaceName
+     * @param array                $options
      * @return EntryInterface[]
      * @throws Exception\ResourceUnavailableException
      */
-    public function getEntries(array $filters = [], $spaceName = null, array $options = [])
+    public function getEntries(array $parameters = [], $spaceName = null, array $options = [])
     {
         $spaceData = $this->getSpaceDataForName($spaceName);
 
@@ -142,7 +143,7 @@ class Contentful
             self::CONTENT_DELIVERY_API,
             'entries',
             '',
-            $filters,
+            $parameters,
             $options
         );
     }
@@ -230,21 +231,21 @@ class Contentful
     }
 
     /**
-     * @param array             $spaceData
-     * @param string            $endpointUrl
-     * @param string            $exceptionMessage
-     * @param string            $api
-     * @param string            $queryType The query type - e.g. "entries" for getEntries(), "asset" for getAsset(), etc
-     * @param string            $cacheDisambiguator A string that can disambiguate the individual query, beyond any filter provided
-     * @param FilterInterface[] $filters
+     * @param array                $spaceData
+     * @param string               $endpointUrl
+     * @param string               $exceptionMessage
+     * @param string               $api
+     * @param string               $queryType The query type - e.g. "entries" for getEntries(), "asset" for getAsset(), etc
+     * @param string               $cacheDisambiguator A string that can disambiguate the individual query, beyond any parameter provided
+     * @param ParameterInterface[] $parameters
      * @return ResourceInterface
      */
-    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, $queryType = null, $cacheDisambiguator = '', array $filters, array $options)
+    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, $queryType = null, $cacheDisambiguator = '', array $parameters, array $options)
     {
         $timer = $this->logger->getStartedTimer();
         $options = $this->mergeOptions($options);
         //only use cache if this is a Content Delivery API request
-        $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $cacheDisambiguator, $filters);
+        $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $cacheDisambiguator, $parameters);
         $cache = $this->ensureCache($spaceData['cache']);
         $cacheItem = $cache->getItem($cacheKey);
         if ($api === self::CONTENT_DELIVERY_API && $cacheItem->isHit()) {
@@ -262,15 +263,18 @@ class Contentful
         if (null !== $options['include_level']) {
             $request->getQuery()->set('include', $options['include_level']);
         }
-        //set filters onto the request
-        foreach ($filters as $filter) {
+        //set parameters onto the request
+        foreach ($parameters as $param) {
             /**
-             * @var FilterInterface $filter
+             * @var ParameterInterface $param
              */
-            $request->getQuery()->set($filter->getKey(), $filter->getValue());
+            $request->getQuery()->set($param->getKey(), $param->getValue());
         }
 
         try {
+            /**
+             * @var ResponseInterface $response
+             */
             $response = $this->guzzle->send($request);
         } catch (RequestException $e) {
             throw new ResourceUnavailableException($e->getResponse(), $exceptionMessage, 0, $e);
@@ -384,6 +388,10 @@ class Contentful
         return $resourceBuilder->buildFromData($data);
     }
 
+    /**
+     * @param array $options
+     * @return array
+     */
     private function mergeOptions(array $options)
     {
         $defaultOptions = [
@@ -397,29 +405,29 @@ class Contentful
      * @param string $spaceKey
      * @param string $queryType
      * @param string $disambiguator
-     * @param FilterInterface[] $filters
+     * @param ParameterInterface[] $parameters
      * @return string
      */
-    private function generateCacheKey($spaceKey, $queryType, $disambiguator, array $filters = [])
+    private function generateCacheKey($spaceKey, $queryType, $disambiguator, array $parameters = [])
     {
         $key = $spaceKey . '-' . $queryType;
         if ($disambiguator) {
             $key .= ':' . $disambiguator;
         }
-        if (count($filters) > 0) {
-            //sort filters by name, then key
-            $filterSort = function (FilterInterface $filter1, FilterInterface $filter2) {
-                $nameCompare = strcmp($filter1->getName(), $filter2->getName());
+        if (count($parameters) > 0) {
+            //sort parameters by name, then key
+            $paramSort = function (ParameterInterface $param1, ParameterInterface $param2) {
+                $nameCompare = strcmp($param1->getName(), $param2->getName());
                 if ($nameCompare !== 0) {
                     return $nameCompare;
                 }
 
-                return strcmp($filter1->getKey(), $filter2->getKey());
+                return strcmp($param1->getKey(), $param2->getKey());
             };
-            usort($filters, $filterSort);
-            $key .= '-' . implode(',', array_map(function (FilterInterface $filter) {
-                return sprintf('(%s)%s:%s', $filter->getName(), $filter->getKey(), $filter->getValue());
-            }, $filters));
+            usort($parameters, $paramSort);
+            $key .= '-' . implode(',', array_map(function (ParameterInterface $param) {
+                return sprintf('(%s)%s:%s', $param->getName(), $param->getKey(), $param->getValue());
+            }, $parameters));
         }
 
         return $key;
