@@ -152,7 +152,7 @@ class ResourceBuilder
 
                 return new ResourceArray(
                     array_map(function ($itemData) {
-                        return $this->buildFromData($itemData);
+                        return $this->resolveResourceDataToEnvelopeResource($itemData) ?: $this->buildFromData($itemData);
                     }, $data['items']),
                     intval($data['total']),
                     intval($data['limit']),
@@ -221,6 +221,30 @@ class ResourceBuilder
         }
 
         return $metadata;
+    }
+
+    /**
+     * @param array $data
+     * @return ResourceInterface|null
+     */
+    private function resolveResourceDataToEnvelopeResource(array $data)
+    {
+        if (!isset($data['sys']['id']) || !isset($data['sys']['type'])) {
+            return null;
+        }
+        switch ($data['sys']['type']) {
+            case 'Entry':
+                return $this->envelope->findEntry($data['sys']['id']);
+                break;
+            case 'Asset':
+                return $this->envelope->findAsset($data['sys']['id']);
+                break;
+            case 'ContentType':
+                return $this->envelope->findContentType($data['sys']['id']);
+                break;
+            default:
+                return null;
+        }
     }
 
     /**
