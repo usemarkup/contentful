@@ -16,6 +16,16 @@ class ResourceBuilder
     private $useDynamicEntries;
 
     /**
+     * @var ResourceEnvelope
+     */
+    private $envelope;
+
+    public function __construct()
+    {
+        $this->envelope = new ResourceEnvelope();
+    }
+
+    /**
      * @param array $data
      * @param ResourceEnvelope $envelope An envelope of already-resolved entries and assets.
      * @return mixed A Contentful resource.
@@ -130,16 +140,16 @@ class ResourceBuilder
 
                 return new Link($metadata);
             case 'Array':
-                $arrayEnvelope = $this->buildEnvelope((isset($data['includes'])) ? $data['includes'] : []);
+                $this->addToEnvelope((isset($data['includes'])) ? $data['includes'] : []);
 
                 return new ResourceArray(
-                    array_map(function ($itemData) use ($arrayEnvelope) {
-                        return $this->buildFromData($itemData, $arrayEnvelope);
+                    array_map(function ($itemData) {
+                        return $this->buildFromData($itemData, $this->envelope);
                     }, $data['items']),
                     intval($data['total']),
                     intval($data['limit']),
                     intval($data['skip']),
-                    $arrayEnvelope
+                    $this->envelope
                 );
             default:
                 break;
@@ -240,20 +250,25 @@ class ResourceBuilder
      * @param array $includesData Raw data from a search response in an 'includes' node
      * @return ResourceEnvelope
      */
-    private function buildEnvelope(array $includesData)
+    private function addToEnvelope(array $includesData)
     {
-        $envelope = new ResourceEnvelope();
         if (isset($includesData['Entry'])) {
             foreach ($includesData['Entry'] as $entryData) {
-                $envelope->insertEntry($this->buildFromData($entryData));
+                if (!isset($entryData['sys']['id']) || $this->envelope->hasEntry($entryData['sys']['id'])) {
+                    continue;
+                }
+                $this->envelope->insertEntry($this->buildFromData($entryData));
             }
         }
         if (isset($includesData['Asset'])) {
             foreach ($includesData['Asset'] as $assetData) {
-                $envelope->insertAsset($this->buildFromData($assetData));
+                if (!isset($entryData['sys']['id']) || $this->envelope->hasAsset($assetData['sys']['id'])) {
+                    continue;
+                }
+                $this->envelope->insertAsset($this->buildFromData($assetData));
             }
         }
 
-        return $envelope;
+        return $this->envelope;
     }
 }
