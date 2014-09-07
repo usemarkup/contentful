@@ -48,6 +48,11 @@ class Contentful
     private $useDynamicEntries;
 
     /**
+     * @var ResourceEnvelope
+     */
+    private $envelope;
+
+    /**
      * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value and a 'cache' value which is a cache that follows PSR-6.
      * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), and 'include_level' (the levels of linked content to include in responses by default)
      */
@@ -75,6 +80,7 @@ class Contentful
         } else {
             $this->logger = ($options['logger'] instanceof LoggerInterface) ? $options['logger'] : new StandardLogger();
         }
+        $this->envelope = new ResourceEnvelope();
     }
 
     /**
@@ -107,6 +113,9 @@ class Contentful
      */
     public function getEntry($id, $spaceName = null, array $options = [])
     {
+        if ($this->envelope->hasEntry($id)) {
+            return $this->envelope->findEntry($id);
+        }
         $spaceData = $this->getSpaceDataForName($spaceName);
 
         return $this->doRequest(
@@ -151,6 +160,9 @@ class Contentful
      */
     public function getAsset($id, $spaceName = null, array $options = [])
     {
+        if ($this->envelope->hasAsset($id)) {
+            return $this->envelope->findAsset($id);
+        }
         $spaceData = $this->getSpaceDataForName($spaceName);
 
         return $this->doRequest(
@@ -378,7 +390,7 @@ class Contentful
     {
         static $resourceBuilder;
         if (empty($resourceBuilder)) {
-            $resourceBuilder = new ResourceBuilder();
+            $resourceBuilder = new ResourceBuilder($this->envelope);
             $resourceBuilder->setResolveLinkFunction(function (Link $link) {
                 return $this->resolveLink($link);
             });

@@ -20,22 +20,23 @@ class ResourceBuilder
      */
     private $envelope;
 
-    public function __construct()
+    /**
+     * @param ResourceEnvelope|null $envelope
+     */
+    public function __construct(ResourceEnvelope $envelope = null)
     {
-        $this->envelope = new ResourceEnvelope();
+        $this->envelope = $envelope ?: new ResourceEnvelope();
     }
 
     /**
      * @param array $data
-     * @param ResourceEnvelope $envelope An envelope of already-resolved entries and assets.
      * @return mixed A Contentful resource.
      */
-    public function buildFromData(array $data, ResourceEnvelope $envelope = null)
+    public function buildFromData(array $data)
     {
-        $envelope = $envelope ?: new ResourceEnvelope();
         if ($this->isArrayResourceData($data)) {
-            return array_map(function ($resourceData) use ($envelope) {
-                return $this->buildFromData($resourceData, $envelope);
+            return array_map(function ($resourceData) {
+                return $this->buildFromData($resourceData);
             }, $data);
         }
         $metadata = $this->buildMetadataFromSysData($data['sys']);
@@ -59,10 +60,10 @@ class ResourceBuilder
                 $fields = [];
                 foreach ($data['fields'] as $name => $fieldData) {
                     if ($this->isResourceData($fieldData)) {
-                        $fields[$name] = $this->buildFromData($fieldData, $envelope);
+                        $fields[$name] = $this->buildFromData($fieldData);
                     } elseif ($this->isArrayResourceData($fieldData)) {
-                        $fields[$name] = array_map(function ($itemData) use ($envelope) {
-                            return $this->buildFromData($itemData, $envelope);
+                        $fields[$name] = array_map(function ($itemData) {
+                            return $this->buildFromData($itemData);
                         }, $fieldData);
                     } else {
                         $fields[$name] = $fieldData;
@@ -123,13 +124,13 @@ class ResourceBuilder
             case 'Link':
                 switch ($metadata->getLinkType()) {
                     case 'Entry':
-                        $entry = $envelope->findEntry($metadata->getId());
+                        $entry = $this->envelope->findEntry($metadata->getId());
                         if ($entry) {
                             return $entry;
                         }
                         break;
                     case 'Asset':
-                        $asset = $envelope->findAsset($metadata->getId());
+                        $asset = $this->envelope->findAsset($metadata->getId());
                         if ($asset) {
                             return $asset;
                         }
