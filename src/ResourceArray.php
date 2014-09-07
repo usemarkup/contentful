@@ -27,18 +27,18 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
     private $limit;
 
     /**
-     * @var IncludesEnvelope
+     * @var ResourceEnvelope
      */
-    private $includesEnvelope;
+    private $envelope;
 
     /**
      * @param  $items
      * @param int $total
      * @param int $skip
      * @param int $limit
-     * @param IncludesEnvelope $envelope
+     * @param ResourceEnvelope $envelope
      */
-    public function __construct($items, $total, $skip, $limit, IncludesEnvelope $envelope = null)
+    public function __construct($items, $total, $skip, $limit, ResourceEnvelope $envelope = null)
     {
         if ($items instanceof \Traversable) {
             $this->items = array_values(iterator_to_array($items));
@@ -50,7 +50,7 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
         $this->total = $total;
         $this->skip = $skip;
         $this->limit = $limit;
-        $this->includesEnvelope = $envelope ?: new IncludesEnvelope();
+        $this->envelope = $envelope ?: new ResourceEnvelope();
     }
 
     /**
@@ -88,11 +88,11 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
     }
 
     /**
-     * @return IncludesEnvelope
+     * @return ResourceEnvelope
      */
-    public function getIncludesEnvelope()
+    public function getEnvelope()
     {
-        return $this->includesEnvelope;
+        return $this->envelope;
     }
 
     /**
