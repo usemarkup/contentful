@@ -80,10 +80,11 @@ class ResourceBuilder
                     }
                     $entry = new DynamicEntry($entry, $contentType);
                 }
+                $this->envelope->insertEntry($entry);
 
                 return $entry;
             case 'Asset':
-                return new Asset(
+                $asset = new Asset(
                     $data['fields']['title'],
                     (isset($data['fields']['description'])) ? $data['fields']['description'] : '',
                     new AssetFile(
@@ -94,6 +95,9 @@ class ResourceBuilder
                     ),
                     $metadata
                 );
+                $this->envelope->insertAsset($asset);
+
+                return $asset;
             case 'ContentType':
                 $buildContentTypeField = function ($fieldData) {
                     $options = [];
@@ -112,7 +116,7 @@ class ResourceBuilder
                     );
                 };
 
-                return new ContentType(
+                $contentType = new ContentType(
                     $data['name'],
                     $data['description'],
                     array_map(function ($fieldData) use ($buildContentTypeField) {
@@ -121,6 +125,9 @@ class ResourceBuilder
                     $metadata,
                     (isset($data['displayField'])) ? $data['displayField'] : null
                 );
+                $this->envelope->insertContentType($contentType);
+
+                return $contentType;
             case 'Link':
                 switch ($metadata->getLinkType()) {
                     case 'Entry':
@@ -145,7 +152,7 @@ class ResourceBuilder
 
                 return new ResourceArray(
                     array_map(function ($itemData) {
-                        return $this->buildFromData($itemData, $this->envelope);
+                        return $this->buildFromData($itemData);
                     }, $data['items']),
                     intval($data['total']),
                     intval($data['limit']),

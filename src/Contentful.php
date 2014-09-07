@@ -184,6 +184,9 @@ class Contentful
      */
     public function getContentType($id, $spaceName = null, array $options = [])
     {
+        if ($this->envelope->hasContentType($id)) {
+            return $this->envelope->findContentType($id);
+        }
         $spaceData = $this->getSpaceDataForName($spaceName);
 
         return $this->doRequest(
