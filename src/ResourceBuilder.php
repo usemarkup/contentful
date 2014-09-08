@@ -152,7 +152,14 @@ class ResourceBuilder
 
                 return new ResourceArray(
                     array_map(function ($itemData) {
-                        return $this->resolveResourceDataToEnvelopeResource($itemData) ?: $this->buildFromData($itemData);
+                        $envelopeResource = $this->resolveResourceDataToEnvelopeResource($itemData);
+                        if ($envelopeResource) {
+                            return $envelopeResource;
+                        }
+                        $resource = $this->buildFromData($itemData);
+                        $this->insertResourceIntoEnvelope($resource);
+
+                        return $resource;
                     }, $data['items']),
                     intval($data['total']),
                     intval($data['limit']),
@@ -244,6 +251,26 @@ class ResourceBuilder
                 break;
             default:
                 return null;
+        }
+    }
+
+    /**
+     * @param ResourceInterface $resource
+     */
+    private function insertResourceIntoEnvelope(ResourceInterface $resource)
+    {
+        if ($resource instanceof EntryInterface) {
+            $this->envelope->insertEntry($resource);
+
+            return;
+        }
+        if ($resource instanceof ContentTypeInterface) {
+            $this->envelope->insertContentType($resource);
+
+            return;
+        }
+        if ($resource instanceof AssetInterface) {
+            $this->envelope->insertAsset($resource);
         }
     }
 
