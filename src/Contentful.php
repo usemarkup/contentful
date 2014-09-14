@@ -54,7 +54,7 @@ class Contentful
 
     /**
      * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value and a 'cache' value which is a cache that follows PSR-6.
-     * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), and 'include_level' (the levels of linked content to include in responses by default)
+     * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), 'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle) and 'include_level' (the levels of linked content to include in responses by default)
      */
     public function __construct(array $spaces, array $options = [])
     {
@@ -62,6 +62,10 @@ class Contentful
         $guzzleOptions = [];
         if (isset($options['guzzle_adapter']) && $options['guzzle_adapter'] instanceof AdapterInterface) {
             $guzzleOptions['adapter'] = $options['guzzle_adapter'];
+        }
+        if (isset($options['guzzle_timeout']) && intval($options['guzzle_timeout']) > 0) {
+            $guzzleOptions['defaults'] = [];
+            $guzzleOptions['defaults']['timeout'] = intval($options['guzzle_timeout']);
         }
         $this->guzzle = new GuzzleClient($guzzleOptions);
         if (isset($options['guzzle_event_subscribers'])) {
