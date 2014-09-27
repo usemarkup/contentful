@@ -53,7 +53,7 @@ class Contentful
     private $envelope;
 
     /**
-     * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value and a 'cache' value which is a cache that follows PSR-6.
+     * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value and 'cache'/'fallback_cache' values which are caches that follow PSR-6 (a fallback cache is for when lookups on the API fail).
      * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), 'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle) and 'include_level' (the levels of linked content to include in responses by default)
      */
     public function __construct(array $spaces, array $options = [])
@@ -290,12 +290,28 @@ class Contentful
             $request->getQuery()->set($param->getKey(), $param->getValue());
         }
 
+        $fallbackCache = $this->ensureCache($spaceData['fallback_cache']);
+        $getItemFromCache = function (CacheItemPoolInterface $pool) use ($cacheKey) {
+            return $pool->getItem($cacheKey);
+        };
         try {
             /**
              * @var ResponseInterface $response
              */
             $response = $this->guzzle->send($request);
         } catch (RequestException $e) {
+            $fallbackCacheItem = $getItemFromCache($fallbackCache);
+            if ($api === self::CONTENT_DELIVERY_API && $fallbackCacheItem->isHit()) {
+                $fallbackJson = $fallbackCacheItem->get();
+                if (is_string($fallbackJson) && strlen($fallbackJson) > 0) {
+                    $this->logger->log(sprintf('Fetched response from fallback cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESOURCE, $this->getLogResourceTypeForQueryType($queryType));
+                    //save fallback value into main cache
+                    $cacheItem->set($fallbackJson);
+                    $cache->save($cacheItem);
+
+                    return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true));
+                }
+            }
             throw new ResourceUnavailableException($e->getResponse(), $exceptionMessage, 0, $e);
         }
         if ($response->getStatusCode() !== '200') {
@@ -310,8 +326,14 @@ class Contentful
         }
         //save into cache
         if ($api === self::CONTENT_DELIVERY_API) {
-            $cacheItem->set(json_encode($response->json()));
+            $responseJson = json_encode($response->json());
+            $cacheItem->set($responseJson);
             $cache->save($cacheItem);
+            if (!isset($fallbackCacheItem)) {
+                $fallbackCacheItem = $getItemFromCache($fallbackCache);
+            }
+            $fallbackCacheItem->set($responseJson);
+            $fallbackCache->save($fallbackCacheItem);
         }
         $this->logger->log(sprintf('Fetched a fresh response from URL "%s".', $request->getUrl()), false, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType));
 
@@ -340,7 +362,7 @@ class Contentful
 
     private function getSpaceDataForName($spaceName = null)
     {
-        $defaultData = ['cache' => null];
+        $defaultData = ['cache' => null, 'fallback_cache' => null];
         if ($spaceName) {
             if (!array_key_exists($spaceName, $this->spaces)) {
                 throw new \InvalidArgumentException(sprintf('The space with name "%s" is not known to this client.', $spaceName));
