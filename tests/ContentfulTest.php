@@ -305,8 +305,6 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $contentful->flushCache('test');
     }
 
-
-
     public function testResolveContentTypeLink()
     {
         $response = $this->getSuccessMockResponse($this->getContentTypeData(), '235345lj34h53j4h');
@@ -338,6 +336,34 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $this->assertContainsOnlyInstancesOf('Markup\Contentful\Log\LogInterface', $logs);
         $log = reset($logs);
         $this->assertEquals(LogInterface::RESOURCE_ENTRY, $log->getResourceType());
+    }
+
+    public function testUsePreviewApiForCachedGetEntriesCall()
+    {
+        $response = $this->getExplodyResponse();
+        $this->mockAdapter->setResponse($response);
+        $expectedCacheKey = 'jskdfjhsdfk-entries-preview-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $cachePool = $this->getMockCachePool();
+        $cacheItem = $this->getMockCacheItem();
+        $cachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->once()
+            ->andReturn($cacheItem);
+        $cacheItem
+            ->shouldReceive('isHit')
+            ->once()
+            ->andReturn(true);
+        $cacheItem
+            ->shouldReceive('get')
+            ->andReturn(json_encode($this->getEntriesData()));
+        $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool, 'preview_mode' => true]]);
+        $contentful = new Contentful($spaces, $this->options);
+        $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
+        $entries = $contentful->getEntries($parameters);
+        $entry = array_values(iterator_to_array($entries))[0];
+        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
+        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
     }
 
     private function getSuccessMockResponse($data, $accessToken)

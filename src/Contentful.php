@@ -21,6 +21,7 @@ class Contentful
 {
     const CONTENT_DELIVERY_API = 'cda';
     const CONTENT_MANAGEMENT_API = 'cma';
+    const PREVIEW_API = 'preview';
 
     /**
      * @var array
@@ -53,7 +54,7 @@ class Contentful
     private $envelope;
 
     /**
-     * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value and 'cache'/'fallback_cache' values which are caches that follow PSR-6 (a fallback cache is for when lookups on the API fail).
+     * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value, 'cache'/'fallback_cache' values which are caches that follow PSR-6 (a fallback cache is for when lookups on the API fail) and/or a 'preview_mode' value (Boolean) which determines whether read requests should use the Preview API (i.e. view draft items).
      * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), 'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle) and 'include_level' (the levels of linked content to include in responses by default)
      */
     public function __construct(array $spaces, array $options = [])
@@ -95,12 +96,13 @@ class Contentful
     public function getSpace($spaceName = null, array $options = [])
     {
         $spaceData = $this->getSpaceDataForName($spaceName);
+        $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
         return $this->doRequest(
             $spaceData,
-            $this->getEndpointUrl(sprintf('/spaces/%s', $spaceData['key']), self::CONTENT_DELIVERY_API),
+            $this->getEndpointUrl(sprintf('/spaces/%s', $spaceData['key']), $api),
             sprintf('The space "%s" was unavailable.', $spaceName),
-            self::CONTENT_DELIVERY_API,
+            $api,
             'space',
             '',
             [],
@@ -121,12 +123,13 @@ class Contentful
             return $this->envelope->findEntry($id);
         }
         $spaceData = $this->getSpaceDataForName($spaceName);
+        $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
         return $this->doRequest(
             $spaceData,
-            $this->getEndpointUrl(sprintf('/spaces/%s/entries/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
+            $this->getEndpointUrl(sprintf('/spaces/%s/entries/%s', $spaceData['key'], $id), $api),
             sprintf('The entry with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
-            self::CONTENT_DELIVERY_API,
+            $api,
             'entry',
             strval($id),
             [],
@@ -144,12 +147,13 @@ class Contentful
     public function getEntries(array $parameters = [], $spaceName = null, array $options = [])
     {
         $spaceData = $this->getSpaceDataForName($spaceName);
+        $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
         return $this->doRequest(
             $spaceData,
-            $this->getEndpointUrl(sprintf('/spaces/%s/entries', $spaceData['key']), self::CONTENT_DELIVERY_API),
+            $this->getEndpointUrl(sprintf('/spaces/%s/entries', $spaceData['key']), $api),
             sprintf('The entries from the space "%s" were unavailable.', $spaceName),
-            self::CONTENT_DELIVERY_API,
+            $api,
             'entries',
             '',
             $parameters,
@@ -168,12 +172,13 @@ class Contentful
             return $this->envelope->findAsset($id);
         }
         $spaceData = $this->getSpaceDataForName($spaceName);
+        $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
         return $this->doRequest(
             $spaceData,
-            $this->getEndpointUrl(sprintf('/spaces/%s/assets/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
+            $this->getEndpointUrl(sprintf('/spaces/%s/assets/%s', $spaceData['key'], $id), $api),
             sprintf('The asset with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
-            self::CONTENT_DELIVERY_API,
+            $api,
             'asset',
             strval($id),
             [],
@@ -192,12 +197,13 @@ class Contentful
             return $this->envelope->findContentType($id);
         }
         $spaceData = $this->getSpaceDataForName($spaceName);
+        $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
         return $this->doRequest(
             $spaceData,
-            $this->getEndpointUrl(sprintf('/spaces/%s/content_types/%s', $spaceData['key'], $id), self::CONTENT_DELIVERY_API),
+            $this->getEndpointUrl(sprintf('/spaces/%s/content_types/%s', $spaceData['key'], $id), $api),
             sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
-            self::CONTENT_DELIVERY_API,
+            $api,
             'content_type',
             strval($id),
             [],
@@ -264,10 +270,10 @@ class Contentful
         $timer = $this->logger->getStartedTimer();
         $options = $this->mergeOptions($options);
         //only use cache if this is a Content Delivery API request
-        $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $cacheDisambiguator, $parameters);
+        $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $api === self::PREVIEW_API, $cacheDisambiguator, $parameters);
         $cache = $this->ensureCache($spaceData['cache']);
         $cacheItem = $cache->getItem($cacheKey);
-        if ($api === self::CONTENT_DELIVERY_API && $cacheItem->isHit()) {
+        if ($api !== self::CONTENT_MANAGEMENT_API && $cacheItem->isHit()) {
             $cacheItemJson = $cacheItem->get();
             if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
                 $this->logger->log(sprintf('Fetched response from cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType));
@@ -362,7 +368,11 @@ class Contentful
 
     private function getSpaceDataForName($spaceName = null)
     {
-        $defaultData = ['cache' => null, 'fallback_cache' => null];
+        $defaultData = [
+            'cache' => null,
+            'fallback_cache' => null,
+            'preview_mode' => false,
+        ];
         if ($spaceName) {
             if (!array_key_exists($spaceName, $this->spaces)) {
                 throw new \InvalidArgumentException(sprintf('The space with name "%s" is not known to this client.', $spaceName));
@@ -380,7 +390,13 @@ class Contentful
      */
     private function getDomainForApi($api)
     {
-        return ($api === self::CONTENT_MANAGEMENT_API) ? 'api.contentful.com' : 'cdn.contentful.com';
+        $domainMap = [
+            self::CONTENT_DELIVERY_API => 'cdn.contentful.com',
+            self::PREVIEW_API => 'preview.contentful.com',
+            self::CONTENT_MANAGEMENT_API => 'api.contentful.com',
+        ];
+
+        return $domainMap[$api];
     }
 
     /**
@@ -445,13 +461,14 @@ class Contentful
     /**
      * @param string $spaceKey
      * @param string $queryType
+     * @param bool   $isPreview
      * @param string $disambiguator
      * @param ParameterInterface[] $parameters
      * @return string
      */
-    private function generateCacheKey($spaceKey, $queryType, $disambiguator, array $parameters = [])
+    private function generateCacheKey($spaceKey, $queryType, $isPreview, $disambiguator, array $parameters = [])
     {
-        $key = $spaceKey . '-' . $queryType;
+        $key = $spaceKey . '-' . $queryType . (($isPreview) ? '-preview' : '');
         if ($disambiguator) {
             $key .= ':' . $disambiguator;
         }
