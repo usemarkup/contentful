@@ -54,7 +54,13 @@ class Contentful
     private $envelope;
 
     /**
-     * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with 'key', 'access_token' and, optionally, an 'api_domain' value, 'cache'/'fallback_cache' values which are caches that follow PSR-6 (a fallback cache is for when lookups on the API fail) and/or a 'preview_mode' value (Boolean) which determines whether read requests should use the Preview API (i.e. view draft items).
+     * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with:
+     *                      'key', 'access_token'
+     *                      and, optionally:
+     *                      an 'api_domain' value
+     *                      'cache'/'fallback_cache' values which are caches that follow PSR-6 (a fallback cache is for when lookups on the API fail)
+     *                      a 'preview_mode' value (Boolean) which determines whether read requests should use the Preview API (i.e. view draft items)
+     *                      a 'retry_time_after_rate_limit_in_ms' value, which is the number of milliseconds after which a new request will be issued after a 429 (rate limit) response from the Contentful API (default: 750ms) - a falsy value here will mean no retry
      * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), 'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle) and 'include_level' (the levels of linked content to include in responses by default)
      */
     public function __construct(array $spaces, array $options = [])
@@ -318,6 +324,12 @@ class Contentful
                     return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true));
                 }
             }
+            //if there is a rate limit error, wait (if applicable)
+            if ($e->hasResponse() && $e->getResponse()->getStatusCode() === 429 && $spaceData['retry_time_after_rate_limit_in_ms']) {
+                usleep(intval($spaceData['retry_time_after_rate_limit_in_ms']));
+
+                return $this->doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, $queryType, $cacheDisambiguator, $parameters, $options);
+            }
             throw new ResourceUnavailableException($e->getResponse(), $exceptionMessage, 0, $e);
         }
         if ($response->getStatusCode() !== '200') {
@@ -372,6 +384,7 @@ class Contentful
             'cache' => null,
             'fallback_cache' => null,
             'preview_mode' => false,
+            'retry_time_after_rate_limit_in_ms' => 750,
         ];
         if ($spaceName) {
             if (!array_key_exists($spaceName, $this->spaces)) {
