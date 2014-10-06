@@ -325,7 +325,7 @@ class Contentful
                 }
             }
             //if there is a rate limit error, wait (if applicable)
-            if ($e->hasResponse() && $e->getResponse()->getStatusCode() === 429 && $spaceData['retry_time_after_rate_limit_in_ms']) {
+            if ($e->hasResponse() && $e->getResponse()->getStatusCode() === '429' && $spaceData['retry_time_after_rate_limit_in_ms']) {
                 usleep(intval($spaceData['retry_time_after_rate_limit_in_ms']));
 
                 return $this->doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, $queryType, $cacheDisambiguator, $parameters, $options);
