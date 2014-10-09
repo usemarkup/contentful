@@ -321,7 +321,7 @@ class ResourceBuilder
         }
         if (isset($includesData['Asset'])) {
             foreach ($includesData['Asset'] as $assetData) {
-                if (!isset($entryData['sys']['id']) || $this->envelope->hasAsset($assetData['sys']['id'])) {
+                if (!isset($assetData['sys']['id']) || $this->envelope->hasAsset($assetData['sys']['id'])) {
                     continue;
                 }
                 $this->envelope->insertAsset($this->buildFromData($assetData));
