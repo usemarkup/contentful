@@ -29,6 +29,18 @@ class ResourceArrayTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($item1, $array[0]);
     }
 
+    public function testIterationExcludesNull()
+    {
+        $item1 = $this->getMockEntry();
+        $item2 = $this->getMockEntry();
+        $items = ['item1' => $item1, 'item2' => $item2, 'item3' => null];
+        $total = 22;
+        $skip = 20;
+        $limit = 10;
+        $array = new ResourceArray($items, $total, $skip, $limit);
+        $this->assertEquals([$item1, $item2], iterator_to_array($array));
+    }
+
     private function getMockEntry()
     {
         return m::mock('Markup\Contentful\EntryInterface');

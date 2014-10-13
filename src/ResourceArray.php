@@ -40,10 +40,13 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
      */
     public function __construct($items, $total, $skip, $limit, ResourceEnvelope $envelope = null)
     {
+        $filterNonResource = function ($resource) {
+            return $resource instanceof ResourceInterface;
+        };
         if ($items instanceof \Traversable) {
-            $this->items = array_values(iterator_to_array($items));
+            $this->items = array_filter(array_values(iterator_to_array($items)), $filterNonResource);
         } elseif (is_array($items)) {
-            $this->items = array_values($items);
+            $this->items = array_filter(array_values($items), $filterNonResource);
         } else {
             throw new \InvalidArgumentException('Items parameter should be an array or a traversable object.');
         }
