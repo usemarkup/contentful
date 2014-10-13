@@ -19,7 +19,7 @@
         "psr/cache": "dev-master#599198e6f"
     },
     "require-dev": {
-        "phpunit/phpunit": "4.1.*",
+        "phpunit/phpunit": "4.*",
         "mockery/mockery": "~0.9"
     },
     "repositories": [
