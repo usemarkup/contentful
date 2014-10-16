@@ -35,7 +35,13 @@ class DynamicEntry implements EntryInterface
      */
     public function offsetExists($offset)
     {
-        return $this->entry->offsetExists($offset);
+        foreach ($this->contentType->getFields() as $field) {
+            if ($offset === $field->getId()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -27,17 +27,6 @@ class DynamicEntryTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Markup\Contentful\EntryInterface', $this->dynamicEntry);
     }
 
-    public function testOffsetExistsDelegates()
-    {
-        $key = 'key';
-        $this->entry
-            ->shouldReceive('offsetExists')
-            ->with($key)
-            ->once()
-            ->andReturn(true);
-        $this->assertTrue(isset($this->dynamicEntry[$key]));
-    }
-
     public function testCoercesToDate()
     {
         $key = 'date';
@@ -87,5 +76,27 @@ class DynamicEntryTest extends \PHPUnit_Framework_TestCase
             ->with($method)
             ->andReturn($value);
         $this->assertEquals($value, $this->dynamicEntry->$method());
+    }
+
+    public function testExistenceCheckChecksAgainstContentType()
+    {
+        $contentTypeFieldIds = ['yes', 'ja'];
+        $contentTypeFields = array_map(function ($id) {
+            $field = m::mock('Markup\Contentful\ContentTypeField');
+            $field
+                ->shouldReceive('getId')
+                ->andReturn($id);
+
+            return $field;
+        }, $contentTypeFieldIds);
+        $keyedFields = [];
+        foreach ($contentTypeFields as $field) {
+            $keyedFields[$field->getId()] = $field;
+        }
+        $this->contentType
+            ->shouldReceive('getFields')
+            ->andReturn($keyedFields);
+        $this->assertTrue(isset($this->dynamicEntry['ja']));
+        $this->assertFalse(isset($this->dynamicEntry['nein']));
     }
 }

@@ -2,7 +2,6 @@
 
 namespace Markup\Contentful;
 
-
 class ContentType implements ContentTypeInterface
 {
     use MetadataAccessTrait;
