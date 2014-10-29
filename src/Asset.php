@@ -27,7 +27,7 @@ class Asset implements AssetInterface
      * @param AssetFile $assetFile
      * @param MetadataInterface $metadata
      */
-    public function __construct($title, $description, AssetFile $assetFile, MetadataInterface $metadata)
+    public function __construct($title, $description, AssetFile $assetFile = null, MetadataInterface $metadata)
     {
         $this->title = $title;
         $this->description = $description;
@@ -56,7 +56,12 @@ class Asset implements AssetInterface
      */
     public function getFilename()
     {
-        return $this->getFile()->getFilename();
+        $file = $this->getFile();
+        if (!$file) {
+            return null;
+        }
+
+        return $file->getFilename();
     }
 
     /**
@@ -66,7 +71,12 @@ class Asset implements AssetInterface
      */
     public function getContentType()
     {
-        return $this->getFile()->getContentType();
+        $file = $this->getFile();
+        if (!$file) {
+            return null;
+        }
+
+        return $file->getContentType();
     }
 
     /**
@@ -74,7 +84,11 @@ class Asset implements AssetInterface
      */
     public function getUrl()
     {
-        return $this->getFile()->getUrl();
+        $file = $this->getFile();
+        if (!$file) {
+            return null;
+        }
+        return $file->getUrl();
     }
 
     /**
@@ -82,7 +96,12 @@ class Asset implements AssetInterface
      */
     public function getDetails()
     {
-        return $this->getFile()->getDetails();
+        $file = $this->getFile();
+        if (!$file) {
+            return [];
+        }
+
+        return $file->getDetails();
     }
 
     /**
@@ -90,11 +109,16 @@ class Asset implements AssetInterface
      */
     public function getFileSizeInBytes()
     {
-        return $this->getFile()->getFileSizeInBytes();
+        $file = $this->getFile();
+        if (!$file) {
+            return null;
+        }
+
+        return $file->getFileSizeInBytes();
     }
 
     /**
-     * @return AssetFile
+     * @return AssetFile|null
      */
     private function getFile()
     {
