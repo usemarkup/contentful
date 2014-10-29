@@ -58,15 +58,17 @@ class ResourceBuilder
                 return new Space($data['name'], $metadata, $locales, $defaultLocale);
             case 'Entry':
                 $fields = [];
-                foreach ($data['fields'] as $name => $fieldData) {
-                    if ($this->isResourceData($fieldData)) {
-                        $fields[$name] = $this->buildFromData($fieldData);
-                    } elseif ($this->isArrayResourceData($fieldData)) {
-                        $fields[$name] = array_map(function ($itemData) {
-                            return $this->buildFromData($itemData);
-                        }, $fieldData);
-                    } else {
-                        $fields[$name] = $fieldData;
+                if (isset($data['fields'])) {
+                    foreach ($data['fields'] as $name => $fieldData) {
+                        if ($this->isResourceData($fieldData)) {
+                            $fields[$name] = $this->buildFromData($fieldData);
+                        } elseif ($this->isArrayResourceData($fieldData)) {
+                            $fields[$name] = array_map(function ($itemData) {
+                                return $this->buildFromData($itemData);
+                            }, $fieldData);
+                        } else {
+                            $fields[$name] = $fieldData;
+                        }
                     }
                 }
                 $entry = new Entry($fields, $metadata);
