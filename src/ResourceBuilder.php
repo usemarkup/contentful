@@ -87,7 +87,7 @@ class ResourceBuilder
                 return $entry;
             case 'Asset':
                 $asset = new Asset(
-                    $data['fields']['title'],
+                    (isset($data['fields']['title'])) ? $data['fields']['title'] : '',
                     (isset($data['fields']['description'])) ? $data['fields']['description'] : '',
                     new AssetFile(
                         $data['fields']['file']['fileName'],
