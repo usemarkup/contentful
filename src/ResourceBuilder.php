@@ -92,8 +92,8 @@ class ResourceBuilder
                     new AssetFile(
                         $data['fields']['file']['fileName'],
                         $data['fields']['file']['contentType'],
-                        $data['fields']['file']['details'],
-                        $data['fields']['file']['url']
+                        (isset($data['fields']['file']['details'])) ? $data['fields']['file']['details'] : [],
+                        (isset($data['fields']['file']['url'])) ? $data['fields']['file']['url'] : $data['fields']['file']['upload']
                     ),
                     $metadata
                 );

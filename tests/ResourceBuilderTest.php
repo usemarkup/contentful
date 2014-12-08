@@ -127,6 +127,39 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('nyancat', $asset->getId());
     }
 
+    public function testBuildAssetFromUploadDataForm()
+    {
+        $data = [
+            'sys' => [
+                'type' => 'Asset',
+                'id' => 'nyancat',
+                'space' => [
+                    'sys' => [
+                        'type' => 'Link',
+                        'linkType' => 'Space',
+                        'id' => 'example',
+                    ],
+                ],
+                'createdAt' => '2013-03-26T00:13:37.123Z',
+                'updatedAt' => '2013-03-26T00:13:37.123Z',
+                'revision' => 1,
+            ],
+            'fields' => [
+                'title' => 'Nyan cat',
+                'description' => 'A typical picture of Nyancat including the famous rainbow trail.',
+                'file' => [
+                    'fileName' => 'nyancat.png',
+                    'contentType' => 'image/png',
+                    'upload' => '//images.contentful.com/cfexampleapi/4gp6taAwW4CmSgumq2ekUm/9da0cd1936871b8d72343e895a00d611/Nyan_cat_250px_frame.png',
+                ],
+            ],
+        ];
+        $asset = $this->builder->buildFromData($data);
+        $this->assertInstanceOf('Markup\Contentful\AssetInterface', $asset);
+        $this->assertEquals('//images.contentful.com/cfexampleapi/4gp6taAwW4CmSgumq2ekUm/9da0cd1936871b8d72343e895a00d611/Nyan_cat_250px_frame.png', $asset->getUrl());
+        $this->assertNull($asset->getFileSizeInBytes());
+    }
+
     public function testBuildContentType()
     {
         $data = [
