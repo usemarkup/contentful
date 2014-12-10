@@ -3,6 +3,9 @@
 namespace Markup\Contentful;
 
 
+use Markup\Contentful\Decorator\AssetDecoratorInterface;
+use Markup\Contentful\Decorator\NullAssetDecorator;
+
 class ResourceBuilder
 {
     /**
@@ -29,11 +32,13 @@ class ResourceBuilder
     }
 
     /**
-     * @param array $data
+     * @param array                   $data
+     * @param AssetDecoratorInterface $assetDecorator
      * @return mixed A Contentful resource.
      */
-    public function buildFromData(array $data)
+    public function buildFromData(array $data, AssetDecoratorInterface $assetDecorator = null)
     {
+        $assetDecorator = $assetDecorator ?: new NullAssetDecorator();
         if ($this->isArrayResourceData($data)) {
             return array_map(function ($resourceData) {
                 return $this->buildFromData($resourceData);
@@ -97,6 +102,7 @@ class ResourceBuilder
                     ),
                     $metadata
                 );
+                $asset = $assetDecorator->decorate($asset);
                 $this->envelope->insertAsset($asset);
 
                 return $asset;

@@ -112,6 +112,31 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
 
     public function testGetAsset()
     {
+        $response = $this->getSuccessAssetResponse();
+        $this->mockAdapter->setResponse($response);
+        $asset = $this->contentful->getAsset('nyancat');
+        $this->assertInstanceOf('Markup\Contentful\AssetInterface', $asset);
+        $this->assertEquals(1, $asset->getRevision());
+    }
+
+    public function testGetAssetDecorates()
+    {
+        $assetDecorator = m::mock('Markup\Contentful\Decorator\AssetDecoratorInterface');
+        $decoratedAsset = m::mock('Markup\Contentful\AssetInterface')->shouldIgnoreMissing();
+        $assetDecorator
+            ->shouldReceive('decorate')
+            ->with(m::type('Markup\Contentful\AssetInterface'))
+            ->andReturn($decoratedAsset);
+        $spaces = array_merge_recursive($this->spaces, ['test' => ['asset_decorator' => $assetDecorator]]);
+        $contentful = new Contentful($spaces, $this->options);
+        $response = $this->getSuccessAssetResponse();
+        $this->mockAdapter->setResponse($response);
+        $asset = $contentful->getAsset('nyancat');
+        $this->assertSame($asset, $decoratedAsset);
+    }
+
+    private function getSuccessAssetResponse()
+    {
         $data = [
             'sys' => [
                 'type' => 'Asset',
@@ -144,11 +169,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
-        $asset = $this->contentful->getAsset('nyancat');
-        $this->assertInstanceOf('Markup\Contentful\AssetInterface', $asset);
-        $this->assertEquals(1, $asset->getRevision());
+        return $this->getSuccessMockResponse($data, '235345lj34h53j4h');
     }
 
     public function testGetContentType()

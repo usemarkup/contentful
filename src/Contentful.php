@@ -9,6 +9,8 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Message\RequestInterface;
 use GuzzleHttp\Message\ResponseInterface;
 use Markup\Contentful\Cache\NullCacheItemPool;
+use Markup\Contentful\Decorator\AssetDecoratorInterface;
+use Markup\Contentful\Decorator\NullAssetDecorator;
 use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Log\LoggerInterface;
@@ -61,6 +63,7 @@ class Contentful
      *                      'cache'/'fallback_cache' values which are caches that follow PSR-6 (a fallback cache is for when lookups on the API fail)
      *                      a 'preview_mode' value (Boolean) which determines whether read requests should use the Preview API (i.e. view draft items)
      *                      a 'retry_time_after_rate_limit_in_ms' value, which is the number of milliseconds after which a new request will be issued after a 429 (rate limit) response from the Contentful API (default: 750ms) - a falsy value here will mean no retry
+     *                      an 'asset_decorator' value, which must be an object implementing AssetDecoratorInterface - any asset being generated in this space will be decorated by this on the way out
      * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), 'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle) and 'include_level' (the levels of linked content to include in responses by default)
      */
     public function __construct(array $spaces, array $options = [])
@@ -355,7 +358,9 @@ class Contentful
         }
         $this->logger->log(sprintf('Fetched a fresh response from URL "%s".', $request->getUrl()), false, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType));
 
-        return $this->buildResponseFromRaw($response->json());
+        $assetDecorator = $this->ensureAssetDecorator($spaceData['asset_decorator']);
+
+        return $this->buildResponseFromRaw($response->json(), $assetDecorator);
     }
 
     /**
@@ -385,6 +390,7 @@ class Contentful
             'fallback_cache' => null,
             'preview_mode' => false,
             'retry_time_after_rate_limit_in_ms' => 750,
+            'asset_decorator' => null,
         ];
         if ($spaceName) {
             if (!array_key_exists($spaceName, $this->spaces)) {
@@ -442,9 +448,10 @@ class Contentful
 
     /**
      * @param array $data
+     * @param AssetDecoratorInterface $assetDecorator
      * @return ResourceInterface
      */
-    private function buildResponseFromRaw(array $data)
+    private function buildResponseFromRaw(array $data, AssetDecoratorInterface $assetDecorator = null)
     {
         static $resourceBuilder;
         if (empty($resourceBuilder)) {
@@ -455,7 +462,7 @@ class Contentful
             $resourceBuilder->setUseDynamicEntries($this->useDynamicEntries);
         }
 
-        return $resourceBuilder->buildFromData($data);
+        return $resourceBuilder->buildFromData($data, $assetDecorator ?: new NullAssetDecorator());
     }
 
     /**
@@ -514,6 +521,21 @@ class Contentful
     {
         if (!$candidate instanceof CacheItemPoolInterface) {
             return new NullCacheItemPool();
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * Ensures a cache by passing through a passed in asset decorator, or returning a null asset decorator if arg is not an asset decorator.
+     *
+     * @param mixed $candidate
+     * @return AssetDecoratorInterface
+     */
+    private function ensureAssetDecorator($candidate)
+    {
+        if (!$candidate instanceof AssetDecoratorInterface) {
+            return new NullAssetDecorator();
         }
 
         return $candidate;
