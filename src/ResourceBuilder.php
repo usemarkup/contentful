@@ -39,10 +39,11 @@ class ResourceBuilder
     public function buildFromData(array $data, AssetDecoratorInterface $assetDecorator = null)
     {
         $assetDecorator = $assetDecorator ?: new NullAssetDecorator();
+        $buildFromData = function ($data) use ($assetDecorator) {
+            return $this->buildFromData($data, $assetDecorator);
+        };
         if ($this->isArrayResourceData($data)) {
-            return array_map(function ($resourceData) {
-                return $this->buildFromData($resourceData);
-            }, $data);
+            return array_map($buildFromData, $data);
         }
         $metadata = $this->buildMetadataFromSysData($data['sys']);
         if (!$metadata->getType()) {
@@ -66,10 +67,10 @@ class ResourceBuilder
                 if (isset($data['fields'])) {
                     foreach ($data['fields'] as $name => $fieldData) {
                         if ($this->isResourceData($fieldData)) {
-                            $fields[$name] = $this->buildFromData($fieldData);
+                            $fields[$name] = $this->buildFromData($fieldData, $assetDecorator);
                         } elseif ($this->isArrayResourceData($fieldData)) {
-                            $fields[$name] = array_map(function ($itemData) {
-                                return $this->buildFromData($itemData);
+                            $fields[$name] = array_map(function ($itemData) use ($assetDecorator) {
+                                return $this->buildFromData($itemData, $assetDecorator);
                             }, $fieldData);
                         } else {
                             $fields[$name] = $fieldData;
@@ -156,15 +157,15 @@ class ResourceBuilder
 
                 return new Link($metadata);
             case 'Array':
-                $this->addToEnvelope((isset($data['includes'])) ? $data['includes'] : []);
+                $this->addToEnvelope((isset($data['includes'])) ? $data['includes'] : [], $buildFromData);
 
                 return new ResourceArray(
-                    array_map(function ($itemData) {
+                    array_map(function ($itemData) use ($assetDecorator) {
                         $envelopeResource = $this->resolveResourceDataToEnvelopeResource($itemData);
                         if ($envelopeResource) {
                             return $envelopeResource;
                         }
-                        $resource = $this->buildFromData($itemData);
+                        $resource = $this->buildFromData($itemData, $assetDecorator);
                         $this->insertResourceIntoEnvelope($resource);
 
                         return $resource;
@@ -317,14 +318,14 @@ class ResourceBuilder
      * @param array $includesData Raw data from a search response in an 'includes' node
      * @return ResourceEnvelope
      */
-    private function addToEnvelope(array $includesData)
+    private function addToEnvelope(array $includesData, callable $buildFromData)
     {
         if (isset($includesData['Entry'])) {
             foreach ($includesData['Entry'] as $entryData) {
                 if (!isset($entryData['sys']['id']) || $this->envelope->hasEntry($entryData['sys']['id'])) {
                     continue;
                 }
-                $this->envelope->insertEntry($this->buildFromData($entryData));
+                $this->envelope->insertEntry($buildFromData($entryData));
             }
         }
         if (isset($includesData['Asset'])) {
@@ -332,7 +333,7 @@ class ResourceBuilder
                 if (!isset($assetData['sys']['id']) || $this->envelope->hasAsset($assetData['sys']['id'])) {
                     continue;
                 }
-                $this->envelope->insertAsset($this->buildFromData($assetData));
+                $this->envelope->insertAsset($buildFromData($assetData));
             }
         }
 
