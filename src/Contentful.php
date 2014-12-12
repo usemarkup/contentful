@@ -263,7 +263,7 @@ class Contentful
      */
     public function getContentTypeByName($name, $spaceName = null, array $options = [])
     {
-        $contentTypes = $this->getContentTypes([new EqualFilter(new FieldProperty('name'), $name)], $spaceName, $options);
+        $contentTypes = $this->getContentTypes([], $spaceName, $options);
         foreach ($contentTypes as $contentType) {
             if ($contentType->getName() === $name) {
                 return $contentType;
