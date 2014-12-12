@@ -13,10 +13,12 @@ use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\Decorator\NullAssetDecorator;
 use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Exception\ResourceUnavailableException;
+use Markup\Contentful\Filter\EqualFilter;
 use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Log\NullLogger;
 use Markup\Contentful\Log\StandardLogger;
+use Markup\Contentful\Property\FieldProperty;
 use Psr\Cache\CacheItemPoolInterface;
 
 class Contentful
@@ -241,6 +243,26 @@ class Contentful
             $parameters,
             $options
         );
+    }
+
+    /**
+     * Gets a content type using its name. Assumes content types have unique names. Returns null if no content type with the given name can be found.
+     *
+     * @param string $name
+     * @param string $spaceName
+     * @param array  $options
+     * @return ContentTypeInterface|null
+     */
+    public function getContentTypeByName($name, $spaceName = null, array $options = [])
+    {
+        $contentTypes = $this->getContentTypes([new EqualFilter(new FieldProperty('name'), $name)], $spaceName, $options);
+        foreach ($contentTypes as $contentType) {
+            if ($contentType->getName() === $name) {
+                return $contentType;
+            }
+        }
+
+        return null;
     }
 
     /**

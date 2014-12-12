@@ -364,6 +364,25 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $this->assertContainsOnlyInstancesOf('Markup\Contentful\ContentTypeInterface', $contentTypes);
     }
 
+    public function testGetContentTypeByNameWhenExists()
+    {
+        $data = [$this->getContentTypeData()];
+        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
+        $this->mockAdapter->setResponse($response);
+        $name = 'Cat';
+        $contentType = $this->contentful->getContentTypeByName($name);
+        $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
+        $this->assertEquals($name, $contentType->getName());
+    }
+
+    public function testGetContentTypeByNameWhenDoesNotExists()
+    {
+        $data = [$this->getContentTypeData()];
+        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
+        $this->mockAdapter->setResponse($response);
+        $this->assertNull($this->contentful->getContentTypeByName('Dog'));
+    }
+
     private function getSuccessMockResponse($data, $accessToken)
     {
         return function (TransactionInterface $transaction) use ($data, $accessToken) {
