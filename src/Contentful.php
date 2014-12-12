@@ -15,12 +15,10 @@ use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Filter\ContentTypeFilterProvider;
 use Markup\Contentful\Filter\ContentTypeNameFilter;
-use Markup\Contentful\Filter\EqualFilter;
 use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Log\NullLogger;
 use Markup\Contentful\Log\StandardLogger;
-use Markup\Contentful\Property\FieldProperty;
 use Psr\Cache\CacheItemPoolInterface;
 
 class Contentful
