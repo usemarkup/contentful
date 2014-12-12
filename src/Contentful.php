@@ -221,6 +221,29 @@ class Contentful
     }
 
     /**
+     * @param array   $parameters
+     * @param string  $spaceName
+     * @param array   $options
+     * @return ContentTypeInterface[]
+     */
+    public function getContentTypes(array $parameters = [], $spaceName = null, array $options = [])
+    {
+        $spaceData = $this->getSpaceDataForName($spaceName);
+        $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
+
+        return $this->doRequest(
+            $spaceData,
+            $this->getEndpointUrl(sprintf('/spaces/%s/content_types', $spaceData['key']), $api),
+            sprintf('The content types from the space "%s" were unavailable.', $spaceName),
+            $api,
+            'content_types',
+            '',
+            $parameters,
+            $options
+        );
+    }
+
+    /**
      * @param Link $link
      * @return ResourceInterface
      */

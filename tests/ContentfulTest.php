@@ -174,40 +174,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
 
     public function testGetContentType()
     {
-        $data = [
-            'sys' => [
-                'type' => 'ContentType',
-                'id' => 'cat',
-            ],
-            'name' => 'Cat',
-            'description' => 'Meow.',
-            'fields' => [
-                [
-                    'id' => 'name',
-                    'name' => 'Name',
-                    'type' => 'Text',
-                    'localized' => true,
-                ],
-                [
-                    'id' => 'diary',
-                    'name' => 'Diary',
-                    'type' => 'Text',
-                ],
-                [
-                    'id' => 'likes',
-                    'name' => 'Likes',
-                    'type' => 'Array',
-                    'items' => [
-                        'type' => 'Symbol',
-                    ],
-                ],
-                [
-                    'id' => 'lifes',
-                    'name' => 'Lifes left',
-                    'type' => 'Integer',
-                ],
-            ],
-        ];
+        $data = $this->getContentTypeData();
         $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
         $this->mockAdapter->setResponse($response);
         $contentType = $this->contentful->getContentType('cat');
@@ -385,6 +352,16 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $entry = array_values(iterator_to_array($entries))[0];
         $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
         $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
+    }
+
+    public function testGetContentTypes()
+    {
+        $data = [$this->getContentTypeData()];
+        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
+        $this->mockAdapter->setResponse($response);
+        $contentTypes = $this->contentful->getContentTypes();
+        $this->assertCount(1, $contentTypes);
+        $this->assertContainsOnlyInstancesOf('Markup\Contentful\ContentTypeInterface', $contentTypes);
     }
 
     private function getSuccessMockResponse($data, $accessToken)
