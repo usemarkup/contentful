@@ -13,6 +13,8 @@ use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\Decorator\NullAssetDecorator;
 use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Exception\ResourceUnavailableException;
+use Markup\Contentful\Filter\ContentTypeFilterProvider;
+use Markup\Contentful\Filter\ContentTypeNameFilter;
 use Markup\Contentful\Filter\EqualFilter;
 use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
@@ -111,6 +113,7 @@ class Contentful
 
         return $this->doRequest(
             $spaceData,
+            $spaceName,
             $this->getEndpointUrl(sprintf('/spaces/%s', $spaceData['key']), $api),
             sprintf('The space "%s" was unavailable.', $spaceName),
             $api,
@@ -138,6 +141,7 @@ class Contentful
 
         return $this->doRequest(
             $spaceData,
+            $spaceName,
             $this->getEndpointUrl(sprintf('/spaces/%s/entries/%s', $spaceData['key'], $id), $api),
             sprintf('The entry with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             $api,
@@ -162,6 +166,7 @@ class Contentful
 
         return $this->doRequest(
             $spaceData,
+            $spaceName,
             $this->getEndpointUrl(sprintf('/spaces/%s/entries', $spaceData['key']), $api),
             sprintf('The entries from the space "%s" were unavailable.', $spaceName),
             $api,
@@ -187,6 +192,7 @@ class Contentful
 
         return $this->doRequest(
             $spaceData,
+            $spaceName,
             $this->getEndpointUrl(sprintf('/spaces/%s/assets/%s', $spaceData['key'], $id), $api),
             sprintf('The asset with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             $api,
@@ -212,6 +218,7 @@ class Contentful
 
         return $this->doRequest(
             $spaceData,
+            $spaceName,
             $this->getEndpointUrl(sprintf('/spaces/%s/content_types/%s', $spaceData['key'], $id), $api),
             sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
             $api,
@@ -235,6 +242,7 @@ class Contentful
 
         return $this->doRequest(
             $spaceData,
+            $spaceName,
             $this->getEndpointUrl(sprintf('/spaces/%s/content_types', $spaceData['key']), $api),
             sprintf('The content types from the space "%s" were unavailable.', $spaceName),
             $api,
@@ -311,6 +319,7 @@ class Contentful
 
     /**
      * @param array                $spaceData
+     * @param string               $spaceName
      * @param string               $endpointUrl
      * @param string               $exceptionMessage
      * @param string               $api
@@ -319,7 +328,7 @@ class Contentful
      * @param ParameterInterface[] $parameters
      * @return ResourceInterface
      */
-    private function doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, $queryType = null, $cacheDisambiguator = '', array $parameters, array $options)
+    private function doRequest($spaceData, $spaceName, $endpointUrl, $exceptionMessage, $api, $queryType = null, $cacheDisambiguator = '', array $parameters, array $options)
     {
         $timer = $this->logger->getStartedTimer();
         $options = $this->mergeOptions($options);
@@ -347,6 +356,10 @@ class Contentful
             /**
              * @var ParameterInterface $param
              */
+            $param = $this->completeParameter($param, $spaceName);
+            if (!$param instanceof ParameterInterface) {
+                continue;
+            }
             $request->getQuery()->set($param->getKey(), $param->getValue());
         }
 
@@ -376,7 +389,7 @@ class Contentful
             if ($e->hasResponse() && $e->getResponse()->getStatusCode() === '429' && $spaceData['retry_time_after_rate_limit_in_ms']) {
                 usleep(intval($spaceData['retry_time_after_rate_limit_in_ms']));
 
-                return $this->doRequest($spaceData, $endpointUrl, $exceptionMessage, $api, $queryType, $cacheDisambiguator, $parameters, $options);
+                return $this->doRequest($spaceData, $spaceName, $endpointUrl, $exceptionMessage, $api, $queryType, $cacheDisambiguator, $parameters, $options);
             }
             throw new ResourceUnavailableException($e->getResponse(), $exceptionMessage, 0, $e);
         }
@@ -584,5 +597,43 @@ class Contentful
         }
 
         return $candidate;
+    }
+
+    /**
+     * Ensures that the provided parameter is complete.
+     *
+     * @param ParameterInterface $parameter
+     * @param string             $spaceName
+     * @return ParameterInterface
+     */
+    private function completeParameter(ParameterInterface $parameter, $spaceName = null)
+    {
+        if (!$parameter instanceof IncompleteParameterInterface) {
+            return $parameter;
+        }
+
+        switch ($parameter->getName()) {
+            case 'content_type_name':
+                return $this->resolveContentTypeNameFilter($parameter, $spaceName);
+                break;
+            default:
+                throw new \LogicException(sprintf('Unknown incomplete parameter of type "%s" is being used.', $parameter->getName()));
+                break;
+        }
+    }
+
+    /**
+     * @param ContentTypeNameFilter $filter
+     * @param string                $spaceName
+     * @return ParameterInterface
+     */
+    private function resolveContentTypeNameFilter(ContentTypeNameFilter $filter, $spaceName = null)
+    {
+        static $contentTypeFilterProvider;
+        if (empty($contentTypeFilterProvider)) {
+            $contentTypeFilterProvider = new ContentTypeFilterProvider($this);
+        }
+
+        return $contentTypeFilterProvider->createForContentTypeName($filter->getValue(), $spaceName);
     }
 }
