@@ -332,6 +332,8 @@ class Contentful
     {
         $timer = $this->logger->getStartedTimer();
         $options = $this->mergeOptions($options);
+        //ensure parameters are complete first of all as cache keys are generated from them
+        $parameters = $this->completeParameters($parameters, $spaceName);
         //only use cache if this is a Content Delivery API request
         $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $api === self::PREVIEW_API, $cacheDisambiguator, $parameters);
         $cache = $this->ensureCache($spaceData['cache']);
@@ -356,10 +358,6 @@ class Contentful
             /**
              * @var ParameterInterface $param
              */
-            $param = $this->completeParameter($param, $spaceName);
-            if (!$param instanceof ParameterInterface) {
-                continue;
-            }
             $request->getQuery()->set($param->getKey(), $param->getValue());
         }
 
@@ -597,6 +595,24 @@ class Contentful
         }
 
         return $candidate;
+    }
+
+    /**
+     * @param ParameterInterface[] $parameters
+     * @param string               $spaceName
+     * @return ParameterInterface[]
+     */
+    private function completeParameters($parameters, $spaceName)
+    {
+        $complete = [];
+        foreach ($parameters as $parameter) {
+            if (!$parameter instanceof ParameterInterface) {
+                continue;
+            }
+            $complete[] = $this->completeParameter($parameter, $spaceName);
+        }
+
+        return $complete;
     }
 
     /**
