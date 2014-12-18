@@ -275,8 +275,12 @@ class Contentful
      * @param Link $link
      * @return ResourceInterface
      */
-    public function resolveLink(Link $link, $spaceName = null, array $options = [])
+    public function resolveLink($link, $spaceName = null, array $options = [])
     {
+        //check whether the "link" is already actually a resolved resource
+        if ($link instanceof ResourceInterface) {
+            return $link;
+        }
         try {
             switch ($link->getLinkType()) {
                 case 'Entry':
@@ -510,7 +514,7 @@ class Contentful
         static $resourceBuilder;
         if (empty($resourceBuilder)) {
             $resourceBuilder = new ResourceBuilder($this->envelope);
-            $resourceBuilder->setResolveLinkFunction(function (Link $link) {
+            $resourceBuilder->setResolveLinkFunction(function ($link) {
                 return $this->resolveLink($link);
             });
             $resourceBuilder->setUseDynamicEntries($this->useDynamicEntries);
