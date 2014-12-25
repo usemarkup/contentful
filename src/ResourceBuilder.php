@@ -96,8 +96,8 @@ class ResourceBuilder
                     (isset($data['fields']['title'])) ? $data['fields']['title'] : '',
                     (isset($data['fields']['description'])) ? $data['fields']['description'] : '',
                     new AssetFile(
-                        $data['fields']['file']['fileName'],
-                        $data['fields']['file']['contentType'],
+                        ($data['fields']['file']['fileName']) ? $data['fields']['file']['fileName'] : '',
+                        ($data['fields']['file']['contentType']) ? $data['fields']['file']['contentType'] : '',
                         (isset($data['fields']['file']['details'])) ? $data['fields']['file']['details'] : [],
                         (isset($data['fields']['file']['url'])) ? $data['fields']['file']['url'] : $data['fields']['file']['upload']
                     ),
