@@ -16,18 +16,13 @@
     ],
     "require": {
         "guzzlehttp/guzzle": "~4.0",
-        "psr/cache": "dev-master#599198e6f"
+        "psr/cache-implementation": "1.0.0"
     },
     "require-dev": {
+        "egils/cache": "~0.1",
         "phpunit/phpunit": "4.*",
         "mockery/mockery": "~0.9"
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/Crell/Cache.git"
-        }
-    ],
     "autoload": {
         "psr-4": { "Markup\\Contentful\\": "src/" }
     }
