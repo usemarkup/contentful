@@ -96,10 +96,10 @@ class ResourceBuilder
                     (isset($data['fields']['title'])) ? $data['fields']['title'] : '',
                     (isset($data['fields']['description'])) ? $data['fields']['description'] : '',
                     new AssetFile(
-                        ($data['fields']['file']['fileName']) ? $data['fields']['file']['fileName'] : '',
-                        ($data['fields']['file']['contentType']) ? $data['fields']['file']['contentType'] : '',
-                        (isset($data['fields']['file']['details'])) ? $data['fields']['file']['details'] : [],
-                        (isset($data['fields']['file']['url'])) ? $data['fields']['file']['url'] : $data['fields']['file']['upload']
+                        (isset($data['fields']['file']) && $data['fields']['file']['fileName']) ? $data['fields']['file']['fileName'] : '',
+                        (isset($data['fields']['file']) && $data['fields']['file']['contentType']) ? $data['fields']['file']['contentType'] : '',
+                        (isset($data['fields']['file']) && isset($data['fields']['file']['details'])) ? $data['fields']['file']['details'] : [],
+                        (isset($data['fields']['file'])) ? ((isset($data['fields']['file']['url'])) ? $data['fields']['file']['url'] : $data['fields']['file']['upload']) : ''
                     ),
                     $metadata
                 );
