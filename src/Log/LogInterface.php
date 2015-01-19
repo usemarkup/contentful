@@ -45,4 +45,11 @@ interface LogInterface
      * @return bool
      */
     public function isCacheHit();
+
+    /**
+     * Gets the name of the API being used.
+     *
+     * @return string A value corresponding to one of the Contentful::*_API class constants
+     */
+    public function getApi();
 } 

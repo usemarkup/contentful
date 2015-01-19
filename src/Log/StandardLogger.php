@@ -38,8 +38,9 @@ class StandardLogger implements LoggerInterface
      * @param TimerInterface $timer       A timer. If it is started but not stopped, it will be stopped and a reading taken. If not started, no reading.
      * @param string         $type
      * @param string         $resourceType
+     * @param string         $api
      */
-    public function log($description, $isCacheHit, TimerInterface $timer = null, $type, $resourceType)
+    public function log($description, $isCacheHit, TimerInterface $timer = null, $type, $resourceType, $api)
     {
         if ($timer->isStarted()) {
             $timer->stop();//will have no effect if already stopped
@@ -47,7 +48,7 @@ class StandardLogger implements LoggerInterface
         } else {
             $duration = null;
         }
-        $this->logs[] = new Log($description, $duration, $isCacheHit, $type, $resourceType);
+        $this->logs[] = new Log($description, $duration, $isCacheHit, $type, $resourceType, $api);
     }
 
     /**

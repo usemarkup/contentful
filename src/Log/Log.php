@@ -30,19 +30,26 @@ class Log implements LogInterface
     private $resourceType;
 
     /**
+     * @var string
+     */
+    private $api;
+
+    /**
      * @param string $description
      * @param float|null $durationInSeconds
      * @param bool $isCacheHit
      * @param string $type
      * @param string $resourceType
+     * @param string $api
      */
-    public function __construct($description, $durationInSeconds, $isCacheHit, $type, $resourceType)
+    public function __construct($description, $durationInSeconds, $isCacheHit, $type, $resourceType, $api)
     {
         $this->description = $description;
         $this->durationInSeconds = $durationInSeconds;
         $this->isCacheHit = (bool) $isCacheHit;
         $this->type = $type;
         $this->resourceType = $resourceType;
+        $this->api = $api;
     }
 
     /**
@@ -91,5 +98,15 @@ class Log implements LogInterface
     public function getResourceType()
     {
         return $this->resourceType;
+    }
+
+    /**
+     * Gets the name of the API being used.
+     *
+     * @return string A value corresponding to one of the Contentful::*_API class constants
+     */
+    public function getApi()
+    {
+        return $this->api;
     }
 }

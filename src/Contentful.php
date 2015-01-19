@@ -343,7 +343,7 @@ class Contentful
         if ($api !== self::CONTENT_MANAGEMENT_API && $cacheItem->isHit()) {
             $cacheItemJson = $cacheItem->get();
             if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
-                $this->logger->log(sprintf('Fetched response from cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType));
+                $this->logger->log(sprintf('Fetched response from cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType), $api);
 
                 return $this->buildResponseFromRaw(json_decode($cacheItemJson, $assoc = true));
             }
@@ -377,7 +377,7 @@ class Contentful
             if ($api === self::CONTENT_DELIVERY_API && $fallbackCacheItem->isHit()) {
                 $fallbackJson = $fallbackCacheItem->get();
                 if (is_string($fallbackJson) && strlen($fallbackJson) > 0) {
-                    $this->logger->log(sprintf('Fetched response from fallback cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESOURCE, $this->getLogResourceTypeForQueryType($queryType));
+                    $this->logger->log(sprintf('Fetched response from fallback cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESOURCE, $this->getLogResourceTypeForQueryType($queryType), $api);
                     //save fallback value into main cache
                     $cacheItem->set($fallbackJson);
                     $cache->save($cacheItem);
@@ -414,7 +414,7 @@ class Contentful
             $fallbackCacheItem->set($responseJson);
             $fallbackCache->save($fallbackCacheItem);
         }
-        $this->logger->log(sprintf('Fetched a fresh response from URL "%s".', $request->getUrl()), false, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType));
+        $this->logger->log(sprintf('Fetched a fresh response from URL "%s".', $request->getUrl()), false, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType), $api);
 
         $assetDecorator = $this->ensureAssetDecorator($spaceData['asset_decorator']);
 

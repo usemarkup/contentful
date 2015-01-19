@@ -22,8 +22,9 @@ class NullLogger implements LoggerInterface
      * @param TimerInterface $timer       A timer. If it is started but not stopped, it will be stopped and a reading taken. If
      * @param string         $type
      * @param string         $resourceType
+     * @param string         $api
      */
-    public function log($description, $isCacheHit, TimerInterface $timer = null, $type, $resourceType)
+    public function log($description, $isCacheHit, TimerInterface $timer = null, $type, $resourceType, $api)
     {
         // do nothing
     }
