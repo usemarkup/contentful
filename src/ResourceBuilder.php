@@ -127,10 +127,10 @@ class ResourceBuilder
 
                 $contentType = new ContentType(
                     $data['name'],
-                    $data['description'],
+                    (isset($data['description'])) ? $data['description'] : '',
                     array_map(function ($fieldData) use ($buildContentTypeField) {
                         return $buildContentTypeField($fieldData);
-                    }, $data['fields']),
+                    }, (isset($data['fields'])) ? $data['fields'] : []),
                     $metadata,
                     (isset($data['displayField'])) ? $data['displayField'] : null
                 );
