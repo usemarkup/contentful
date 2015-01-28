@@ -4,6 +4,7 @@ namespace Markup\Contentful;
 
 use GuzzleHttp\Adapter\AdapterInterface;
 use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Event\SubscriberInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Message\RequestInterface;
@@ -72,8 +73,11 @@ class Contentful
     {
         $this->spaces = $spaces;
         $guzzleOptions = [];
-        if (isset($options['guzzle_adapter']) && $options['guzzle_adapter'] instanceof AdapterInterface) {
+        $isUsingAtLeastGuzzle5 = version_compare(ClientInterface::VERSION, '5.0.0', '>=');
+        if (!$isUsingAtLeastGuzzle5 && isset($options['guzzle_adapter']) && $options['guzzle_adapter'] instanceof AdapterInterface) {
             $guzzleOptions['adapter'] = $options['guzzle_adapter'];
+        } elseif ($isUsingAtLeastGuzzle5 && isset($options['guzzle_handler']) && is_callable($options['guzzle_handler'])) {
+            $guzzleOptions['handler'] = $options['guzzle_handler'];
         }
         if (isset($options['guzzle_timeout']) && intval($options['guzzle_timeout']) > 0) {
             $guzzleOptions['defaults'] = [];
@@ -393,7 +397,7 @@ class Contentful
             }
             throw new ResourceUnavailableException($e->getResponse(), $exceptionMessage, 0, $e);
         }
-        if ($response->getStatusCode() !== '200') {
+        if ($response->getStatusCode() != '200') {
             throw new ResourceUnavailableException(
                 $response,
                 sprintf(

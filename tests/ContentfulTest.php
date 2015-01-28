@@ -4,7 +4,9 @@ namespace Markup\Contentful\Tests;
 
 use GuzzleHttp\Adapter\MockAdapter;
 use GuzzleHttp\Adapter\TransactionInterface;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Message\Response;
+use GuzzleHttp\Ring\Client\MockHandler;
 use GuzzleHttp\Stream\Stream;
 use Markup\Contentful\Contentful;
 use Markup\Contentful\Filter\EqualFilter;
@@ -31,12 +33,10 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                 'api_domain' => 'different.domain.com',
             ],
         ];
-        $this->mockAdapter = new MockAdapter();
+        $this->isUsingAtLeastGuzzle5 = version_compare(ClientInterface::VERSION, '5.0.0', '>=');
         $this->options = [
-            'guzzle_adapter' => $this->mockAdapter,
             'dynamic_entries' => false,
         ];
-        $this->contentful = new Contentful($this->spaces, $this->options);
     }
 
     protected function tearDown()
@@ -63,9 +63,9 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
-        $space = $this->contentful->getSpace();
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $space = $contentful->getSpace();
         $this->assertInstanceOf('Markup\Contentful\SpaceInterface', $space);
         $this->assertEquals('Contentful Example API', $space->getName());
     }
@@ -103,18 +103,18 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                 ],
             ]
         ];
-        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
-        $entry = $this->contentful->getEntry('cat');
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $entry = $contentful->getEntry('cat');
         $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
         $this->assertEquals(['rainbows', 'fish'], $entry->getFields()['likes']);
     }
 
     public function testGetAsset()
     {
-        $response = $this->getSuccessAssetResponse();
-        $this->mockAdapter->setResponse($response);
-        $asset = $this->contentful->getAsset('nyancat');
+        $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $asset = $contentful->getAsset('nyancat');
         $this->assertInstanceOf('Markup\Contentful\AssetInterface', $asset);
         $this->assertEquals(1, $asset->getRevision());
     }
@@ -128,16 +128,15 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
             ->with(m::type('Markup\Contentful\AssetInterface'))
             ->andReturn($decoratedAsset);
         $spaces = array_merge_recursive($this->spaces, ['test' => ['asset_decorator' => $assetDecorator]]);
-        $contentful = new Contentful($spaces, $this->options);
-        $response = $this->getSuccessAssetResponse();
-        $this->mockAdapter->setResponse($response);
+        $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
+        $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $asset = $contentful->getAsset('nyancat');
         $this->assertSame($asset, $decoratedAsset);
     }
 
-    private function getSuccessAssetResponse()
+    private function getSuccessAssetData()
     {
-        $data = [
+        return [
             'sys' => [
                 'type' => 'Asset',
                 'id' => 'nyancat',
@@ -169,24 +168,23 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        return $this->getSuccessMockResponse($data, '235345lj34h53j4h');
     }
 
     public function testGetContentType()
     {
         $data = $this->getContentTypeData();
-        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
-        $contentType = $this->contentful->getContentType('cat');
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $contentType = $contentful->getContentType('cat');
         $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
         $this->assertEquals('Meow.', $contentType->getDescription());
     }
 
     public function testGetEntries()
     {
-        $response = $this->getSuccessMockResponse($this->getEntriesData(), '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
-        $entries = $this->contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
+        $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $entries = $contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
         $this->assertInstanceOf('Markup\Contentful\ResourceArray', $entries);
         $this->assertCount(1, $entries);
         $entry = array_values(iterator_to_array($entries))[0];
@@ -196,8 +194,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
 
     public function testCacheMissDoesFetch()
     {
-        $response = $this->getSuccessMockResponse($this->getEntriesData(), '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
+        $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
         $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
         $cachePool = $this->getMockCachePool();
         $cacheItem = $this->getMockCacheItem();
@@ -214,15 +211,14 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
             ->shouldReceive('set')
             ->once();
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool]]);
-        $contentful = new Contentful($spaces, $this->options);
+        $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $filters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $contentful->getEntries($filters);
     }
 
     public function testCacheHitUsesCacheAndDoesNotFetch()
     {
-        $response = $this->getExplodyResponse();
-        $this->mockAdapter->setResponse($response);
+        $handlerOption = $this->getExplodyHandlerOption();
         $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
         $cachePool = $this->getMockCachePool();
         $cacheItem = $this->getMockCacheItem();
@@ -239,7 +235,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
             ->shouldReceive('get')
             ->andReturn(json_encode($this->getEntriesData()));
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool]]);
-        $contentful = new Contentful($spaces, $this->options);
+        $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $entries = $contentful->getEntries($parameters);
         $entry = array_values(iterator_to_array($entries))[0];
@@ -249,8 +245,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
 
     public function testUsesFallbackCacheOnRequestFailure()
     {
-        $response = $this->getExplodyResponse();
-        $this->mockAdapter->setResponse($response);
+        $handlerOption = $this->getExplodyHandlerOption();
         $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
         $frontCacheItem = $this->getMockCacheItem();
         $frontCachePool = $this->getMockCachePool();
@@ -274,7 +269,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
             ->shouldReceive('get')
             ->andReturn(json_encode($this->getEntriesData()));
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $frontCachePool, 'fallback_cache' => $fallbackCachePool]]);
-        $contentful = new Contentful($spaces, $this->options);
+        $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $entries = $contentful->getEntries($parameters);
         $entry = array_values(iterator_to_array($entries))[0];
@@ -289,14 +284,13 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
             ->shouldReceive('clear')
             ->once();
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool]]);
-        $contentful = new Contentful($spaces, $this->options);
+        $contentful = $this->getContentful($spaces);
         $contentful->flushCache('test');
     }
 
     public function testResolveContentTypeLink()
     {
-        $response = $this->getSuccessMockResponse($this->getContentTypeData(), '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
+        $handlerOption = $this->getSuccessHandlerOption($this->getContentTypeData(), '235345lj34h53j4h');
         $data = [
             'type' => 'Link',
             'linkType' => 'ContentType',
@@ -307,7 +301,8 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $metadata->setLinkType($data['linkType']);
         $metadata->setId($data['id']);
         $link = new Link($metadata);
-        $contentType = $this->contentful->resolveLink($link);
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $contentType = $contentful->resolveLink($link);
         $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
         $this->assertEquals('cat', $contentType->getId());//of course, in a real situation this would be the same as the ID in the link - but this is the ID in the mock data
         $this->assertEquals('Name', $contentType->getDisplayField()->getName());
@@ -315,10 +310,9 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
 
     public function testQueryIsLoggedIfLoggerTrue()
     {
-        $response = $this->getSuccessMockResponse($this->getEntriesData(), '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
-        $contentful = new Contentful($this->spaces, array_merge($this->options, ['logger' => true]));
-        $entries = $contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
+        $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
+        $contentful = $this->getContentful($this->spaces, array_merge($this->options, ['logger' => true], $handlerOption));
+        $contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
         $logs = $contentful->getLogs();
         $this->assertCount(1, $logs);
         $this->assertContainsOnlyInstancesOf('Markup\Contentful\Log\LogInterface', $logs);
@@ -328,8 +322,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
 
     public function testUsePreviewApiForCachedGetEntriesCall()
     {
-        $response = $this->getExplodyResponse();
-        $this->mockAdapter->setResponse($response);
+        $handlerOption = $this->getExplodyHandlerOption();
         $expectedCacheKey = 'jskdfjhsdfk-entries-preview-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
         $cachePool = $this->getMockCachePool();
         $cacheItem = $this->getMockCacheItem();
@@ -346,7 +339,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
             ->shouldReceive('get')
             ->andReturn(json_encode($this->getEntriesData()));
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool, 'preview_mode' => true]]);
-        $contentful = new Contentful($spaces, $this->options);
+        $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $entries = $contentful->getEntries($parameters);
         $entry = array_values(iterator_to_array($entries))[0];
@@ -357,9 +350,9 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
     public function testGetContentTypes()
     {
         $data = [$this->getContentTypeData()];
-        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
-        $contentTypes = $this->contentful->getContentTypes();
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $contentTypes = $contentful->getContentTypes();
         $this->assertCount(1, $contentTypes);
         $this->assertContainsOnlyInstancesOf('Markup\Contentful\ContentTypeInterface', $contentTypes);
     }
@@ -367,37 +360,62 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
     public function testGetContentTypeByNameWhenExists()
     {
         $data = [$this->getContentTypeData()];
-        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $name = 'Cat';
-        $contentType = $this->contentful->getContentTypeByName($name);
+        $contentType = $contentful->getContentTypeByName($name);
         $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
         $this->assertEquals($name, $contentType->getName());
     }
 
-    public function testGetContentTypeByNameWhenDoesNotExists()
+    public function testGetContentTypeByNameWhenDoesNotExist()
     {
         $data = [$this->getContentTypeData()];
-        $response = $this->getSuccessMockResponse($data, '235345lj34h53j4h');
-        $this->mockAdapter->setResponse($response);
-        $this->assertNull($this->contentful->getContentTypeByName('Dog'));
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $this->assertNull($contentful->getContentTypeByName('Dog'));
     }
 
-    private function getSuccessMockResponse($data, $accessToken)
+    private function getSuccessHandlerOption($data, $accessToken)
     {
-        return function (TransactionInterface $transaction) use ($data, $accessToken) {
-            $request = $transaction->getRequest();
-            $this->assertEquals('Bearer ' . $accessToken, $request->getHeader('Authorization'));
+        if ($this->isUsingAtLeastGuzzle5) {
+            $handler = new MockHandler([
+                'body' => Stream::factory(json_encode($data)),
+                'status' => 200,
+            ]);
 
-            return new Response(200, [], Stream::factory(json_encode($data)));
-        };
+            return ['guzzle_handler' => $handler];
+        } else {
+            $adapter = new MockAdapter();
+            $responseFunction = function (TransactionInterface $transaction) use ($data, $accessToken) {
+                $request = $transaction->getRequest();
+                $this->assertEquals('Bearer ' . $accessToken, $request->getHeader('Authorization'));
+
+                return new Response(200, [], Stream::factory(json_encode($data)));
+            };
+            $adapter->setResponse($responseFunction);
+
+            return ['guzzle_adapter' => $adapter];
+        }
     }
 
-    private function getExplodyResponse()
+    private function getExplodyHandlerOption()
     {
-        return function (TransactionInterface $transaction) {
-            $this->fail();
-        };
+        if ($this->isUsingAtLeastGuzzle5) {
+            $handler = new MockHandler(function () {
+                $this->fail();
+            });
+
+            return ['guzzle_handler' => $handler];
+        } else {
+            $adapter = new MockAdapter();
+            $responseFunction = function (TransactionInterface $transaction) {
+                $this->fail();
+            };
+            $adapter->setResponse($responseFunction);
+
+            return ['guzzle_adapter' => $adapter];
+        }
     }
 
     private function getMockCachePool()
@@ -630,5 +648,13 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
             ],
             'displayField' => 'name',
         ];
+    }
+
+    private function getContentful($spaces = null, $options = null)
+    {
+        return new Contentful(
+            $spaces ?: $this->spaces,
+            $options ?: $this->options
+        );
     }
 }
