@@ -24,6 +24,9 @@
         "mockery/mockery": "~0.9"
     },
     "autoload": {
-        "psr-4": { "Markup\\Contentful\\": "src/" }
+        "psr-4": {
+          "Markup\\Contentful\\Tests\\": "tests/",
+          "Markup\\Contentful\\": "src/"
+        }
     }
 }
