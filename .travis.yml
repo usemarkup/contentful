@@ -10,8 +10,6 @@ matrix:
     include:
         - php: 5.4
           env: deps=low
-    allow_failures:
-        - php: hhvm
 
 env:
     global:
