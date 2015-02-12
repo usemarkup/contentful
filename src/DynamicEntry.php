@@ -64,7 +64,7 @@ class DynamicEntry implements EntryInterface
      */
     public function offsetSet($offset, $value)
     {
-        $this->entry->offsetSet($offset, $value);
+        throw new \BadMethodCallException('Cannot set a field using array access');
     }
 
     /**
@@ -72,7 +72,7 @@ class DynamicEntry implements EntryInterface
      */
     public function offsetUnset($offset)
     {
-        $this->entry->offsetUnset($offset);
+        throw new \BadMethodCallException('Cannot unset a field');
     }
 
     /**
