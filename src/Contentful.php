@@ -408,7 +408,7 @@ class Contentful
             );
         }
         //save into cache
-        if ($api === self::CONTENT_DELIVERY_API) {
+        if ($api !== self::CONTENT_MANAGEMENT_API) {
             $responseJson = json_encode($response->json());
             $cacheItem->set($responseJson);
             $cache->save($cacheItem);
