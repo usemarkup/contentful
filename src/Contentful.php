@@ -636,7 +636,12 @@ class Contentful
 
         switch ($parameter->getName()) {
             case 'content_type_name':
-                return $this->resolveContentTypeNameFilter($parameter, $spaceName);
+                $contentTypeFilter = $this->resolveContentTypeNameFilter($parameter, $spaceName);
+                if (null === $contentTypeFilter) {
+                    throw new \RuntimeException(sprintf('Could not resolve content type with name "%s".', $parameter->getValue()));
+                }
+
+                return $contentTypeFilter;
                 break;
             default:
                 throw new \LogicException(sprintf('Unknown incomplete parameter of type "%s" is being used.', $parameter->getName()));
