@@ -104,12 +104,17 @@ class Contentful
     }
 
     /**
-     * @param string $spaceName
+     * @param string|SpaceInterface $space The space name, or space object.
      * @return SpaceInterface
      * @throws Exception\ResourceUnavailableException
      */
-    public function getSpace($spaceName = null, array $options = [])
+    public function getSpace($space = null, array $options = [])
     {
+        if ($space instanceof SpaceInterface) {
+            return $space;
+        } else {
+            $spaceName = $space;
+        }
         $spaceData = $this->getSpaceDataForName($spaceName);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
@@ -128,17 +133,18 @@ class Contentful
 
     /**
      * @param string $id
-     * @param string $spaceName
+     * @param string|SpaceInterface $spaceName
      * @param array  $options A set of options for the fetch, including 'include_level' being how many levels to include
      * @return EntryInterface
      * @throws Exception\ResourceUnavailableException
      */
-    public function getEntry($id, $spaceName = null, array $options = [])
+    public function getEntry($id, $space = null, array $options = [])
     {
         if ($this->envelope->hasEntry($id)) {
             return $this->envelope->findEntry($id);
         }
-        $spaceData = $this->getSpaceDataForName($spaceName);
+        $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
+        $spaceData = $this->getSpaceDataForName(($space instanceof SpaceInterface) ? $space->getName() : $space);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
         return $this->doRequest(
@@ -161,8 +167,9 @@ class Contentful
      * @return EntryInterface[]
      * @throws Exception\ResourceUnavailableException
      */
-    public function getEntries(array $parameters = [], $spaceName = null, array $options = [])
+    public function getEntries(array $parameters = [], $space = null, array $options = [])
     {
+        $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         $spaceData = $this->getSpaceDataForName($spaceName);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
@@ -180,15 +187,16 @@ class Contentful
     }
 
     /**
-     * @param string $id
-     * @param string $spaceName
+     * @param string                $id
+     * @param string|SpaceInterface $space
      * @return AssetInterface
      */
-    public function getAsset($id, $spaceName = null, array $options = [])
+    public function getAsset($id, $space = null, array $options = [])
     {
         if ($this->envelope->hasAsset($id)) {
             return $this->envelope->findAsset($id);
         }
+        $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         $spaceData = $this->getSpaceDataForName($spaceName);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
@@ -206,16 +214,17 @@ class Contentful
     }
 
     /**
-     * @param string $id
-     * @param string $spaceName
+     * @param string                $id
+     * @param string|SpaceInterface $space
      * @return ContentTypeInterface
      */
-    public function getContentType($id, $spaceName = null, array $options = [])
+    public function getContentType($id, $space = null, array $options = [])
     {
         if ($this->envelope->hasContentType($id)) {
             return $this->envelope->findContentType($id);
         }
-        $spaceData = $this->getSpaceDataForName($spaceName);
+        $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
+        $spaceData = $this->getSpaceDataForName(($space instanceof SpaceInterface) ? $space->getName() : $space);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
         return $this->doRequest(
@@ -232,14 +241,15 @@ class Contentful
     }
 
     /**
-     * @param array   $parameters
-     * @param string  $spaceName
-     * @param array   $options
+     * @param array                 $parameters
+     * @param string|SpaceInterface $space
+     * @param array                 $options
      * @return ContentTypeInterface[]
      */
-    public function getContentTypes(array $parameters = [], $spaceName = null, array $options = [])
+    public function getContentTypes(array $parameters = [], $space = null, array $options = [])
     {
-        $spaceData = $this->getSpaceDataForName($spaceName);
+        $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
+        $spaceData = $this->getSpaceDataForName(($space instanceof SpaceInterface) ? $space->getName() : $space);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
         return $this->doRequest(
@@ -258,14 +268,14 @@ class Contentful
     /**
      * Gets a content type using its name. Assumes content types have unique names. Returns null if no content type with the given name can be found.
      *
-     * @param string $name
-     * @param string $spaceName
-     * @param array  $options
+     * @param string                $name
+     * @param string|SpaceInterface $space
+     * @param array                 $options
      * @return ContentTypeInterface|null
      */
-    public function getContentTypeByName($name, $spaceName = null, array $options = [])
+    public function getContentTypeByName($name, $space = null, array $options = [])
     {
-        $contentTypes = $this->getContentTypes([], $spaceName, $options);
+        $contentTypes = $this->getContentTypes([], $space, $options);
         foreach ($contentTypes as $contentType) {
             if ($contentType->getName() === $name) {
                 return $contentType;
