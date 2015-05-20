@@ -289,7 +289,7 @@ class Contentful
      * @param Link $link
      * @return ResourceInterface
      */
-    public function resolveLink($link, $spaceName = null, array $options = [])
+    public function resolveLink($link, array $options = [])
     {
         //check whether the "link" is already actually a resolved resource
         if ($link instanceof ResourceInterface) {
@@ -298,11 +298,11 @@ class Contentful
         try {
             switch ($link->getLinkType()) {
                 case 'Entry':
-                    return $this->getEntry($link->getId(), $spaceName, $options);
+                    return $this->getEntry($link->getId(), $link->getSpace(), $options);
                 case 'Asset':
-                    return $this->getAsset($link->getId(), $spaceName, $options);
+                    return $this->getAsset($link->getId(), $link->getSpace(), $options);
                 case 'ContentType':
-                    return $this->getContentType($link->getId(), $spaceName, $options);
+                    return $this->getContentType($link->getId(), $link->getSpace(), $options);
                 default:
                     throw new \InvalidArgumentException(sprintf('Tried to resolve unknown link type "%s".', $link->getLinkType()));
             }
