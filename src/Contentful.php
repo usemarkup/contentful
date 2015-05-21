@@ -72,18 +72,10 @@ class Contentful
     public function __construct(array $spaces, array $options = [])
     {
         $this->spaces = $spaces;
-        $guzzleOptions = [];
-        $isUsingAtLeastGuzzle5 = version_compare(ClientInterface::VERSION, '5.0.0', '>=');
-        if (!$isUsingAtLeastGuzzle5 && isset($options['guzzle_adapter']) && $options['guzzle_adapter'] instanceof AdapterInterface) {
-            $guzzleOptions['adapter'] = $options['guzzle_adapter'];
-        } elseif ($isUsingAtLeastGuzzle5 && isset($options['guzzle_handler']) && is_callable($options['guzzle_handler'])) {
-            $guzzleOptions['handler'] = $options['guzzle_handler'];
-        }
-        if (isset($options['guzzle_timeout']) && intval($options['guzzle_timeout']) > 0) {
-            $guzzleOptions['defaults'] = [];
-            $guzzleOptions['defaults']['timeout'] = intval($options['guzzle_timeout']);
-        }
-        $this->guzzle = new GuzzleClient($guzzleOptions);
+        $guzzleOptions = GuzzleOptions::createForEnvironment($options);
+
+        $this->guzzle = new GuzzleClient($guzzleOptions->toArray());
+
         if (isset($options['guzzle_event_subscribers'])) {
             $emitter = $this->guzzle->getEmitter();
             foreach ($options['guzzle_event_subscribers'] as $subscriber) {
