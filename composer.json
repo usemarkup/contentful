@@ -15,7 +15,7 @@
         }
     ],
     "require": {
-        "guzzlehttp/guzzle": ">=4.0",
+        "guzzlehttp/guzzle": ">=4.0, <6.0",
         "psr/cache-implementation": "1.0.0"
     },
     "require-dev": {
