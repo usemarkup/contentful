@@ -28,5 +28,10 @@
           "Markup\\Contentful\\Tests\\": "tests/",
           "Markup\\Contentful\\": "src/"
         }
-    }
+    },
+    "extra": {
+		"branch-alias": {
+			"dev-master": "master"
+		}
+	}
 }
