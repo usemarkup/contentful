@@ -461,10 +461,18 @@ class Contentful
                 throw new \InvalidArgumentException(sprintf('The space with name "%s" is not known to this client.', $spaceName));
             }
 
-            return array_merge($defaultData, $this->spaces[$spaceName]);
+            return array_merge($defaultData, $this->spaces[$spaceName], ['name' => $spaceName]);
         }
 
-        return array_merge($defaultData, array_values($this->spaces)[0]);
+        $firstKey = array_keys($this->spaces)[0];
+
+        return array_merge(
+            $defaultData,
+            array_values($this->spaces)[0],
+            [
+                'name' => (!is_numeric($firstKey)) ? $firstKey : null
+            ]
+        );
     }
 
     /**
