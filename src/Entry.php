@@ -66,7 +66,7 @@ class Entry implements EntryInterface
 
                 return $this->resolvedLinks[$key];
             }
-            if (is_array($this->fields[$key]) && count($this->fields[$key]) > 0 && array_values($this->fields[$key])[0] instanceof Link) {
+            if (is_array($this->fields[$key]) && count($this->fields[$key]) > 0 && $this->containsLink($this->fields[$key])) {
                 if (!isset($this->resolvedLinks[$key])) {
                     $this->resolvedLinks[$key] = array_filter(array_map(function ($link) {
                         try {
@@ -130,5 +130,20 @@ class Entry implements EntryInterface
         $this->resolveLinkFunction = $function;
 
         return $this;
+    }
+
+    /**
+     * @param array $resources
+     * @return bool
+     */
+    private function containsLink(array $resources)
+    {
+        foreach ($resources as $resource) {
+            if ($resource instanceof Link) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
