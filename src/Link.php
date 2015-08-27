@@ -7,10 +7,29 @@ class Link implements MetadataInterface
     use MetadataAccessTrait;
 
     /**
-     * @param MetadataInterface $metadata
+     * An explicit space ID that this link is declared as belonging to.
+     *
+     * @var string
      */
-    public function __construct(MetadataInterface $metadata)
+    private $spaceName;
+
+    /**
+     * @param MetadataInterface $metadata
+     * @param string            $spaceName
+     */
+    public function __construct(MetadataInterface $metadata, $spaceName = null)
     {
         $this->metadata = $metadata;
+        $this->spaceName = $spaceName;
+    }
+
+    /**
+     * Gets a space name (not intrinsic, but how the space is referred to in configuration) that this link is associated with, if available.
+     *
+     * @return string|null
+     */
+    public function getSpaceName()
+    {
+        return $this->spaceName;
     }
 }

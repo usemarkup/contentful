@@ -32,20 +32,21 @@ class ResourceBuilder
     }
 
     /**
-     * @param array                   $data
+     * @param array                   $data           The raw data returned from the Contentful APIs.
+     * @param string                  $spaceName      The name being used for the space this data is from.
      * @param AssetDecoratorInterface $assetDecorator
      * @return mixed A Contentful resource.
      */
-    public function buildFromData(array $data, AssetDecoratorInterface $assetDecorator = null)
+    public function buildFromData(array $data, $spaceName = null, AssetDecoratorInterface $assetDecorator = null)
     {
         $assetDecorator = $assetDecorator ?: new NullAssetDecorator();
-        $buildFromData = function ($data) use ($assetDecorator) {
-            return $this->buildFromData($data, $assetDecorator);
+        $buildFromData = function ($data) use ($spaceName, $assetDecorator) {
+            return $this->buildFromData($data, $spaceName, $assetDecorator);
         };
         if ($this->isArrayResourceData($data)) {
             return array_map($buildFromData, $data);
         }
-        $metadata = $this->buildMetadataFromSysData($data['sys']);
+        $metadata = $this->buildMetadataFromSysData($data['sys'], $buildFromData);
         if (!$metadata->getType()) {
             throw new \InvalidArgumentException('Resource data must always have a type in its system properties.');
         }
@@ -67,10 +68,10 @@ class ResourceBuilder
                 if (isset($data['fields'])) {
                     foreach ($data['fields'] as $name => $fieldData) {
                         if ($this->isResourceData($fieldData)) {
-                            $fields[$name] = $this->buildFromData($fieldData, $assetDecorator);
+                            $fields[$name] = $buildFromData($fieldData);
                         } elseif ($this->isArrayResourceData($fieldData)) {
-                            $fields[$name] = array_map(function ($itemData) use ($assetDecorator) {
-                                return $this->buildFromData($itemData, $assetDecorator);
+                            $fields[$name] = array_map(function ($itemData) use ($buildFromData) {
+                                return $buildFromData($itemData);
                             }, $fieldData);
                         } else {
                             $fields[$name] = $fieldData;
@@ -155,17 +156,17 @@ class ResourceBuilder
                         break;
                 }
 
-                return new Link($metadata);
+                return new Link($metadata, $spaceName);
             case 'Array':
                 $this->addToEnvelope((isset($data['includes'])) ? $data['includes'] : [], $buildFromData);
 
                 return new ResourceArray(
-                    array_map(function ($itemData) use ($assetDecorator) {
+                    array_map(function ($itemData) use ($buildFromData) {
                         $envelopeResource = $this->resolveResourceDataToEnvelopeResource($itemData);
                         if ($envelopeResource) {
                             return $envelopeResource;
                         }
-                        $resource = $this->buildFromData($itemData, $assetDecorator);
+                        $resource = $buildFromData($itemData);
                         $this->insertResourceIntoEnvelope($resource);
 
                         return $resource;
@@ -206,9 +207,10 @@ class ResourceBuilder
 
     /**
      * @param array $sys
+     * @param callable $buildFromData
      * @return Metadata
      */
-    private function buildMetadataFromSysData(array $sys)
+    private function buildMetadataFromSysData(array $sys, callable $buildFromData)
     {
         $metadata = new Metadata();
         if (isset($sys['id'])) {
@@ -218,10 +220,10 @@ class ResourceBuilder
             $metadata->setType($sys['type']);
         }
         if (isset($sys['space'])) {
-            $metadata->setSpace($this->buildFromData($sys['space']));
+            $metadata->setSpace($buildFromData($sys['space']));
         }
         if (isset($sys['contentType'])) {
-            $metadata->setContentType($this->buildFromData($sys['contentType']));
+            $metadata->setContentType($buildFromData($sys['contentType']));
         }
         if (isset($sys['linkType'])) {
             $metadata->setLinkType($sys['linkType']);

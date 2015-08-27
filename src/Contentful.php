@@ -290,11 +290,11 @@ class Contentful
         try {
             switch ($link->getLinkType()) {
                 case 'Entry':
-                    return $this->getEntry($link->getId(), $link->getSpace(), $options);
+                    return $this->getEntry($link->getId(), $link->getSpaceName(), $options);
                 case 'Asset':
-                    return $this->getAsset($link->getId(), $link->getSpace(), $options);
+                    return $this->getAsset($link->getId(), $link->getSpaceName(), $options);
                 case 'ContentType':
-                    return $this->getContentType($link->getId(), $link->getSpace(), $options);
+                    return $this->getContentType($link->getId(), $link->getSpaceName(), $options);
                 default:
                     throw new \InvalidArgumentException(sprintf('Tried to resolve unknown link type "%s".', $link->getLinkType()));
             }
@@ -351,7 +351,7 @@ class Contentful
             if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
                 $this->logger->log(sprintf('Fetched response from cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType), $api);
 
-                return $this->buildResponseFromRaw(json_decode($cacheItemJson, $assoc = true));
+                return $this->buildResponseFromRaw(json_decode($cacheItemJson, $assoc = true), $spaceData['name']);
             }
         }
         $request = $this->guzzle->createRequest('GET', $endpointUrl);
@@ -388,7 +388,7 @@ class Contentful
                     $cacheItem->set($fallbackJson);
                     $cache->save($cacheItem);
 
-                    return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true));
+                    return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true), $spaceData['name']);
                 }
             }
             //if there is a rate limit error, wait (if applicable)
@@ -424,7 +424,7 @@ class Contentful
 
         $assetDecorator = $this->ensureAssetDecorator($spaceData['asset_decorator']);
 
-        return $this->buildResponseFromRaw($response->json(), $assetDecorator);
+        return $this->buildResponseFromRaw($response->json(), $spaceData['name'], $assetDecorator);
     }
 
     /**
@@ -520,10 +520,11 @@ class Contentful
 
     /**
      * @param array $data
+     * @param string $spaceName
      * @param AssetDecoratorInterface $assetDecorator
      * @return ResourceInterface
      */
-    private function buildResponseFromRaw(array $data, AssetDecoratorInterface $assetDecorator = null)
+    private function buildResponseFromRaw(array $data, $spaceName = null, AssetDecoratorInterface $assetDecorator = null)
     {
         static $resourceBuilder;
         if (empty($resourceBuilder)) {
@@ -534,7 +535,7 @@ class Contentful
             $resourceBuilder->setUseDynamicEntries($this->useDynamicEntries);
         }
 
-        return $resourceBuilder->buildFromData($data, $assetDecorator ?: new NullAssetDecorator());
+        return $resourceBuilder->buildFromData($data, $spaceName, $assetDecorator ?: new NullAssetDecorator());
     }
 
     /**

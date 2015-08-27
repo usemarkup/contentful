@@ -13,10 +13,12 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildSpace()
     {
+        $spaceName = 'example_name';
+        $spaceId = 'cfexampleapi';
         $data = [
             'sys' => [
                 'type' => 'Space',
-                'id' => 'cfexampleapi',
+                'id' => $spaceId,
             ],
             'name' => 'Contentful Example API',
             'locales' => [
@@ -30,7 +32,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $space = $this->builder->buildFromData($data);
+        $space = $this->builder->buildFromData($data, $spaceName);
         $this->assertInstanceOf('Markup\Contentful\SpaceInterface', $space);
         $this->assertEquals('cfexampleapi', $space->getId());
         $locale = $space->getLocales()[1];
@@ -40,6 +42,8 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildEntry()
     {
+        $spaceName = 'example_name';
+        $spaceId = 'example';
         $data = [
             'sys' => [
                 'type' => 'Entry',
@@ -48,7 +52,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                     'sys' => [
                         'type' => 'Link',
                         'linkType' => 'Space',
-                        'id' => 'example',
+                        'id' => $spaceId,
                     ],
                 ],
                 'createdAt' => '2013-03-26T00:13:37.123Z',
@@ -71,7 +75,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ]
         ];
-        $entry = $this->builder->buildFromData($data);
+        $entry = $this->builder->buildFromData($data, $spaceName);
         $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
         $this->assertEquals('cat', $entry->getId());
         $spaceLink = $entry->getSpace();
@@ -87,6 +91,8 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildAsset()
     {
+        $spaceName = 'example_name';
+        $spaceId = 'example';
         $data = [
             'sys' => [
                 'type' => 'Asset',
@@ -95,7 +101,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                     'sys' => [
                         'type' => 'Link',
                         'linkType' => 'Space',
-                        'id' => 'example',
+                        'id' => $spaceId,
                     ],
                 ],
                 'createdAt' => '2013-03-26T00:13:37.123Z',
@@ -119,7 +125,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $asset = $this->builder->buildFromData($data);
+        $asset = $this->builder->buildFromData($data, $spaceName);
         $this->assertInstanceOf('Markup\Contentful\AssetInterface', $asset);
         $this->assertEquals('nyancat.png', $asset->getFilename());
         $this->assertEquals('//images.contentful.com/cfexampleapi/4gp6taAwW4CmSgumq2ekUm/9da0cd1936871b8d72343e895a00d611/Nyan_cat_250px_frame.png', $asset->getUrl());
@@ -129,6 +135,8 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildAssetFromUploadDataForm()
     {
+        $spaceName = 'example_name';
+        $spaceId = 'example';
         $data = [
             'sys' => [
                 'type' => 'Asset',
@@ -137,7 +145,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                     'sys' => [
                         'type' => 'Link',
                         'linkType' => 'Space',
-                        'id' => 'example',
+                        'id' => $spaceId,
                     ],
                 ],
                 'createdAt' => '2013-03-26T00:13:37.123Z',
@@ -154,7 +162,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $asset = $this->builder->buildFromData($data);
+        $asset = $this->builder->buildFromData($data, $spaceName);
         $this->assertInstanceOf('Markup\Contentful\AssetInterface', $asset);
         $this->assertEquals('//images.contentful.com/cfexampleapi/4gp6taAwW4CmSgumq2ekUm/9da0cd1936871b8d72343e895a00d611/Nyan_cat_250px_frame.png', $asset->getUrl());
         $this->assertNull($asset->getFileSizeInBytes());
@@ -162,6 +170,8 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildContentType()
     {
+        $spaceName = 'example_name';
+        $spaceId = 'i_am_the_space';
         $data = [
             'sys' => [
                 'type' => 'ContentType',
@@ -196,7 +206,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $contentType = $this->builder->buildFromData($data);
+        $contentType = $this->builder->buildFromData($data, $spaceName);
         $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
         $this->assertEquals('Cat', $contentType->getName());
         $fields = $contentType->getFields();
@@ -209,6 +219,8 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildEntryArray()
     {
+        $spaceName = 'example_name';
+        $spaceId = 'example';
         $data = [
             [
                 'sys' => [
@@ -218,7 +230,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                         'sys' => [
                             'type' => 'Link',
                             'linkType' => 'Space',
-                            'id' => 'example',
+                            'id' => $spaceId,
                         ],
                     ],
                     'createdAt' => '2013-03-26T00:13:37.123Z',
@@ -249,7 +261,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                         'sys' => [
                             'type' => 'Link',
                             'linkType' => 'Space',
-                            'id' => 'example',
+                            'id' => $spaceId,
                         ],
                     ],
                     'createdAt' => '2013-03-26T00:13:37.123Z',
@@ -273,7 +285,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ]
             ],
         ];
-        $entries = $this->builder->buildFromData($data);
+        $entries = $this->builder->buildFromData($data, $spaceName);
         $this->assertCount(2, $entries);
         $this->assertContainsOnlyInstancesOf('Markup\Contentful\EntryInterface', $entries);
         $this->assertEquals('cat2', $entries[1]->getId());
@@ -281,6 +293,8 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildEntryWithArrayOfLinks()
     {
+        $spaceName = 'example_name';
+        $spaceId = 'example';
         $data = [
             'sys' => [
                 'type' => 'Entry',
@@ -289,7 +303,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                     'sys' => [
                         'type' => 'Link',
                         'linkType' => 'Space',
-                        'id' => 'example',
+                        'id' => $spaceId,
                     ],
                 ],
                 'createdAt' => '2013-03-26T00:13:37.123Z',
@@ -314,7 +328,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ]
         ];
-        $entry = $this->builder->buildFromData($data);
+        $entry = $this->builder->buildFromData($data, $spaceName);
         $links = $entry->getField('bestFriend');
         $this->assertInternalType('array', $links);
         $this->assertCount(1, $links);
@@ -323,6 +337,8 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildArrayOfEntries()
     {
+        $spaceName = 'example_name';
+        $spaceId = 'cfexampleapi';
         $data = [
             'sys' => [
                 'type' => 'Array',
@@ -360,7 +376,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                             'sys' => [
                                 'type' => 'Link',
                                 'linkType' => 'Space',
-                                'id' => 'cfexampleapi',
+                                'id' => $spaceId,
                             ],
                         ],
                         'type' => 'Entry',
@@ -411,7 +427,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                                 'sys' => [
                                     'type' => 'Link',
                                     'linkType' => 'Space',
-                                    'id' => 'cfexampleapi',
+                                    'id' => $spaceId,
                                 ],
                             ],
                             'type' => 'Entry',
@@ -452,7 +468,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                                 'sys' => [
                                     'type' => 'Link',
                                     'linkType' => 'Space',
-                                    'id' => 'cfexampleapi',
+                                    'id' => $spaceId,
                                 ],
                             ],
                             'type' => 'Asset',
@@ -484,7 +500,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                                 'sys' => [
                                     'type' => 'Link',
                                     'linkType' => 'Space',
-                                    'id' => 'cfexampleapi',
+                                    'id' => $spaceId,
                                 ],
                             ],
                             'type' => 'Asset',
@@ -498,7 +514,7 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $array = $this->builder->buildFromData($data);
+        $array = $this->builder->buildFromData($data, $spaceName);
         $this->assertInstanceOf('Markup\Contentful\ResourceArray', $array);
         $this->assertCount(1, $array);
     }
