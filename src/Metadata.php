@@ -174,6 +174,4 @@ class Metadata implements MetadataInterface
     {
         return $this->updatedAt;
     }
-
-
 }

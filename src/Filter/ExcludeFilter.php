@@ -42,4 +42,4 @@ class ExcludeFilter extends PropertyFilter
     {
         return implode(',', $this->values);
     }
-} 
+}

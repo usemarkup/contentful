@@ -80,4 +80,4 @@ trait MetadataAccessTrait
     {
         return $this->getMetadata()->getUpdatedAt();
     }
-} 
+}

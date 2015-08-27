@@ -2,7 +2,6 @@
 
 namespace Markup\Contentful;
 
-
 use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\Decorator\NullAssetDecorator;
 
@@ -32,8 +31,8 @@ class ResourceBuilder
     }
 
     /**
-     * @param array                   $data           The raw data returned from the Contentful APIs.
-     * @param string                  $spaceName      The name being used for the space this data is from.
+     * @param array                   $data      The raw data returned from the Contentful APIs.
+     * @param string                  $spaceName The name being used for the space this data is from.
      * @param AssetDecoratorInterface $assetDecorator
      * @return mixed A Contentful resource.
      */
@@ -117,6 +116,7 @@ class ResourceBuilder
                     if (isset($fieldData['required'])) {
                         $options['required'] = $fieldData['required'];
                     }
+
                     return new ContentTypeField(
                         $fieldData['id'],
                         $fieldData['name'],
@@ -206,7 +206,7 @@ class ResourceBuilder
     }
 
     /**
-     * @param array $sys
+     * @param array    $sys
      * @param callable $buildFromData
      * @return Metadata
      */

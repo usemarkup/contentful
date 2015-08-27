@@ -10,4 +10,4 @@ class LessThanFilter extends AbstractComparisonFilter
     {
         return self::OPERATOR;
     }
-} 
+}

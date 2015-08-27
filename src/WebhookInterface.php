@@ -31,4 +31,4 @@ interface WebhookInterface extends ResourceInterface
      * @return bool
      */
     public function usesHttpBasic();
-} 
+}

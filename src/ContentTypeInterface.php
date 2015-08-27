@@ -25,4 +25,4 @@ interface ContentTypeInterface extends ResourceInterface
      * @return ContentTypeField|null
      */
     public function getDisplayField();
-} 
+}

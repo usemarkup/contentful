@@ -8,4 +8,4 @@ trait EntryUnknownMethodTrait
     {
         return $this->getField($method);
     }
-} 
+}

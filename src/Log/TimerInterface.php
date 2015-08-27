@@ -24,4 +24,4 @@ interface TimerInterface
      * @return float
      */
     public function getDurationInSeconds();
-} 
+}

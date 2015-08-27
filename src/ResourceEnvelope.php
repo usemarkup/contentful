@@ -157,4 +157,4 @@ class ResourceEnvelope
     {
         return count($this->contentTypes);
     }
-} 
+}

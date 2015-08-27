@@ -16,4 +16,4 @@ trait ClassBasedNameTrait
 
         return ltrim(strtolower(preg_replace('/[A-Z]/', '_$0', $matches[1])), '_');
     }
-} 
+}

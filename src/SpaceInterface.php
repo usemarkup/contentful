@@ -27,4 +27,4 @@ interface SpaceInterface extends ResourceInterface
      * @return Locale
      */
     public function getDefaultLocale();
-} 
+}

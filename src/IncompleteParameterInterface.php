@@ -7,4 +7,5 @@ namespace Markup\Contentful;
  * The getKey() method on the parameter should throw a LogicException.
  */
 interface IncompleteParameterInterface extends ParameterInterface
-{}
+{
+}

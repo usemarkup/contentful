@@ -27,4 +27,4 @@ interface ParameterInterface
      * @return string
      */
     public function getName();
-} 
+}

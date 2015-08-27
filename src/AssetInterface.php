@@ -41,4 +41,3 @@ interface AssetInterface extends ResourceInterface
      */
     public function getFileSizeInBytes();
 }
-

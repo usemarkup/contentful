@@ -16,4 +16,4 @@ interface AssetDecoratorInterface
      * @return AssetInterface
      */
     public function decorate(AssetInterface $asset);
-} 
+}

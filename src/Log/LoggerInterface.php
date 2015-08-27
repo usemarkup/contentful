@@ -29,4 +29,4 @@ interface LoggerInterface
      * @return LogInterface[]
      */
     public function getLogs();
-} 
+}

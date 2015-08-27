@@ -24,4 +24,4 @@ trait SimpleValueTrait
 
         return $this->value;
     }
-} 
+}

@@ -17,4 +17,4 @@ interface EntryInterface extends ResourceInterface, \ArrayAccess
      * @return mixed
      */
     public function getField($key);
-} 
+}

@@ -25,4 +25,4 @@ class NotEqualFilter extends PropertyFilter
     {
         return $this->getProperty()->getKey() . '[ne]';
     }
-} 
+}
