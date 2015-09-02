@@ -109,6 +109,34 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
     }
 
     /**
+     * Gets the first item in this array, or null if array is empty.
+     *
+     * @return ResourceInterface|null
+     */
+    public function first()
+    {
+        if (count($this->items) === 0) {
+            return null;
+        }
+
+        return array_values($this->items)[0];
+    }
+
+    /**
+     * Gets the last item in this array, or null if array is empty.
+     *
+     * @return ResourceInterface|null
+     */
+    public function last()
+    {
+        if (count($this->items) === 0) {
+            return null;
+        }
+
+        return array_slice($this->items, -1)[0];
+    }
+
+    /**
      * @return bool
      */
     public function offsetExists($offset)
