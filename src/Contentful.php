@@ -156,7 +156,7 @@ class Contentful
      * @param ParameterInterface[] $parameters
      * @param string               $spaceName
      * @param array                $options
-     * @return EntryInterface[]
+     * @return ResourceArray|EntryInterface[]
      * @throws Exception\ResourceUnavailableException
      */
     public function getEntries(array $parameters = [], $space = null, array $options = [])
@@ -236,7 +236,7 @@ class Contentful
      * @param array                 $parameters
      * @param string|SpaceInterface $space
      * @param array                 $options
-     * @return ContentTypeInterface[]
+     * @return ResourceArray|ContentTypeInterface[]
      */
     public function getContentTypes(array $parameters = [], $space = null, array $options = [])
     {
