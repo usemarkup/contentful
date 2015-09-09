@@ -54,6 +54,11 @@ class Contentful
     private $useDynamicEntries;
 
     /**
+     * @var bool
+     */
+    private $cacheFailResponses;
+
+    /**
      * @var ResourceEnvelope
      */
     private $envelope;
@@ -67,6 +72,7 @@ class Contentful
      *                      a 'preview_mode' value (Boolean) which determines whether read requests should use the Preview API (i.e. view draft items)
      *                      a 'retry_time_after_rate_limit_in_ms' value, which is the number of milliseconds after which a new request will be issued after a 429 (rate limit) response from the Contentful API (default: 750ms) - a falsy value here will mean no retry
      *                      an 'asset_decorator' value, which must be an object implementing AssetDecoratorInterface - any asset being generated in this space will be decorated by this on the way out
+     *                      a 'cache_fail_responses' value, which is a boolean defaulting to FALSE - this should be set to true in a production mode to prevent repeated calls against nonexistent resources
      * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), 'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle) and 'include_level' (the levels of linked content to include in responses by default)
      */
     public function __construct(array $spaces, array $options = [])
@@ -87,6 +93,7 @@ class Contentful
         }
         $this->useDynamicEntries = !isset($options['dynamic_entries']) || $options['dynamic_entries'];
         $this->defaultIncludeLevel = (isset($options['include_level'])) ? intval($options['include_level']) : 0;
+        $this->cacheFailResponses = (isset($options['cache_fail_responses'])) ? (bool) $options['cache_fail_responses'] : false;
         if (!isset($options['logger']) || false === $options['logger']) {
             $this->logger = new NullLogger();
         } else {
@@ -349,9 +356,15 @@ class Contentful
         if ($api !== self::CONTENT_MANAGEMENT_API && $cacheItem->isHit()) {
             $cacheItemJson = $cacheItem->get();
             if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
-                $this->logger->log(sprintf('Fetched response from cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType), $api);
+                $cacheItemData = json_decode($cacheItemJson, $assoc = true);
+                //if we are caching fail responses, and this cache item has null content, it's a fail
+                if (null !== $cacheItemData) {
+                    $this->logger->log(sprintf('Fetched response from cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType), $api);
 
-                return $this->buildResponseFromRaw(json_decode($cacheItemJson, $assoc = true), $spaceData['name']);
+                    return $this->buildResponseFromRaw(json_decode($cacheItemJson, $assoc = true), $spaceData['name']);
+                } elseif ($this->cacheFailResponses) {
+                    throw new ResourceUnavailableException(null, sprintf('Fetched fail response from cache for key "%s".', $cacheKey));
+                }
             }
         }
         $request = $this->guzzle->createRequest('GET', $endpointUrl);
@@ -373,6 +386,7 @@ class Contentful
         $getItemFromCache = function (CacheItemPoolInterface $pool) use ($cacheKey) {
             return $pool->getItem($cacheKey);
         };
+        $unavailableException = null;
         try {
             /**
              * @var ResponseInterface $response
@@ -397,10 +411,10 @@ class Contentful
 
                 return $this->doRequest($spaceData, $spaceName, $endpointUrl, $exceptionMessage, $api, $queryType, $cacheDisambiguator, $parameters, $options);
             }
-            throw new ResourceUnavailableException($e->getResponse(), $exceptionMessage, 0, $e);
+            $unavailableException = new ResourceUnavailableException($e->getResponse(), $exceptionMessage, 0, $e);
         }
-        if ($response->getStatusCode() != '200') {
-            throw new ResourceUnavailableException(
+        if (!$unavailableException && $response->getStatusCode() != '200') {
+            $unavailableException = new ResourceUnavailableException(
                 $response,
                 sprintf(
                     $exceptionMessage . ' Contentful returned a "%s - %s" response.',
@@ -409,9 +423,13 @@ class Contentful
                 )
             );
         }
+        //if we aren't caching fail responses, and there is an unavailable exception, throw it
+        if (!$this->cacheFailResponses && $unavailableException instanceof \Exception) {
+            throw $unavailableException;
+        }
         //save into cache
         if ($api !== self::CONTENT_MANAGEMENT_API) {
-            $responseJson = json_encode($response->json());
+            $responseJson = json_encode((!$unavailableException) ? $response->json() : null);
             $cacheItem->set($responseJson);
             $cache->save($cacheItem);
             if (!isset($fallbackCacheItem)) {
@@ -419,6 +437,9 @@ class Contentful
             }
             $fallbackCacheItem->set($responseJson);
             $fallbackCache->save($fallbackCacheItem);
+        }
+        if ($unavailableException instanceof \Exception) {
+            throw $unavailableException;
         }
         $this->logger->log(sprintf('Fetched a fresh response from URL "%s".', $request->getUrl()), false, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType), $api);
 

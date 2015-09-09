@@ -376,6 +376,31 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($contentful->getContentTypeByName('Dog'));
     }
 
+    public function testGetNonExistentResourceWhenCachedThrowsWithoutRequest()
+    {
+        $expectedCacheKey = 'jskdfjhsdfk-entry:cat';
+        $cachePool = $this->getMockCachePool();
+        $cacheItem = $this->getMockCacheItem();
+        $cachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->once()
+            ->andReturn($cacheItem);
+        $cacheItem
+            ->shouldReceive('isHit')
+            ->once()
+            ->andReturn(true);
+        $cacheItem
+            ->shouldReceive('get')
+            ->once()
+            ->andReturn(json_encode(null));
+        $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool, 'preview_mode' => false]]);
+        $handlerOption = $this->getExplodyHandlerOption();
+        $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
+        $this->setExpectedException('Markup\Contentful\Exception\ResourceUnavailableException');
+        $contentful->getEntry('cat');
+    }
+
     private function getSuccessHandlerOption($data, $accessToken)
     {
         if ($this->isUsingAtLeastGuzzle5) {
