@@ -80,15 +80,35 @@ class Asset implements AssetInterface
     }
 
     /**
+     * @param array|ImageApiOptions $imageApiOptions Options for rendering the image using the Image API @see http://docs.contentfulimagesapi.apiary.io/
      * @return string
      */
-    public function getUrl()
+    public function getUrl($imageApiOptions = null)
     {
         $file = $this->getFile();
         if (!$file) {
             return null;
         }
-        return $file->getUrl();
+        $url = $file->getUrl();
+        $urlContainsQueryString = function ($url) {
+            return strlen(parse_url($url, PHP_URL_QUERY)) > 0;
+        };
+        if ($imageApiOptions) {
+            $apiOptions = ($imageApiOptions instanceof ImageApiOptions)
+                ? $imageApiOptions
+                : ImageApiOptions::createFromHumanOptions($imageApiOptions);
+            $apiQueryString = http_build_query($apiOptions->toArray());
+            if (strlen($apiQueryString) > 0) {
+                if (!$urlContainsQueryString($url)) {
+                    $url .= '?';
+                } else {
+                    $url .= '&';
+                }
+                $url .= $apiQueryString;
+            }
+        }
+
+        return $url;
     }
 
     /**

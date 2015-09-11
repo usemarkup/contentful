@@ -27,9 +27,10 @@ interface AssetInterface extends ResourceInterface
     public function getContentType();
 
     /**
+     * @param array|ImageApiOptions $options Options for rendering the image using the Image API @see http://docs.contentfulimagesapi.apiary.io/
      * @return string
      */
-    public function getUrl();
+    public function getUrl($imageApiOptions = null);
 
     /**
      * @return array

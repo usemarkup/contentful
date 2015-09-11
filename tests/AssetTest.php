@@ -3,6 +3,7 @@
 namespace Markup\Contentful\Tests;
 
 use Markup\Contentful\Asset;
+use Markup\Contentful\ImageApiOptions;
 use Mockery as m;
 
 class AssetTest extends \PHPUnit_Framework_TestCase
@@ -31,5 +32,38 @@ class AssetTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($asset->getUrl());
         $this->assertEquals([], $asset->getDetails());
         $this->assertEquals(0, $asset->getFileSizeInBytes());
+    }
+
+    public function testGetUrlUsingImageApiOptionsArray()
+    {
+        $assetFile = m::mock('Markup\Contentful\AssetFile');
+        $baseUrl = 'http://domain.com/image';
+        $assetFile
+            ->shouldReceive('getUrl')
+            ->andReturn($baseUrl);
+        $asset = new Asset('', '', $assetFile, m::mock('Markup\Contentful\MetadataInterface'));
+        $apiOptions = [
+            'width' => 300,
+            'height' => 400,
+            'progressive' => true,
+        ];
+        $expectedUrl = $baseUrl . '?fl=progressive&w=300&h=400';
+        $this->assertEquals($expectedUrl, $asset->getUrl($apiOptions));
+    }
+
+    public function testGetUrlUsingImageApiOptionsObject()
+    {
+        $assetFile = m::mock('Markup\Contentful\AssetFile');
+        $baseUrl = 'http://domain.com/image';
+        $assetFile
+            ->shouldReceive('getUrl')
+            ->andReturn($baseUrl);
+        $asset = new Asset('', '', $assetFile, m::mock('Markup\Contentful\MetadataInterface'));
+        $apiOptions = new ImageApiOptions();
+        $apiOptions->setProgressive(true);
+        $apiOptions->setWidth(300);
+        $apiOptions->setHeight(400);
+        $expectedUrl = $baseUrl . '?fl=progressive&w=300&h=400';
+        $this->assertEquals($expectedUrl, $asset->getUrl($apiOptions));
     }
 }
