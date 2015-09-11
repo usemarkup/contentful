@@ -29,3 +29,5 @@ script: phpunit -v
 
 notifications:
   email: "douglas@usemarkup.com"
+
+sudo: false
