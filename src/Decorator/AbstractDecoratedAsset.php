@@ -13,7 +13,7 @@ abstract class AbstractDecoratedAsset implements AssetInterface
     /**
      * @var AssetInterface
      */
-    private $decorated;
+    protected $decorated;
 
     /**
      * @param AssetInterface $asset
