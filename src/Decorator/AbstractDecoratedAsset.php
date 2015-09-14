@@ -58,11 +58,12 @@ abstract class AbstractDecoratedAsset implements AssetInterface
     }
 
     /**
+     * @param array|ImageApiOptions
      * @return string
      */
-    public function getUrl()
+    public function getUrl($imageApiOptions = null)
     {
-        return $this->decorated->getUrl();
+        return $this->decorated->getUrl($imageApiOptions);
     }
 
     /**
