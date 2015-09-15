@@ -20,6 +20,7 @@ use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Log\NullLogger;
 use Markup\Contentful\Log\StandardLogger;
+use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
 class Contentful
@@ -353,6 +354,10 @@ class Contentful
         $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $api === self::PREVIEW_API, $cacheDisambiguator, $parameters);
         $cache = $this->ensureCache($spaceData['cache']);
         $cacheItem = $cache->getItem($cacheKey);
+        $fallbackCache = $this->ensureCache($spaceData['fallback_cache']);
+        $getItemFromCache = function (CacheItemPoolInterface $pool) use ($cacheKey) {
+            return $pool->getItem($cacheKey);
+        };
         if ($api !== self::CONTENT_MANAGEMENT_API && $cacheItem->isHit()) {
             $cacheItemJson = $cacheItem->get();
             if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
@@ -363,6 +368,24 @@ class Contentful
 
                     return $this->buildResponseFromRaw(json_decode($cacheItemJson, $assoc = true), $spaceData['name']);
                 } elseif ($this->cacheFailResponses) {
+                    /**
+                     * @var CacheItemInterface $fallbackCacheItem
+                     */
+                    $fallbackCacheItem = $getItemFromCache($fallbackCache);
+                    if ($api === self::CONTENT_DELIVERY_API && $fallbackCacheItem->isHit()) {
+                        $fallbackJson = $fallbackCacheItem->get();
+                        if (is_string($fallbackJson) && strlen($fallbackJson) > 0) {
+                            $this->logger->log(
+                                sprintf('Used successful fallback cache value as main cache has a fail response for key "%s".', $cacheKey),
+                                true,
+                                $timer,
+                                LogInterface::TYPE_RESOURCE,
+                                $this->getLogResourceTypeForQueryType($queryType),
+                                $api
+                            );
+                            return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true), $spaceData['name']);
+                        }
+                    }
                     throw new ResourceUnavailableException(null, sprintf('Fetched fail response from cache for key "%s".', $cacheKey));
                 }
             }
@@ -382,10 +405,6 @@ class Contentful
             $request->getQuery()->set($param->getKey(), $param->getValue());
         }
 
-        $fallbackCache = $this->ensureCache($spaceData['fallback_cache']);
-        $getItemFromCache = function (CacheItemPoolInterface $pool) use ($cacheKey) {
-            return $pool->getItem($cacheKey);
-        };
         $unavailableException = null;
         try {
             /**
@@ -397,7 +416,14 @@ class Contentful
             if ($api === self::CONTENT_DELIVERY_API && $fallbackCacheItem->isHit()) {
                 $fallbackJson = $fallbackCacheItem->get();
                 if (is_string($fallbackJson) && strlen($fallbackJson) > 0) {
-                    $this->logger->log(sprintf('Fetched response from fallback cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESOURCE, $this->getLogResourceTypeForQueryType($queryType), $api);
+                    $this->logger->log(
+                        sprintf('Fetched response from fallback cache for key "%s".', $cacheKey),
+                        true,
+                        $timer,
+                        LogInterface::TYPE_RESOURCE,
+                        $this->getLogResourceTypeForQueryType($queryType),
+                        $api
+                    );
                     //save fallback value into main cache
                     $cacheItem->set($fallbackJson);
                     $cache->save($cacheItem);
@@ -433,10 +459,15 @@ class Contentful
             $cacheItem->set($responseJson);
             $cache->save($cacheItem);
             if (!isset($fallbackCacheItem)) {
+                /**
+                 * @var CacheItemInterface $fallbackCacheItem
+                 */
                 $fallbackCacheItem = $getItemFromCache($fallbackCache);
             }
-            $fallbackCacheItem->set($responseJson);
-            $fallbackCache->save($fallbackCacheItem);
+            if (!$unavailableException || $fallbackCacheItem->get() === null) {
+                $fallbackCacheItem->set($responseJson);
+                $fallbackCache->save($fallbackCacheItem);
+            }
         }
         if ($unavailableException instanceof \Exception) {
             throw $unavailableException;
