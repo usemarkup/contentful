@@ -374,7 +374,7 @@ class Contentful
                     $fallbackCacheItem = $getItemFromCache($fallbackCache);
                     if ($api === self::CONTENT_DELIVERY_API && $fallbackCacheItem->isHit()) {
                         $fallbackJson = $fallbackCacheItem->get();
-                        if (is_string($fallbackJson) && strlen($fallbackJson) > 0) {
+                        if (is_string($fallbackJson) && $fallbackJson !== json_encode(null) && strlen($fallbackJson) > 0) {
                             $this->logger->log(
                                 sprintf('Used successful fallback cache value as main cache has a fail response for key "%s".', $cacheKey),
                                 true,
@@ -412,10 +412,13 @@ class Contentful
              */
             $response = $this->guzzle->send($request);
         } catch (RequestException $e) {
+            /**
+             * @var CacheItemInterface $fallbackCacheItem
+             */
             $fallbackCacheItem = $getItemFromCache($fallbackCache);
             if ($api === self::CONTENT_DELIVERY_API && $fallbackCacheItem->isHit()) {
                 $fallbackJson = $fallbackCacheItem->get();
-                if (is_string($fallbackJson) && strlen($fallbackJson) > 0) {
+                if (is_string($fallbackJson) && $fallbackJson !== json_encode(null) && strlen($fallbackJson) > 0) {
                     $this->logger->log(
                         sprintf('Fetched response from fallback cache for key "%s".', $cacheKey),
                         true,

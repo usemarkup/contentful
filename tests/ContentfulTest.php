@@ -9,6 +9,7 @@ use GuzzleHttp\Message\Response;
 use GuzzleHttp\Ring\Client\MockHandler;
 use GuzzleHttp\Stream\Stream;
 use Markup\Contentful\Contentful;
+use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Filter\EqualFilter;
 use Markup\Contentful\Filter\LessThanFilter;
 use Markup\Contentful\Link;
@@ -275,6 +276,38 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $entry = array_values(iterator_to_array($entries))[0];
         $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
         $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
+    }
+
+    public function testThrowsResourceUnavailableExceptionIfFailResponseCachedInFallbackCache()
+    {
+        $handlerOption = $this->getExplodyHandlerOption();
+        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $frontCacheItem = $this->getMockCacheItem();
+        $frontCachePool = $this->getMockCachePool();
+        $frontCachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->andReturn($frontCacheItem);
+        $frontCacheItem
+            ->shouldReceive('isHit')
+            ->andReturn(false);
+        $fallbackCacheItem = $this->getMockCacheItem();
+        $fallbackCachePool = $this->getMockCachePool();
+        $fallbackCachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->andReturn($fallbackCacheItem);
+        $fallbackCacheItem
+            ->shouldReceive('isHit')
+            ->andReturn(true);
+        $fallbackCacheItem
+            ->shouldReceive('get')
+            ->andReturn(json_encode(null));
+        $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $frontCachePool, 'fallback_cache' => $fallbackCachePool]]);
+        $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
+        $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
+        $this->setExpectedException('Markup\Contentful\Exception\ResourceUnavailableException');
+        $contentful->getEntries($parameters);
     }
 
     public function testFlushCache()
