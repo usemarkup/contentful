@@ -459,6 +459,7 @@ class Contentful
         //save into cache
         if ($api !== self::CONTENT_MANAGEMENT_API) {
             $responseJson = json_encode((!$unavailableException) ? $response->json() : null);
+            $isSuccessResponseData = !$unavailableException;
             $cacheItem->set($responseJson);
             $cache->save($cacheItem);
             if (!isset($fallbackCacheItem)) {
@@ -467,7 +468,7 @@ class Contentful
                  */
                 $fallbackCacheItem = $getItemFromCache($fallbackCache);
             }
-            if (!$unavailableException || $fallbackCacheItem->get() === null) {
+            if ((!$unavailableException || $fallbackCacheItem->get() === null) && $isSuccessResponseData) {
                 $fallbackCacheItem->set($responseJson);
                 $fallbackCache->save($fallbackCacheItem);
             }

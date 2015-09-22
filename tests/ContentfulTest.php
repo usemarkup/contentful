@@ -310,6 +310,32 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $contentful->getEntries($parameters);
     }
 
+    public function testFailResponseDoesNotSaveIntoFallbackCacheEvenIfCachingFailResponses()
+    {
+        $handlerOption = $this->getExplodyHandlerOption();
+        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $frontCacheItem = $this->getMockCacheItem();
+        $frontCachePool = $this->getMockCachePool();
+        $frontCachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->andReturn($frontCacheItem);
+        $fallbackCacheItem = $this->getMockCacheItem();
+        $fallbackCachePool = $this->getMockCachePool();
+        $fallbackCachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->andReturn($fallbackCacheItem);
+        $fallbackCacheItem
+            ->shouldReceive('set')
+            ->never();
+        $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $frontCachePool, 'fallback_cache' => $fallbackCachePool]]);
+        $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
+        $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
+        $this->setExpectedException('Markup\Contentful\Exception\ResourceUnavailableException');
+        $contentful->getEntries($parameters);
+    }
+
     public function testFlushCache()
     {
         $cachePool = $this->getMockCachePool();
