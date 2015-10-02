@@ -7,13 +7,13 @@ use Markup\Contentful\AssetInterface;
 class CompositeAssetDecorator implements AssetDecoratorInterface
 {
     /**
-     * @var \SplStack<AssetDecoratorInterface>
+     * @var \SplQueue<AssetDecoratorInterface>
      */
     private $decorators;
 
     public function __construct()
     {
-        $this->decorators = new \SplStack();
+        $this->decorators = new \SplQueue();
     }
 
     /**

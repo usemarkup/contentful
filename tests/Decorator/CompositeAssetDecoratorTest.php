@@ -39,11 +39,11 @@ class CompositeAssetDecoratorTest extends \PHPUnit_Framework_TestCase
         $asset2 = $this->getMockAsset();
         $decorator1 = $this->getMockDecorator();
         $decorator2 = $this->getMockDecorator();
-        $decorator2
+        $decorator1
             ->shouldReceive('decorate')
             ->with($initialAsset)
             ->andReturn($asset2);
-        $decorator1
+        $decorator2
             ->shouldReceive('decorate')
             ->with($asset2)
             ->andReturn($asset1);
