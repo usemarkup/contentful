@@ -358,6 +358,7 @@ class Contentful
         $getItemFromCache = function (CacheItemPoolInterface $pool) use ($cacheKey) {
             return $pool->getItem($cacheKey);
         };
+        $assetDecorator = $this->ensureAssetDecorator($spaceData['asset_decorator']);
         if ($api !== self::CONTENT_MANAGEMENT_API && $cacheItem->isHit()) {
             $cacheItemJson = $cacheItem->get();
             if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
@@ -366,7 +367,7 @@ class Contentful
                 if (null !== $cacheItemData) {
                     $this->logger->log(sprintf('Fetched response from cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType), $api);
 
-                    return $this->buildResponseFromRaw(json_decode($cacheItemJson, $assoc = true), $spaceData['name']);
+                    return $this->buildResponseFromRaw(json_decode($cacheItemJson, $assoc = true), $spaceData['name'], $assetDecorator);
                 } elseif ($this->cacheFailResponses) {
                     /**
                      * @var CacheItemInterface $fallbackCacheItem
@@ -383,7 +384,7 @@ class Contentful
                                 $this->getLogResourceTypeForQueryType($queryType),
                                 $api
                             );
-                            return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true), $spaceData['name']);
+                            return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true), $spaceData['name'], $assetDecorator);
                         }
                     }
                     throw new ResourceUnavailableException(null, sprintf('Fetched fail response from cache for key "%s".', $cacheKey));
@@ -431,7 +432,7 @@ class Contentful
                     $cacheItem->set($fallbackJson);
                     $cache->save($cacheItem);
 
-                    return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true), $spaceData['name']);
+                    return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true), $spaceData['name'], $assetDecorator);
                 }
             }
             //if there is a rate limit error, wait (if applicable)
@@ -478,7 +479,6 @@ class Contentful
         }
         $this->logger->log(sprintf('Fetched a fresh response from URL "%s".', $request->getUrl()), false, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType), $api);
 
-        $assetDecorator = $this->ensureAssetDecorator($spaceData['asset_decorator']);
 
         return $this->buildResponseFromRaw($response->json(), $spaceData['name'], $assetDecorator);
     }
