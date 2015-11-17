@@ -40,6 +40,6 @@ class ExistsFilter extends PropertyFilter
      */
     public function getValue()
     {
-        return (bool) $this->value;
+        return ($this->value) ? 'true' : 'false';
     }
 }

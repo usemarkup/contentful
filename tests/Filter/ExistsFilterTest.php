@@ -45,8 +45,8 @@ class ExistsFilterTest extends \PHPUnit_Framework_TestCase
     public function values()
     {
         return [
-            ['true', true],
-            [0, false],
+            ['truthiness', 'true'],
+            [0, 'false'],
         ];
     }
 }
