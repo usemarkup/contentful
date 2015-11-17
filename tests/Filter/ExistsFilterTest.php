@@ -18,6 +18,11 @@ class ExistsFilterTest extends \PHPUnit_Framework_TestCase
         $this->filter = new ExistsFilter($this->property, $this->value);
     }
 
+    protected function tearDown()
+    {
+        m::close();
+    }
+
     public function testIsFilter()
     {
         $this->assertInstanceOf('Markup\Contentful\FilterInterface', $this->filter);
