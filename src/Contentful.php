@@ -4,7 +4,6 @@ namespace Markup\Contentful;
 
 use GuzzleHttp\Adapter\AdapterInterface;
 use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Event\SubscriberInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Message\RequestInterface;
@@ -25,6 +24,8 @@ use Psr\Cache\CacheItemPoolInterface;
 
 class Contentful
 {
+    use GuzzleAbstractionTrait;
+
     const CONTENT_DELIVERY_API = 'cda';
     const CONTENT_MANAGEMENT_API = 'cma';
     const PREVIEW_API = 'preview';
@@ -75,7 +76,7 @@ class Contentful
      *                      an 'asset_decorator' value, which must be an object implementing AssetDecoratorInterface - any asset being generated in this space will be decorated by this on the way out
      *                      a 'cache_fail_responses' value, which is a boolean defaulting to FALSE - this should be set to true in a production mode to prevent repeated calls against nonexistent resources
      * @param array $options A set of options, including:
-     *                      'guzzle_adapter' (a Guzzle adapter object)
+     *                      'guzzle_handler' (a Guzzle handler object)
      *                      'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach)
      *                      'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle)
      *                      'guzzle_proxy' (defines a HTTP Proxy URL which will is used for requesting the Contentful API)
@@ -449,28 +450,30 @@ class Contentful
                 }
             }
         }
-        $request = $this->guzzle->createRequest('GET', $endpointUrl);
-        $this->setAuthHeaderOnRequest($request, $spaceData['access_token']);
-        $this->setApiVersionHeaderOnRequest($request, $api);
+        $request = $this->createRequest($endpointUrl, 'GET');
+        $request = $this->setAuthHeaderOnRequest($request, $spaceData['access_token']);
+        $request = $this->setApiVersionHeaderOnRequest($request, $api);
+
+        $queryParams = [];
         //set the include level
         if (null !== $options['include_level']) {
-            $request->getQuery()->set('include', $options['include_level']);
+            $queryParams['include'] = $options['include_level'];
         }
         //set parameters onto the request
         foreach ($parameters as $param) {
             /**
              * @var ParameterInterface $param
              */
-            $request->getQuery()->set($param->getKey(), $param->getValue());
+            $queryParams[$param->getKey()] = $param->getValue();
         }
 
         $unavailableException = null;
         $response = null;
         try {
             /**
-             * @var ResponseInterface $response
+             * @var ResponseInterface|Response $response
              */
-            $response = $this->guzzle->send($request);
+            $response = $this->sendRequestWithQueryParams($request, $queryParams);
         } catch (RequestException $e) {
             /**
              * @var CacheItemInterface $fallbackCacheItem
@@ -529,7 +532,9 @@ class Contentful
             throw $unavailableException;
         }
         //build the response so we can check it is valid
-        $responseJson = json_encode((!$unavailableException) ? $response->json() : null);
+        $responseJson = json_encode(
+            (!$unavailableException) ? $this->responseAsArrayFromJson($response) : null
+        );
         $builtResponse = ($responseJson) ? $buildResponseFromJson($responseJson) : null;
         $isValidResponse = (bool) $builtResponse;
 
@@ -555,7 +560,10 @@ class Contentful
         //if built response did not pass provided test
         if (!$builtResponse) {
             $log(
-                sprintf('Fetched a fresh response from URL "%s" that did not pass provided test', $request->getUrl()),
+                sprintf(
+                    'Fetched a fresh response from URL "%s" that did not pass provided test',
+                    $this->getUriForRequest($request)
+                ),
                 false,
                 LogInterface::TYPE_RESOURCE
             );
@@ -584,7 +592,10 @@ class Contentful
             );
         }
         $log(
-            sprintf('Fetched a fresh response from URL "%s".', $request->getUrl()),
+            sprintf(
+                'Fetched a fresh response from URL "%s".',
+                $this->getUriForRequest($request)
+            ),
             false,
             LogInterface::TYPE_RESPONSE
         );
@@ -666,21 +677,35 @@ class Contentful
     }
 
     /**
-     * @param RequestInterface $request
-     * @param                  $accessToken
+     * @param RequestInterface|\GuzzleHttp\Psr7\Request $request
+     * @param string                                    $accessToken
+     * @return RequestInterface|\GuzzleHttp\Psr7\Request
      */
-    private function setAuthHeaderOnRequest(RequestInterface $request, $accessToken)
+    private function setAuthHeaderOnRequest($request, $accessToken)
     {
-        $request->setHeader('Authorization', sprintf('Bearer %s', $accessToken));
+        return $this->setHeaderOnRequest(
+            $request,
+            'Authorization',
+            sprintf('Bearer %s', $accessToken)
+        );
     }
 
     /**
-     * @param RequestInterface $request
+     * @param RequestInterface|\GuzzleHttp\Psr7\Request $request
+     * @param string                                    $api
+     * @return RequestInterface|\GuzzleHttp\Psr7\Request
      */
-    private function setApiVersionHeaderOnRequest(RequestInterface $request, $api)
+    private function setApiVersionHeaderOnRequest($request, $api)
     {
         //specify version 1 header
-        $request->setHeader('Content-Type', sprintf('application/vnd.contentful.%s.v1+json', ($api === self::CONTENT_MANAGEMENT_API) ? 'management' : 'delivery'));
+        return $this->setHeaderOnRequest(
+            $request,
+            'Content-Type',
+            sprintf(
+                'application/vnd.contentful.%s.v1+json',
+                ($api === self::CONTENT_MANAGEMENT_API) ? 'management' : 'delivery'
+            )
+        );
     }
 
     /**

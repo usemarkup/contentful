@@ -5,11 +5,12 @@ namespace Markup\Contentful\Tests;
 use GuzzleHttp\Adapter\MockAdapter;
 use GuzzleHttp\Adapter\TransactionInterface;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Message\Response;
 use GuzzleHttp\Ring\Client\MockHandler;
 use GuzzleHttp\Stream\Stream;
 use Markup\Contentful\Contentful;
-use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Filter\EqualFilter;
 use Markup\Contentful\Filter\LessThanFilter;
 use Markup\Contentful\Link;
@@ -35,7 +36,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                 'api_domain' => 'different.domain.com',
             ],
         ];
-        $this->isUsingAtLeastGuzzle5 = version_compare(ClientInterface::VERSION, '5.0.0', '>=');
+        $this->isUsingAtLeastGuzzle6 = version_compare(ClientInterface::VERSION, '6.0.0', '>=');
         $this->options = [
             'dynamic_entries' => false,
         ];
@@ -535,43 +536,38 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
 
     private function getSuccessHandlerOption($data, $accessToken)
     {
-        if ($this->isUsingAtLeastGuzzle5) {
+        if ($this->isUsingAtLeastGuzzle6) {
+            $handler = new \GuzzleHttp\Handler\MockHandler([
+                new \GuzzleHttp\Psr7\Response(200, [], \GuzzleHttp\Psr7\stream_for(json_encode($data))),
+            ]);
+
+            return ['guzzle_handler' => HandlerStack::create($handler)];
+        } else {
             $handler = new MockHandler([
                 'body' => Stream::factory(json_encode($data)),
                 'status' => 200,
             ]);
 
             return ['guzzle_handler' => $handler];
-        } else {
-            $adapter = new MockAdapter();
-            $responseFunction = function (TransactionInterface $transaction) use ($data, $accessToken) {
-                $request = $transaction->getRequest();
-                $this->assertEquals('Bearer ' . $accessToken, $request->getHeader('Authorization'));
-
-                return new Response(200, [], Stream::factory(json_encode($data)));
-            };
-            $adapter->setResponse($responseFunction);
-
-            return ['guzzle_adapter' => $adapter];
         }
     }
 
     private function getExplodyHandlerOption()
     {
-        if ($this->isUsingAtLeastGuzzle5) {
+        if ($this->isUsingAtLeastGuzzle6) {
+            $handler = new \GuzzleHttp\Handler\MockHandler([
+                function ($request) {
+                    throw new ConnectException('exploded!', $request);
+                }
+            ]);
+
+            return ['guzzle_handler' => HandlerStack::create($handler)];
+        } else {
             $handler = new MockHandler(function () {
-                $this->fail();
+                throw new ConnectException();
             });
 
             return ['guzzle_handler' => $handler];
-        } else {
-            $adapter = new MockAdapter();
-            $responseFunction = function (TransactionInterface $transaction) {
-                $this->fail();
-            };
-            $adapter->setResponse($responseFunction);
-
-            return ['guzzle_adapter' => $adapter];
         }
     }
 
