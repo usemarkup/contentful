@@ -432,7 +432,7 @@ class Contentful
              * @var CacheItemInterface $fallbackCacheItem
              */
             $fallbackCacheItem = $getItemFromCache($fallbackCache);
-            if ($api === self::CONTENT_DELIVERY_API && $fallbackCacheItem->isHit()) {
+            if (in_array($api, [self::CONTENT_DELIVERY_API, self::PREVIEW_API]) && $fallbackCacheItem->isHit()) {
                 $fallbackJson = $fallbackCacheItem->get();
                 if (is_string($fallbackJson) && $fallbackJson !== json_encode(null) && strlen($fallbackJson) > 0) {
                     $this->logger->log(
