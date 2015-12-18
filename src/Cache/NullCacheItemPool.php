@@ -4,6 +4,7 @@ namespace Markup\Contentful\Cache;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 
 /**
  * Null implementation of PSR-6 cache item pool.
@@ -45,6 +46,11 @@ class NullCacheItemPool implements CacheItemPoolInterface
         return new \ArrayIterator([]);
     }
 
+    public function hasItem($key)
+    {
+        return false;
+    }
+
     /**
      * Deletes all items in the pool.
      *
@@ -55,6 +61,12 @@ class NullCacheItemPool implements CacheItemPoolInterface
     {
         // do nothing
         return true;
+    }
+
+    public function deleteItem($key)
+    {
+        // do nothing
+        return $this;
     }
 
     /**

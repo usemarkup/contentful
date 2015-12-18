@@ -16,10 +16,9 @@
     ],
     "require": {
         "guzzlehttp/guzzle": ">=4.0, <6.0",
-        "psr/cache-implementation": "1.0.0"
+        "psr/cache": "1.0.0"
     },
     "require-dev": {
-        "egils/cache": "~0.1",
         "phpunit/phpunit": "4.*",
         "mockery/mockery": "~0.9"
     },
