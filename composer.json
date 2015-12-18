@@ -3,7 +3,7 @@
     "description": "A client library to integrate with the Contentful APIs (Content Delivery and Content Management) for PHP 5.4+.",
     "keywords": ["contentful", "cms"],
     "type": "library",
-    "licence": "MIT",
+    "license": "MIT",
     "authors": [
         {
             "name": "Douglas Greenshields",
