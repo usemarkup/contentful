@@ -16,7 +16,6 @@ use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Filter\ContentTypeFilterProvider;
 use Markup\Contentful\Filter\ContentTypeNameFilter;
-use Markup\Contentful\Filter\IsArchivedFilter;
 use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Log\NullLogger;
@@ -61,11 +60,6 @@ class Contentful
     private $cacheFailResponses;
 
     /**
-     * @var bool
-     */
-    private $excludeArchived;
-
-    /**
      * @var ResourceEnvelope
      */
     private $envelope;
@@ -80,7 +74,6 @@ class Contentful
      *                      a 'retry_time_after_rate_limit_in_ms' value, which is the number of milliseconds after which a new request will be issued after a 429 (rate limit) response from the Contentful API (default: 750ms) - a falsy value here will mean no retry
      *                      an 'asset_decorator' value, which must be an object implementing AssetDecoratorInterface - any asset being generated in this space will be decorated by this on the way out
      *                      a 'cache_fail_responses' value, which is a boolean defaulting to FALSE - this should be set to true in a production mode to prevent repeated calls against nonexistent resources
-     *                      an 'exclude_archived' value, which is a boolean defaulting to FALSE - would want to set this to true in production so archived entries are not fetched in queries
      * @param array $options A set of options, including 'guzzle_adapter' (a Guzzle adapter object), 'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach), 'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle) and 'include_level' (the levels of linked content to include in responses by default)
      */
     public function __construct(array $spaces, array $options = [])
@@ -102,7 +95,6 @@ class Contentful
         $this->useDynamicEntries = !isset($options['dynamic_entries']) || $options['dynamic_entries'];
         $this->defaultIncludeLevel = (isset($options['include_level'])) ? intval($options['include_level']) : 0;
         $this->cacheFailResponses = (isset($options['cache_fail_responses'])) ? (bool) $options['cache_fail_responses'] : false;
-        $this->excludeArchived = (isset($options['exclude_archived'])) ? (bool) $options['exclude_archived'] : false;
         if (!isset($options['logger']) || false === $options['logger']) {
             $this->logger = new NullLogger();
         } else {
@@ -358,13 +350,6 @@ class Contentful
         $options = $this->mergeOptions($options);
         //ensure parameters are complete first of all as cache keys are generated from them
         $parameters = $this->completeParameters($parameters, $spaceName);
-        //exclude archived entries by applying a filter
-        if ($options['exclude_archived']) {
-            //if there is a userland is archived filter, don't add one
-            if (!$this->checkParametersContainIsArchivedFilter($parameters)) {
-                $parameters[] = new IsArchivedFilter(false);
-            }
-        }
         //only use cache if this is a Content Delivery API request
         $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $api === self::PREVIEW_API, $cacheDisambiguator, $parameters);
         $cache = $this->ensureCache($spaceData['cache']);
@@ -617,7 +602,6 @@ class Contentful
     {
         $defaultOptions = [
             'include_level' => $this->defaultIncludeLevel,
-            'exclude_archived' => $this->excludeArchived,
         ];
 
         return array_merge($defaultOptions, $options);
@@ -745,19 +729,5 @@ class Contentful
         }
 
         return $contentTypeFilterProvider->createForContentTypeName($filter->getValue(), $spaceName);
-    }
-
-    /**
-     * @param ParameterInterface[] $parameters
-     */
-    private function checkParametersContainIsArchivedFilter($parameters)
-    {
-        foreach ($parameters as $parameter) {
-            if ($parameter instanceof IsArchivedFilter) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
