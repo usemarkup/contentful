@@ -78,6 +78,7 @@ class Contentful
      *                      'guzzle_adapter' (a Guzzle adapter object)
      *                      'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach)
      *                      'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle)
+     *                      'guzzle_proxy' (defines a HTTP Proxy URL which will is used for requesting the Contentful API)
      *                      'include_level' (the levels of linked content to include in responses by default)
      */
     public function __construct(array $spaces, array $options = [])
