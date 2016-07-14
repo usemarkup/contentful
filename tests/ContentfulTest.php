@@ -202,7 +202,6 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $cachePool
             ->shouldReceive('getItem')
             ->with($expectedCacheKey)
-            ->once()
             ->andReturn($cacheItem);
         $cacheItem
             ->shouldReceive('isHit')
@@ -226,7 +225,6 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $cachePool
             ->shouldReceive('getItem')
             ->with($expectedCacheKey)
-            ->once()
             ->andReturn($cacheItem);
         $cacheItem
             ->shouldReceive('isHit')
@@ -388,7 +386,6 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $cachePool
             ->shouldReceive('getItem')
             ->with($expectedCacheKey)
-            ->once()
             ->andReturn($cacheItem);
         $cacheItem
             ->shouldReceive('isHit')
@@ -443,7 +440,6 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $cachePool
             ->shouldReceive('getItem')
             ->with($expectedCacheKey)
-            ->once()
             ->andReturn($cacheItem);
         $cacheItem
             ->shouldReceive('isHit')
