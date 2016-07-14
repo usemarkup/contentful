@@ -356,15 +356,18 @@ class Contentful
         $parameters = $this->completeParameters($parameters, $spaceName);
         //only use cache if this is a Content Delivery API request
         $cacheKey = $this->generateCacheKey($spaceData['key'], $queryType, $api === self::PREVIEW_API, $cacheDisambiguator, $parameters);
-        $cache = $this->ensureCache($spaceData['cache']);
-        $cacheItem = $cache->getItem($cacheKey);
-        $fallbackCache = $this->ensureCache($spaceData['fallback_cache']);
+        $readCache = $this->ensureCache($spaceData['cache'], $options['fresh_fetch']);
+        $writeCache = $this->ensureCache($spaceData['cache']);
+        $readCacheItem = $readCache->getItem($cacheKey);
+        $writeCacheItem = $writeCache->getItem($cacheKey);
+        $readFallbackCache = $this->ensureCache($spaceData['fallback_cache'], $options['fresh_fetch']);
+        $writeFallbackCache = $this->ensureCache($spaceData['fallback_cache']);
         $getItemFromCache = function (CacheItemPoolInterface $pool) use ($cacheKey) {
             return $pool->getItem($cacheKey);
         };
         $assetDecorator = $this->ensureAssetDecorator($spaceData['asset_decorator']);
-        if ($api !== self::CONTENT_MANAGEMENT_API && $cacheItem->isHit()) {
-            $cacheItemJson = $cacheItem->get();
+        if ($api !== self::CONTENT_MANAGEMENT_API && $readCacheItem->isHit()) {
+            $cacheItemJson = $readCacheItem->get();
             if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
                 $cacheItemData = json_decode($cacheItemJson, $assoc = true);
                 //if we are caching fail responses, and this cache item has null content, it's a fail
@@ -376,7 +379,7 @@ class Contentful
                     /**
                      * @var CacheItemInterface $fallbackCacheItem
                      */
-                    $fallbackCacheItem = $getItemFromCache($fallbackCache);
+                    $fallbackCacheItem = $getItemFromCache($readFallbackCache);
                     if ($api === self::CONTENT_DELIVERY_API && $fallbackCacheItem->isHit()) {
                         $fallbackJson = $fallbackCacheItem->get();
                         if (is_string($fallbackJson) && $fallbackJson !== json_encode(null) && strlen($fallbackJson) > 0) {
@@ -420,7 +423,7 @@ class Contentful
             /**
              * @var CacheItemInterface $fallbackCacheItem
              */
-            $fallbackCacheItem = $getItemFromCache($fallbackCache);
+            $fallbackCacheItem = $getItemFromCache($writeFallbackCache);
             if (in_array($api, [self::CONTENT_DELIVERY_API, self::PREVIEW_API]) && $fallbackCacheItem->isHit()) {
                 $fallbackJson = $fallbackCacheItem->get();
                 if (is_string($fallbackJson) && $fallbackJson !== json_encode(null) && strlen($fallbackJson) > 0) {
@@ -433,8 +436,8 @@ class Contentful
                         $api
                     );
                     //save fallback value into main cache
-                    $cacheItem->set($fallbackJson);
-                    $cache->save($cacheItem);
+                    $writeCacheItem->set($fallbackJson);
+                    $writeCache->save($writeCacheItem);
 
                     return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true), $spaceData['name'], $assetDecorator);
                 }
@@ -465,17 +468,17 @@ class Contentful
         if ($api !== self::CONTENT_MANAGEMENT_API) {
             $responseJson = json_encode((!$unavailableException) ? $response->json() : null);
             $isSuccessResponseData = !$unavailableException;
-            $cacheItem->set($responseJson);
-            $cache->save($cacheItem);
+            $writeCacheItem->set($responseJson);
+            $writeCache->save($writeCacheItem);
             if (!isset($fallbackCacheItem)) {
                 /**
                  * @var CacheItemInterface $fallbackCacheItem
                  */
-                $fallbackCacheItem = $getItemFromCache($fallbackCache);
+                $fallbackCacheItem = $getItemFromCache($writeFallbackCache);
             }
             if ((!$unavailableException || $fallbackCacheItem->get() === null) && $isSuccessResponseData) {
                 $fallbackCacheItem->set($responseJson);
-                $fallbackCache->save($fallbackCacheItem);
+                $writeFallbackCache->save($fallbackCacheItem);
             }
         }
         if ($unavailableException instanceof \Exception) {
@@ -606,6 +609,7 @@ class Contentful
     {
         $defaultOptions = [
             'include_level' => $this->defaultIncludeLevel,
+            'fresh_fetch' => false,
         ];
 
         return array_merge($defaultOptions, $options);
@@ -648,11 +652,12 @@ class Contentful
      * Ensures a cache by passing through a passed in cache, or returning a null cache if arg is not a cache.
      *
      * @param mixed $candidate
+     * @param bool  $forceNull Whether to force a null cache.
      * @return CacheItemPoolInterface
      */
-    private function ensureCache($candidate)
+    private function ensureCache($candidate, $forceNull = false)
     {
-        if (!$candidate instanceof CacheItemPoolInterface) {
+        if ($forceNull || !$candidate instanceof CacheItemPoolInterface) {
             return new NullCacheItemPool();
         }
 
