@@ -352,6 +352,7 @@ class Contentful
     {
         $timer = $this->logger->getStartedTimer();
         $options = $this->mergeOptions($options);
+        $shouldBuildTypedResources = !$options['untyped'];
         //ensure parameters are complete first of all as cache keys are generated from them
         $parameters = $this->completeParameters($parameters, $spaceName);
         //only use cache if this is a Content Delivery API request
@@ -374,7 +375,12 @@ class Contentful
                 if (null !== $cacheItemData) {
                     $this->logger->log(sprintf('Fetched response from cache for key "%s".', $cacheKey), true, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType), $api);
 
-                    return $this->buildResponseFromRaw(json_decode($cacheItemJson, $assoc = true), $spaceData['name'], $assetDecorator);
+                    return $this->buildResponseFromRaw(
+                        json_decode($cacheItemJson, $assoc = true),
+                        $spaceData['name'],
+                        $assetDecorator,
+                        $shouldBuildTypedResources
+                    );
                 } elseif ($this->cacheFailResponses) {
                     /**
                      * @var CacheItemInterface $fallbackCacheItem
@@ -391,7 +397,12 @@ class Contentful
                                 $this->getLogResourceTypeForQueryType($queryType),
                                 $api
                             );
-                            return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true), $spaceData['name'], $assetDecorator);
+                            return $this->buildResponseFromRaw(
+                                json_decode($fallbackJson, $assoc = true),
+                                $spaceData['name'],
+                                $assetDecorator,
+                                $shouldBuildTypedResources
+                            );
                         }
                     }
                     throw new ResourceUnavailableException(null, sprintf('Fetched fail response from cache for key "%s".', $cacheKey));
@@ -439,7 +450,12 @@ class Contentful
                     $writeCacheItem->set($fallbackJson);
                     $writeCache->save($writeCacheItem);
 
-                    return $this->buildResponseFromRaw(json_decode($fallbackJson, $assoc = true), $spaceData['name'], $assetDecorator);
+                    return $this->buildResponseFromRaw(
+                        json_decode($fallbackJson, $assoc = true),
+                        $spaceData['name'],
+                        $assetDecorator,
+                        $shouldBuildTypedResources
+                    );
                 }
             }
             //if there is a rate limit error, wait (if applicable)
@@ -487,7 +503,12 @@ class Contentful
         $this->logger->log(sprintf('Fetched a fresh response from URL "%s".', $request->getUrl()), false, $timer, LogInterface::TYPE_RESPONSE, $this->getLogResourceTypeForQueryType($queryType), $api);
 
 
-        return $this->buildResponseFromRaw($response->json(), $spaceData['name'], $assetDecorator);
+        return $this->buildResponseFromRaw(
+            $response->json(),
+            $spaceData['name'],
+            $assetDecorator,
+            $shouldBuildTypedResources
+        );
     }
 
     /**
@@ -585,18 +606,23 @@ class Contentful
      * @param array $data
      * @param string $spaceName
      * @param AssetDecoratorInterface $assetDecorator
+     * @param bool $useTypedResources
      * @return ResourceInterface
      */
-    private function buildResponseFromRaw(array $data, $spaceName = null, AssetDecoratorInterface $assetDecorator = null)
-    {
+    private function buildResponseFromRaw(
+        array $data,
+        $spaceName = null,
+        AssetDecoratorInterface $assetDecorator = null,
+        $useTypedResources = true
+    ) {
         static $resourceBuilder;
         if (empty($resourceBuilder)) {
             $resourceBuilder = new ResourceBuilder($this->envelope);
             $resourceBuilder->setResolveLinkFunction(function ($link) {
                 return $this->resolveLink($link);
             });
-            $resourceBuilder->setUseDynamicEntries($this->useDynamicEntries);
         }
+        $resourceBuilder->setUseDynamicEntries($useTypedResources);
 
         return $resourceBuilder->buildFromData($data, $spaceName, $assetDecorator ?: new NullAssetDecorator());
     }
@@ -610,6 +636,7 @@ class Contentful
         $defaultOptions = [
             'include_level' => $this->defaultIncludeLevel,
             'fresh_fetch' => false,
+            'untyped' => !$this->useDynamicEntries,
         ];
 
         return array_merge($defaultOptions, $options);
