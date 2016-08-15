@@ -311,7 +311,7 @@ class Contentful
                     throw new \InvalidArgumentException(sprintf('Tried to resolve unknown link type "%s".', $link->getLinkType()));
             }
         } catch (ResourceUnavailableException $e) {
-            throw new LinkUnresolvableException($link);
+            throw new LinkUnresolvableException($link, null, 0, $e);
         }
     }
 
