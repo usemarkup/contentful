@@ -17,6 +17,7 @@ use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Metadata;
 use Markup\Contentful\Property\FieldProperty;
 use Markup\Contentful\Property\SystemProperty;
+use Markup\Contentful\ResourceArray;
 use Mockery as m;
 
 class ContentfulTest extends \PHPUnit_Framework_TestCase
@@ -332,6 +333,82 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $this->setExpectedException('Markup\Contentful\Exception\ResourceUnavailableException');
         $contentful->getEntries($parameters);
+    }
+
+    public function testUsesFallbackCacheOnRequestSuccessfulButInvalid()
+    {
+        $handlerOption = $this->getSuccessHandlerOption($this->getEmptyEntriesData(), '235345lj34h53j4h');
+        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $frontCacheItem = $this->getMockCacheItem();
+        $frontCachePool = $this->getMockCachePool();
+        $frontCachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->andReturn($frontCacheItem);
+        $frontCacheItem
+            ->shouldReceive('isHit')
+            ->andReturn(false);
+        $fallbackCacheItem = $this->getMockCacheItem();
+        $fallbackCachePool = $this->getMockCachePool();
+        $fallbackCachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->andReturn($fallbackCacheItem);
+        $fallbackCacheItem
+            ->shouldReceive('isHit')
+            ->andReturn(true);
+        $fallbackCacheItem
+            ->shouldReceive('get')
+            ->andReturn(json_encode($this->getEntriesData()));
+        $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $frontCachePool, 'fallback_cache' => $fallbackCachePool]]);
+        $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
+        $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
+        $entries = $contentful->getEntries($parameters, null, [
+            'test' => function ($builtResponse) {
+                if (!$builtResponse instanceof ResourceArray) {
+                    return false;
+                }
+
+                return count($builtResponse) === 1;
+            }
+        ]);
+        $entry = array_values(iterator_to_array($entries))[0];
+        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
+        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
+    }
+
+    public function testInvalidResponseDoesNotSaveIntoFallbackCacheEvenIfCachingFailResponses()
+    {
+        $handlerOption = $this->getSuccessHandlerOption($this->getEmptyEntriesData(), '235345lj34h53j4h');
+        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $frontCacheItem = $this->getMockCacheItem();
+        $frontCachePool = $this->getMockCachePool();
+        $frontCachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->andReturn($frontCacheItem);
+        $fallbackCacheItem = $this->getMockCacheItem();
+        $fallbackCachePool = $this->getMockCachePool();
+        $fallbackCachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->andReturn($fallbackCacheItem);
+        $fallbackCacheItem
+            ->shouldReceive('set')
+            ->never();
+        $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $frontCachePool, 'fallback_cache' => $fallbackCachePool]]);
+        $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
+        $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
+        $this->setExpectedException('Markup\Contentful\Exception\ResourceUnavailableException');
+        $contentful->getEntries($parameters, null, [
+            'test' => function ($builtResponse) {
+                if (!$builtResponse instanceof ResourceArray) {
+                    return false;
+                }
+
+                return count($builtResponse) === 1;
+            }
+        ]);
     }
 
     public function testFlushCache()
@@ -684,6 +761,20 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                     ],
                 ],
             ],
+        ];
+    }
+
+    private function getEmptyEntriesData()
+    {
+        return [
+            'sys' => [
+                'type' => 'Array',
+            ],
+            'total' => 0,
+            'skip' => 0,
+            'limit' => 100,
+            'items' => [],
+            'includes' => [],
         ];
     }
 
