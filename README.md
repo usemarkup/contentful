@@ -1,7 +1,7 @@
 contentful
 ==========
 
-Provides integrations with the Contentful APIs (Content Delivery and Content Management) for PHP 5.4+
+Provides integrations with the Contentful APIs (Content Delivery and Content Management) for PHP 5.5+
 
 Status: Content Delivery API support is complete. No integration with Content Management API yet - though work forthcoming and PRs welcome!
 
