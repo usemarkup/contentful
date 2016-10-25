@@ -45,6 +45,10 @@ class GuzzleOptions
             $instance->defaults['connect_timeout'] = intval($options['guzzle_connection_timeout']);
         }
 
+        if (!empty($options['guzzle_proxy'])) {
+            $instance->defaults['proxy'] = $options['guzzle_proxy'];
+        }
+
         return $instance;
     }
 
