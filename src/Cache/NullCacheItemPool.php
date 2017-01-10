@@ -72,15 +72,19 @@ class NullCacheItemPool implements CacheItemPoolInterface
     /**
      * Removes multiple items from the pool.
      *
-     * @param array $keys
-     * An array of keys that should be removed from the pool.
-     * @return static
-     * The invoked object.
+     * @param string[] $keys
+     *   An array of keys that should be removed from the pool.
+
+     * @throws InvalidArgumentException
+     *   If any of the keys in $keys are not a legal value a \Psr\Cache\InvalidArgumentException
+     *   MUST be thrown.
+     *
+     * @return bool
+     *   True if the items were successfully removed. False if there was an error.
      */
     public function deleteItems(array $keys)
     {
-        // do nothing
-        return $this;
+        return true;
     }
 
     /**
@@ -89,13 +93,12 @@ class NullCacheItemPool implements CacheItemPoolInterface
      * @param CacheItemInterface $item
      *   The cache item to save.
      *
-     * @return static
-     *   The invoked object.
+     * @return bool
+     *   True if the item was successfully persisted. False if there was an error.
      */
     public function save(CacheItemInterface $item)
     {
-        // do nothing
-        return $this;
+        return true;
     }
 
     /**
@@ -103,20 +106,20 @@ class NullCacheItemPool implements CacheItemPoolInterface
      *
      * @param CacheItemInterface $item
      *   The cache item to save.
-     * @return static
-     *   The invoked object.
+     *
+     * @return bool
+     *   False if the item could not be queued or if a commit was attempted and failed. True otherwise.
      */
     public function saveDeferred(CacheItemInterface $item)
     {
-        // do nothing
-        return $this;
+        return true;
     }
 
     /**
      * Persists any deferred cache items.
      *
      * @return bool
-     *   TRUE if all not-yet-saved items were successfully saved. FALSE otherwise.
+     *   True if all not-yet-saved items were successfully saved or there were none. False otherwise.
      */
     public function commit()
     {
