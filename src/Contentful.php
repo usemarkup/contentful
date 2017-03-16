@@ -89,7 +89,7 @@ class Contentful
 
         $this->guzzle = new GuzzleClient($guzzleOptions->toArray());
 
-        if (isset($options['guzzle_event_subscribers'])) {
+        if (isset($options['guzzle_event_subscribers']) && !$this->isUsingAtLeastGuzzle6()) {
             $emitter = $this->guzzle->getEmitter();
             foreach ($options['guzzle_event_subscribers'] as $subscriber) {
                 if (!$subscriber instanceof SubscriberInterface) {
