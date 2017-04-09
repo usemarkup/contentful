@@ -2,12 +2,8 @@
 
 namespace Markup\Contentful;
 
-use GuzzleHttp\Adapter\AdapterInterface;
 use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Event\SubscriberInterface;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Message\RequestInterface;
-use GuzzleHttp\Message\ResponseInterface;
 use Markup\Contentful\Cache\NullCacheItemPool;
 use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\Decorator\NullAssetDecorator;
@@ -34,11 +30,6 @@ class Contentful
      * @var array
      */
     private $spaces;
-
-    /**
-     * @var GuzzleClient
-     */
-    private $guzzle;
 
     /**
      * @var LoggerInterface
@@ -77,7 +68,6 @@ class Contentful
      *                      a 'cache_fail_responses' value, which is a boolean defaulting to FALSE - this should be set to true in a production mode to prevent repeated calls against nonexistent resources
      * @param array $options A set of options, including:
      *                      'guzzle_handler' (a Guzzle handler object)
-     *                      'guzzle_event_subscribers' (a list of Guzzle event subscribers to attach)
      *                      'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle)
      *                      'guzzle_proxy' (defines a HTTP Proxy URL which will is used for requesting the Contentful API)
      *                      'include_level' (the levels of linked content to include in responses by default)
@@ -89,15 +79,6 @@ class Contentful
 
         $this->guzzle = new GuzzleClient($guzzleOptions->toArray());
 
-        if (isset($options['guzzle_event_subscribers']) && !$this->isUsingAtLeastGuzzle6()) {
-            $emitter = $this->guzzle->getEmitter();
-            foreach ($options['guzzle_event_subscribers'] as $subscriber) {
-                if (!$subscriber instanceof SubscriberInterface) {
-                    continue;
-                }
-                $emitter->attach($subscriber);
-            }
-        }
         $this->useDynamicEntries = !isset($options['dynamic_entries']) || $options['dynamic_entries'];
         $this->defaultIncludeLevel = (isset($options['include_level'])) ? intval($options['include_level']) : 0;
         $this->cacheFailResponses = (isset($options['cache_fail_responses'])) ? (bool) $options['cache_fail_responses'] : false;
@@ -111,6 +92,7 @@ class Contentful
 
     /**
      * @param string|SpaceInterface $space The space name, or space object.
+     * @param array $options
      * @return SpaceInterface
      * @throws Exception\ResourceUnavailableException
      */
@@ -139,7 +121,7 @@ class Contentful
 
     /**
      * @param string $id
-     * @param string|SpaceInterface $spaceName
+     * @param string|SpaceInterface $space
      * @param array  $options A set of options for the fetch, including 'include_level' being how many levels to include
      * @return EntryInterface
      * @throws Exception\ResourceUnavailableException
@@ -168,7 +150,7 @@ class Contentful
 
     /**
      * @param ParameterInterface[] $parameters
-     * @param string               $spaceName
+     * @param string               $space
      * @param array                $options
      * @return ResourceArray|EntryInterface[]
      * @throws Exception\ResourceUnavailableException
@@ -195,6 +177,7 @@ class Contentful
     /**
      * @param string                $id
      * @param string|SpaceInterface $space
+     * @param array                 $options
      * @return AssetInterface
      */
     public function getAsset($id, $space = null, array $options = [])
@@ -222,6 +205,7 @@ class Contentful
     /**
      * @param string                $id
      * @param string|SpaceInterface $space
+     * @param array                 $options
      * @return ContentTypeInterface
      */
     public function getContentType($id, $space = null, array $options = [])
@@ -293,6 +277,7 @@ class Contentful
 
     /**
      * @param Link $link
+     * @param array $options
      * @return ResourceInterface
      */
     public function resolveLink($link, array $options = [])

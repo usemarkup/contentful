@@ -2,15 +2,10 @@
 
 namespace Markup\Contentful\Tests;
 
-use GuzzleHttp\Adapter\MockAdapter;
-use GuzzleHttp\Adapter\TransactionInterface;
-use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Message\Response;
-use GuzzleHttp\Ring\Client\MockHandler;
-use GuzzleHttp\Stream\Stream;
 use Markup\Contentful\Contentful;
+use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Filter\EqualFilter;
 use Markup\Contentful\Filter\LessThanFilter;
 use Markup\Contentful\Link;
@@ -20,9 +15,21 @@ use Markup\Contentful\Property\FieldProperty;
 use Markup\Contentful\Property\SystemProperty;
 use Markup\Contentful\ResourceArray;
 use Mockery as m;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 class ContentfulTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var array
+     */
+    private $spaces;
+
+    /**
+     * @var array
+     */
+    private $options;
+
     protected function setUp()
     {
         $this->spaces = [
@@ -36,7 +43,6 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                 'api_domain' => 'different.domain.com',
             ],
         ];
-        $this->isUsingAtLeastGuzzle6 = version_compare(ClientInterface::VERSION, '6.0.0', '>=');
         $this->options = [
             'dynamic_entries' => false,
         ];
@@ -530,55 +536,38 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool, 'preview_mode' => false]]);
         $handlerOption = $this->getExplodyHandlerOption();
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
-        $this->setExpectedException('Markup\Contentful\Exception\ResourceUnavailableException');
+        $this->setExpectedException(ResourceUnavailableException::class);
         $contentful->getEntry('cat');
     }
 
     private function getSuccessHandlerOption($data, $accessToken)
     {
-        if ($this->isUsingAtLeastGuzzle6) {
-            $handler = new \GuzzleHttp\Handler\MockHandler([
-                new \GuzzleHttp\Psr7\Response(200, [], \GuzzleHttp\Psr7\stream_for(json_encode($data))),
-            ]);
+        $handler = new \GuzzleHttp\Handler\MockHandler([
+            new \GuzzleHttp\Psr7\Response(200, [], \GuzzleHttp\Psr7\stream_for(json_encode($data))),
+        ]);
 
-            return ['guzzle_handler' => HandlerStack::create($handler)];
-        } else {
-            $handler = new MockHandler([
-                'body' => Stream::factory(json_encode($data)),
-                'status' => 200,
-            ]);
-
-            return ['guzzle_handler' => $handler];
-        }
+        return ['guzzle_handler' => HandlerStack::create($handler)];
     }
 
     private function getExplodyHandlerOption()
     {
-        if ($this->isUsingAtLeastGuzzle6) {
-            $handler = new \GuzzleHttp\Handler\MockHandler([
-                function ($request) {
-                    throw new ConnectException('exploded!', $request);
-                }
-            ]);
+        $handler = new \GuzzleHttp\Handler\MockHandler([
+            function ($request) {
+                throw new ConnectException('exploded!', $request);
+            }
+        ]);
 
-            return ['guzzle_handler' => HandlerStack::create($handler)];
-        } else {
-            $handler = new MockHandler(function () {
-                throw new ConnectException();
-            });
-
-            return ['guzzle_handler' => $handler];
-        }
+        return ['guzzle_handler' => HandlerStack::create($handler)];
     }
 
     private function getMockCachePool()
     {
-        return m::mock('Psr\Cache\CacheItemPoolInterface')->shouldIgnoreMissing();
+        return m::mock(CacheItemPoolInterface::class)->shouldIgnoreMissing();
     }
 
     private function getMockCacheItem()
     {
-        return m::mock('Psr\Cache\CacheItemInterface')->shouldIgnoreMissing();
+        return m::mock(CacheItemInterface::class)->shouldIgnoreMissing();
     }
 
     private function getEntriesData()
