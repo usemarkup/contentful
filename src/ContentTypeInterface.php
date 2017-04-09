@@ -22,6 +22,14 @@ interface ContentTypeInterface extends ResourceInterface
     public function getFields();
 
     /**
+     * Returns the content type field matching the passed ID, or null if field does not exist.
+     *
+     * @param string $fieldId
+     * @return ContentTypeField|null
+     */
+    public function getField($fieldId);
+
+    /**
      * @return ContentTypeField|null
      */
     public function getDisplayField();

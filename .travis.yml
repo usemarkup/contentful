@@ -22,7 +22,8 @@ install:
     - if [ "$deps" = "no" ]; then composer --prefer-source install; fi;
     - if [ "$deps" = "low" ]; then composer --prefer-source --prefer-lowest --prefer-stable update; fi
 
-script: vendor/bin/phpunit -v
+script:
+    - vendor/bin/phpunit -v
 
 notifications:
   email: "douglas@usemarkup.com"

@@ -41,7 +41,7 @@ class Skip implements ParameterInterface
      */
     public function getValue()
     {
-        return $this->skip;
+        return (string) $this->skip;
     }
 
     /**

@@ -52,7 +52,7 @@ class Asset implements AssetInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getFilename()
     {
@@ -67,7 +67,7 @@ class Asset implements AssetInterface
     /**
      * Gets the content type of the asset. This is a MIME type, *not* a Contentful type.
      *
-     * @return string
+     * @return string|null
      */
     public function getContentType()
     {
@@ -81,7 +81,7 @@ class Asset implements AssetInterface
 
     /**
      * @param array|ImageApiOptions $imageApiOptions Options for rendering the image using the Image API @see http://docs.contentfulimagesapi.apiary.io/
-     * @return string
+     * @return string|null
      */
     public function getUrl($imageApiOptions = null)
     {
@@ -125,7 +125,7 @@ class Asset implements AssetInterface
     }
 
     /**
-     * @return int
+     * @return int|null
      */
     public function getFileSizeInBytes()
     {

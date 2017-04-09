@@ -46,7 +46,7 @@ class Log implements LogInterface
     {
         $this->description = $description;
         $this->durationInSeconds = $durationInSeconds;
-        $this->isCacheHit = (bool) $isCacheHit;
+        $this->isCacheHit = $isCacheHit;
         $this->type = $type;
         $this->resourceType = $resourceType;
         $this->api = $api;
@@ -65,7 +65,7 @@ class Log implements LogInterface
     /**
      * A description of what happened, containing pertinent information.
      *
-     * @var string
+     * @return string
      */
     public function getDescription()
     {
