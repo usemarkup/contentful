@@ -19,10 +19,6 @@ class DynamicEntry implements EntryInterface
      */
     private $contentType;
 
-    /**
-     * @param EntryInterface $entry
-     * @param ContentType $contentType
-     */
     public function __construct(EntryInterface $entry, ContentTypeInterface $contentType)
     {
         $this->entry = $entry;

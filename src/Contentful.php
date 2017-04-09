@@ -485,7 +485,7 @@ class Contentful
                 }
             }
             //if there is a rate limit error, wait (if applicable)
-            if ($e->hasResponse() && $e->getResponse()->getStatusCode() === '429' && $spaceData['retry_time_after_rate_limit_in_ms']) {
+            if ($e->hasResponse() && $e->getResponse()->getStatusCode() === 429 && $spaceData['retry_time_after_rate_limit_in_ms']) {
                 usleep(intval($spaceData['retry_time_after_rate_limit_in_ms']));
 
                 return $this->doRequest(
@@ -590,7 +590,7 @@ class Contentful
 
     /**
      * @param string $queryType
-     * @return string
+     * @return string|null
      */
     private function getLogResourceTypeForQueryType($queryType)
     {
@@ -662,9 +662,9 @@ class Contentful
     }
 
     /**
-     * @param RequestInterface|\GuzzleHttp\Psr7\Request $request
+     * @param \GuzzleHttp\Psr7\Request $request
      * @param string                                    $accessToken
-     * @return RequestInterface|\GuzzleHttp\Psr7\Request
+     * @return \GuzzleHttp\Psr7\Request
      */
     private function setAuthHeaderOnRequest($request, $accessToken)
     {
@@ -676,9 +676,9 @@ class Contentful
     }
 
     /**
-     * @param RequestInterface|\GuzzleHttp\Psr7\Request $request
+     * @param \GuzzleHttp\Psr7\Request $request
      * @param string                                    $api
-     * @return RequestInterface|\GuzzleHttp\Psr7\Request
+     * @return \GuzzleHttp\Psr7\Request
      */
     private function setApiVersionHeaderOnRequest($request, $api)
     {
@@ -851,11 +851,11 @@ class Contentful
     }
 
     /**
-     * @param ContentTypeNameFilter $filter
-     * @param string                $spaceName
+     * @param IncompleteParameterInterface $filter
+     * @param string                       $spaceName
      * @return ParameterInterface
      */
-    private function resolveContentTypeNameFilter(ContentTypeNameFilter $filter, $spaceName = null)
+    private function resolveContentTypeNameFilter(IncompleteParameterInterface $filter, $spaceName = null)
     {
         static $contentTypeFilterProvider;
         if (empty($contentTypeFilterProvider)) {

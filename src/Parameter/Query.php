@@ -21,7 +21,7 @@ class Query implements ParameterInterface
      */
     public function __construct($query)
     {
-        $this->query = (string)$query;
+        $this->query = $query;
     }
 
     /**

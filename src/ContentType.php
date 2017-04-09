@@ -33,7 +33,7 @@ class ContentType implements ContentTypeInterface
      * @param string             $description
      * @param ContentTypeField[] $fields
      * @param MetadataInterface  $metadata
-     * @param ContentTypeField   $displayField
+     * @param string             $displayField
      */
     public function __construct($name, $description, $fields, MetadataInterface $metadata, $displayField = null)
     {
@@ -73,7 +73,7 @@ class ContentType implements ContentTypeInterface
 
     /**
      * @param string $fieldId
-     * @return ContentTypeField
+     * @return ContentTypeField|null
      */
     public function getField($fieldId)
     {
@@ -85,7 +85,7 @@ class ContentType implements ContentTypeInterface
     }
 
     /**
-     * @return \Markup\Contentful\ContentTypeField
+     * @return \Markup\Contentful\ContentTypeField|null
      */
     public function getDisplayField()
     {

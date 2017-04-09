@@ -41,7 +41,7 @@ class Limit implements ParameterInterface
      */
     public function getValue()
     {
-        return $this->limit;
+        return (string) $this->limit;
     }
 
     /**

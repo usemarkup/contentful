@@ -18,8 +18,8 @@ class Location
     private $longitude;
 
     /**
-     * @param string $latitude
-     * @param string $longitude
+     * @param float $latitude
+     * @param float $longitude
      */
     public function __construct($latitude, $longitude)
     {

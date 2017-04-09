@@ -2,30 +2,23 @@
 
 namespace Markup\Contentful\Exception;
 
-use GuzzleHttp\Message\ResponseInterface;
 use GuzzleHttp\Psr7\Response;
 
 class ResourceUnavailableException extends \RuntimeException implements ExceptionInterface
 {
     /**
-     * @var ResponseInterface|Response
+     * @var Response
      */
     private $response;
 
-    /**
-     * @param ResponseInterface|Response $response
-     * @param string                     $message
-     * @param int                        $code
-     * @param \Exception                 $previous
-     */
-    public function __construct($response = null, $message = '', $code = 0, \Exception $previous = null)
+    public function __construct(Response $response = null, ...$args)
     {
         $this->response = $response;
-        parent::__construct($message, $code, $previous);
+        parent::__construct(...$args);
     }
 
     /**
-     * @return \GuzzleHttp\Message\ResponseInterface|Response|null
+     * @return Response|null
      */
     public function getResponse()
     {
