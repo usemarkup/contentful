@@ -11,6 +11,8 @@ use GuzzleHttp\Message\Response;
 use GuzzleHttp\Ring\Client\MockHandler;
 use GuzzleHttp\Stream\Stream;
 use Markup\Contentful\Contentful;
+use Markup\Contentful\ContentTypeInterface;
+use Markup\Contentful\EntryInterface;
 use Markup\Contentful\Filter\EqualFilter;
 use Markup\Contentful\Filter\LessThanFilter;
 use Markup\Contentful\Link;
@@ -175,7 +177,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
 
     public function testGetContentType()
     {
-        $data = $this->getContentTypeData();
+        $data = $this->getContentTypesData();
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $contentType = $contentful->getContentType('cat');
@@ -374,8 +376,8 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
             }
         ]);
         $entry = array_values(iterator_to_array($entries))[0];
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
+        $this->assertInstanceOf(EntryInterface::class, $entry);
+        $this->assertInstanceOf(EntryInterface::class, $entry['bestFriend']);
     }
 
     public function testInvalidResponseDoesNotSaveIntoFallbackCacheEvenIfCachingFailResponses()
@@ -425,11 +427,11 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
 
     public function testResolveContentTypeLink()
     {
-        $handlerOption = $this->getSuccessHandlerOption($this->getContentTypeData(), '235345lj34h53j4h');
+        $handlerOption = $this->getSuccessHandlerOption($this->getContentTypesData(), '235345lj34h53j4h');
         $data = [
             'type' => 'Link',
             'linkType' => 'ContentType',
-            'id' => '45jhb6kjehgej4h5',
+            'id' => 'cat',
         ];
         $metadata = new Metadata();
         $metadata->setType($data['type']);
@@ -438,7 +440,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $link = new Link($metadata);
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $contentType = $contentful->resolveLink($link);
-        $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
+        $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
         $this->assertEquals('cat', $contentType->getId());//of course, in a real situation this would be the same as the ID in the link - but this is the ID in the mock data
         $this->assertEquals('Name', $contentType->getDisplayField()->getName());
     }
@@ -814,6 +816,59 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
             'displayField' => 'name',
+        ];
+    }
+
+    private function getContentTypesData()
+    {
+        return [
+            'sys' => [
+                'type' => 'Array',
+            ],
+            'total' => 1,
+            'skip' => 0,
+            'limit' => 100,
+            'items' => [
+                [
+                    'sys' => [
+                        'type' => 'ContentType',
+                        'id' => 'cat',
+                    ],
+                    'name' => 'Cat',
+                    'description' => 'Meow.',
+                    'fields' => [
+                        [
+                            'id' => 'name',
+                            'name' => 'Name',
+                            'type' => 'Text',
+                        ],
+                        [
+                            'id' => 'diary',
+                            'name' => 'Diary',
+                            'type' => 'Text',
+                        ],
+                        [
+                            'id' => 'likes',
+                            'name' => 'Likes',
+                            'type' => 'Array',
+                            'items' => [
+                                'type' => 'Symbol',
+                            ]
+                        ],
+                        [
+                            'id' => 'bestFriend',
+                            'name' => 'Best Friend',
+                            'type' => 'Link',
+                        ],
+                        [
+                            'id' => 'lifes',
+                            'name' => 'Lifes',
+                            'type' => 'Integer',
+                        ],
+                    ],
+                    'displayField' => 'name',
+                ],
+            ],
         ];
     }
 
