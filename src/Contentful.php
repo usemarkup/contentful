@@ -217,17 +217,26 @@ class Contentful
         $spaceData = $this->getSpaceDataForName(($space instanceof SpaceInterface) ? $space->getName() : $space);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
-        return $this->doRequest(
-            $spaceData,
-            $spaceName,
-            $this->getEndpointUrl(sprintf('/spaces/%s/content_types/%s', $spaceData['key'], $id), $api),
-            sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
-            $api,
-            'content_type',
-            strval($id),
-            [],
-            $options
-        );
+        if ($options) {
+            return $this->doRequest(
+                $spaceData,
+                $spaceName,
+                $this->getEndpointUrl(sprintf('/spaces/%s/content_types/%s', $spaceData['key'], $id), $api),
+                sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
+                $api,
+                'content_type',
+                strval($id),
+                [],
+                $options
+            );
+        }
+        //fetch them all and pick one out, as it is likely we'll want to access others
+        $contentTypes = $this->getContentTypes([], $space);
+        foreach ($contentTypes as $contentType) {
+            $this->envelope->insertContentType($contentType);
+        }
+
+        return $this->envelope->findContentType($id);
     }
 
     /**
@@ -265,14 +274,20 @@ class Contentful
      */
     public function getContentTypeByName($name, $space = null, array $options = [])
     {
+        $contentTypeFromEnvelope = $this->envelope->findContentTypeByName($name);
+        if ($contentTypeFromEnvelope) {
+            return $contentTypeFromEnvelope;
+        }
         $contentTypes = $this->getContentTypes([], $space, $options);
+        $foundContentType = null;
         foreach ($contentTypes as $contentType) {
             if ($contentType->getName() === $name) {
-                return $contentType;
+                $foundContentType = $contentType;
             }
+            $this->envelope->insertContentType($contentType);
         }
 
-        return null;
+        return $foundContentType;
     }
 
     /**

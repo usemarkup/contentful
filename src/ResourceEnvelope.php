@@ -93,6 +93,21 @@ class ResourceEnvelope
     }
 
     /**
+     * @param string $contentTypeName
+     * @return ContentTypeInterface|mixed|null
+     */
+    public function findContentTypeByName($contentTypeName)
+    {
+        foreach ($this->contentTypes as $contentType) {
+            if ($contentType->getName() === $contentTypeName) {
+                return $contentType;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @param string $contentTypeId
      * @return bool
      */

@@ -2,11 +2,19 @@
 
 namespace Markup\Contentful\Tests;
 
+use Markup\Contentful\AssetInterface;
+use Markup\Contentful\ContentTypeInterface;
+use Markup\Contentful\EntryInterface;
 use Markup\Contentful\ResourceEnvelope;
 use Mockery as m;
 
 class ResourceEnvelopeTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var ResourceEnvelope
+     */
+    private $envelope;
+
     protected function setUp()
     {
         $this->envelope = new ResourceEnvelope();
@@ -19,12 +27,12 @@ class ResourceEnvelopeTest extends \PHPUnit_Framework_TestCase
 
     public function testSetAndAccessEntries()
     {
-        $entry1 = m::mock('Markup\Contentful\EntryInterface');
+        $entry1 = m::mock(EntryInterface::class);
         $id1 = 'id1';
         $entry1
             ->shouldReceive('getId')
             ->andReturn($id1);
-        $entry2 = m::mock('Markup\Contentful\EntryInterface');
+        $entry2 = m::mock(EntryInterface::class);
         $id2 = 'id2';
         $entry2
             ->shouldReceive('getId')
@@ -40,12 +48,12 @@ class ResourceEnvelopeTest extends \PHPUnit_Framework_TestCase
 
     public function testSetAndAccessAssets()
     {
-        $asset1 = m::mock('Markup\Contentful\AssetInterface');
+        $asset1 = m::mock(AssetInterface::class);
         $id1 = 'id1';
         $asset1
             ->shouldReceive('getId')
             ->andReturn($id1);
-        $asset2 = m::mock('Markup\Contentful\AssetInterface');
+        $asset2 = m::mock(AssetInterface::class);
         $id2 = 'id2';
         $asset2
             ->shouldReceive('getId')
@@ -61,16 +69,24 @@ class ResourceEnvelopeTest extends \PHPUnit_Framework_TestCase
 
     public function testSetAndAccessContentTypes()
     {
-        $contentType1 = m::mock('Markup\Contentful\ContentTypeInterface');
+        $contentType1 = m::mock(ContentTypeInterface::class);
         $id1 = 'id1';
         $contentType1
             ->shouldReceive('getId')
             ->andReturn($id1);
-        $contentType2 = m::mock('Markup\Contentful\ContentTypeInterface');
+        $contentTypeName1 = 'name1';
+        $contentType1
+            ->shouldReceive('getName')
+            ->andReturn($contentTypeName1);
+        $contentType2 = m::mock(ContentTypeInterface::class);
         $id2 = 'id2';
         $contentType2
             ->shouldReceive('getId')
             ->andReturn($id2);
+        $contentTypeName2 = 'name2';
+        $contentType2
+            ->shouldReceive('getName')
+            ->andReturn($contentTypeName2);
         $this->envelope->insertContentType($contentType1);
         $this->envelope->insertContentType($contentType2);
         $this->assertSame($contentType2, $this->envelope->findContentType($id2));
@@ -78,5 +94,7 @@ class ResourceEnvelopeTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($this->envelope->findContentType('unknown'));
         $this->assertFalse($this->envelope->hasContentType('unknown'));
         $this->assertEquals(2, $this->envelope->getContentTypeCount());
+        $this->assertSame($contentType1, $this->envelope->findContentTypeByName($contentTypeName1));
+        $this->assertNull($this->envelope->findContentTypeByName('unknown'));
     }
 }
