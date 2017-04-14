@@ -41,9 +41,14 @@ trait GuzzleAbstractionTrait
      * @param Request $request
      * @return string
      */
-    private function getUriForRequest(Request $request)
+    private function getUriForRequest(Request $request, array $queryParams = [])
     {
-        return strval($request->getUri());
+        $uri = strval($request->getUri());
+        if (count($queryParams) > 0) {
+            $uri .= '?'.http_build_query($queryParams);
+        }
+
+        return $uri;
     }
 
     /**

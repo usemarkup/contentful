@@ -562,7 +562,7 @@ class Contentful
             $log(
                 sprintf(
                     'Fetched a fresh response from URL "%s" that did not pass provided test',
-                    $this->getUriForRequest($request)
+                    $this->getUriForRequest($request, $queryParams)
                 ),
                 false,
                 LogInterface::TYPE_RESOURCE
@@ -594,7 +594,7 @@ class Contentful
         $log(
             sprintf(
                 'Fetched a fresh response from URL "%s".',
-                $this->getUriForRequest($request)
+                $this->getUriForRequest($request, $queryParams)
             ),
             false,
             LogInterface::TYPE_RESPONSE
