@@ -3,6 +3,7 @@
 namespace Markup\Contentful;
 
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\ResponseInterface;
@@ -25,6 +26,16 @@ trait GuzzleAbstractionTrait
     private function sendRequestWithQueryParams(Request $request, array $queryParams = [])
     {
         return $this->guzzle->send($request, [RequestOptions::QUERY => $queryParams]);
+    }
+
+    /**
+     * @param Request $request
+     * @param array   $queryParams
+     * @return PromiseInterface
+     */
+    private function sendRequestAsync(Request $request, array $queryParams = [])
+    {
+        return $this->guzzle->sendAsync($request, [RequestOptions::QUERY => $queryParams]);
     }
 
     /**
