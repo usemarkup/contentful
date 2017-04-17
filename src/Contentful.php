@@ -6,6 +6,7 @@ use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
 use function GuzzleHttp\Promise\coroutine;
 use GuzzleHttp\Promise\FulfilledPromise;
+use function GuzzleHttp\Promise\promise_for;
 use GuzzleHttp\Promise\PromiseInterface;
 use Markup\Contentful\Cache\NullCacheItemPool;
 use Markup\Contentful\Decorator\AssetDecoratorInterface;
@@ -385,7 +386,6 @@ class Contentful
                     return $pool->getItem($cacheKey);
                 };
                 $assetDecorator = $this->ensureAssetDecorator($spaceData['asset_decorator']);
-                $finalPromise = null;
                 /**
                  * Returns a built response if it passes test, or null if it doesn't.
                  *
@@ -430,8 +430,8 @@ class Contentful
 
                             $builtResponse = $buildResponseFromJson($cacheItemJson);
                             if ($builtResponse) {
-                                $finalPromise = new FulfilledPromise($builtResponse);
-                                goto finalYield;
+                                yield promise_for($builtResponse);
+                                return;
                             }
                         }
                         if ($this->cacheFailResponses) {
@@ -449,8 +449,8 @@ class Contentful
                                     );
                                     $builtResponse = $buildResponseFromJson($fallbackJson);
                                     if ($builtResponse) {
-                                        $finalPromise = new FulfilledPromise($builtResponse);
-                                        goto finalYield;
+                                        yield promise_for($builtResponse);
+                                        return;
                                     }
                                 }
                             }
@@ -499,22 +499,20 @@ class Contentful
                             $writeCacheItem->set($fallbackJson);
                             $writeCache->save($writeCacheItem);
 
-                            $finalPromise = new FulfilledPromise(
-                                $this->buildResponseFromRaw(
-                                    json_decode($fallbackJson, true),
-                                    $spaceData['name'],
-                                    $assetDecorator,
-                                    $shouldBuildTypedResources
-                                )
-                            );
-                            goto finalYield;
+                            yield promise_for($this->buildResponseFromRaw(
+                                json_decode($fallbackJson, true),
+                                $spaceData['name'],
+                                $assetDecorator,
+                                $shouldBuildTypedResources
+                            ));
+                            return;
                         }
                     }
                     //if there is a rate limit error, wait (if applicable)
                     if ($e->hasResponse() && $e->getResponse()->getStatusCode() === 429 && $spaceData['retry_time_after_rate_limit_in_ms']) {
                         usleep(intval($spaceData['retry_time_after_rate_limit_in_ms']));
 
-                        $finalPromise = (yield $this->doRequest(
+                        yield $this->doRequest(
                             $spaceData,
                             $spaceName,
                             $endpointUrl,
@@ -524,8 +522,8 @@ class Contentful
                             $cacheDisambiguator,
                             $parameters,
                             array_merge($options, ['async' => true])
-                        ));
-                        goto finalYield;
+                        );
+                        return;
                     }
                     $unavailableException = new ResourceUnavailableException($e->getResponse(), $exceptionMessage, 0, $e);
                 }
@@ -594,8 +592,8 @@ class Contentful
                             );
                             $builtResponse = $buildResponseFromJson($fallbackJson);
                             if ($builtResponse) {
-                                $finalPromise = new FulfilledPromise($builtResponse);
-                                goto finalYield;
+                                yield promise_for($builtResponse);
+                                return;
                             }
                         }
                     }
@@ -613,9 +611,7 @@ class Contentful
                     LogInterface::TYPE_RESPONSE
                 );
 
-                finalYield:
-
-                yield $finalPromise ?: new FulfilledPromise($builtResponse);
+                yield promise_for($builtResponse);
             }
         );
 
