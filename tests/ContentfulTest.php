@@ -314,7 +314,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $frontCachePool, 'fallback_cache' => $fallbackCachePool]]);
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
-        $this->setExpectedException('Markup\Contentful\Exception\ResourceUnavailableException');
+        $this->expectException(ResourceUnavailableException::class);
         $contentful->getEntries($parameters);
     }
 
@@ -340,7 +340,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $frontCachePool, 'fallback_cache' => $fallbackCachePool]]);
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
-        $this->setExpectedException('Markup\Contentful\Exception\ResourceUnavailableException');
+        $this->expectException(ResourceUnavailableException::class);
         $contentful->getEntries($parameters);
     }
 
@@ -408,7 +408,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $frontCachePool, 'fallback_cache' => $fallbackCachePool]]);
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
-        $this->setExpectedException('Markup\Contentful\Exception\ResourceUnavailableException');
+        $this->expectException(ResourceUnavailableException::class);
         $contentful->getEntries($parameters, null, [
             'test' => function ($builtResponse) {
                 if (!$builtResponse instanceof ResourceArray) {
@@ -538,7 +538,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool, 'preview_mode' => false]]);
         $handlerOption = $this->getExplodyHandlerOption();
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
-        $this->setExpectedException(ResourceUnavailableException::class);
+        $this->expectException(ResourceUnavailableException::class);
         $contentful->getEntry('cat');
     }
 
