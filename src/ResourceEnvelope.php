@@ -28,11 +28,17 @@ class ResourceEnvelope
      */
     private $contentTypes;
 
+    /**
+     * A set of all known content types for specific groups.
+     */
+    private $contentTypeGroups;
+
     public function __construct()
     {
         $this->entries = [];
         $this->assets = [];
         $this->contentTypes = [];
+        $this->contentTypeGroups = [];
     }
 
     /**
@@ -171,6 +177,35 @@ class ResourceEnvelope
         $this->contentTypes[$contentType->getId()] = $contentType;
 
         return $this;
+    }
+
+    /**
+     * @param ContentTypeInterface[] $contentTypes
+     * @param string $space
+     */
+    public function insertAllContentTypesForSpace($contentTypes, $space)
+    {
+        $this->contentTypeGroups[$space] = $contentTypes;
+        foreach ($contentTypes as $contentType) {
+            $this->insertContentType($contentType);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Gets all content types for a given space if they are saved into the envelope, null otherwise.
+     *
+     * @param string $space
+     * @return ContentTypeInterface[]|null
+     */
+    public function getAllContentTypesForSpace($space)
+    {
+        if (!isset($this->contentTypeGroups[$space])) {
+            return null;
+        }
+
+        return $this->contentTypeGroups[$space];
     }
 
     /**

@@ -5,6 +5,7 @@ namespace Markup\Contentful\Tests;
 use Markup\Contentful\AssetInterface;
 use Markup\Contentful\ContentTypeInterface;
 use Markup\Contentful\EntryInterface;
+use Markup\Contentful\ResourceArray;
 use Markup\Contentful\ResourceEnvelope;
 use Mockery as m;
 
@@ -127,5 +128,25 @@ class ResourceEnvelopeTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(2, $this->envelope->getContentTypeCount());
         $this->assertSame($contentType1, $this->envelope->findContentTypeByName($contentTypeName1));
         $this->assertNull($this->envelope->findContentTypeByName('unknown'));
+    }
+
+    public function testSetAllContentTypesForSpace()
+    {
+        $space = 'ejrhgejkgh';
+        $id = 'id';
+        $contentType = m::mock(ContentTypeInterface::class);
+        $contentType
+            ->shouldReceive('getId')
+            ->andReturn($id);
+        $resourceArray = new ResourceArray(
+            [$contentType],
+            1,
+            0,
+            1,
+            $this->envelope
+        );
+        $this->envelope->insertAllContentTypesForSpace($resourceArray, $space);
+        $this->assertSame($contentType, $this->envelope->getAllContentTypesForSpace($space)[0]);
+        $this->assertSame($contentType, $this->envelope->findContentType($id));
     }
 }

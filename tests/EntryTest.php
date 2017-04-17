@@ -2,18 +2,39 @@
 
 namespace Markup\Contentful\Tests;
 
+use GuzzleHttp\Promise\Promise;
+use function GuzzleHttp\Promise\promise_for;
+use Markup\Contentful\AssetInterface;
 use Markup\Contentful\Entry;
+use Markup\Contentful\EntryInterface;
 use Markup\Contentful\Exception\LinkUnresolvableException;
+use Markup\Contentful\Link;
+use Markup\Contentful\MetadataInterface;
 use Mockery as m;
 
 class EntryTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var array
+     */
+    private $fields;
+
+    /**
+     * @var MetadataInterface|m\MockInterface
+     */
+    private $metadata;
+
+    /**
+     * @var Entry
+     */
+    private $entry;
+
     protected function setUp()
     {
         $this->fields = [
             'foo' => 'bar',
         ];
-        $this->metadata = m::mock('Markup\Contentful\MetadataInterface');
+        $this->metadata = m::mock(MetadataInterface::class);
         $this->entry = new Entry($this->fields, $this->metadata);
     }
 
@@ -24,7 +45,7 @@ class EntryTest extends \PHPUnit_Framework_TestCase
 
     public function testIsEntry()
     {
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $this->entry);
+        $this->assertInstanceOf(EntryInterface::class, $this->entry);
     }
 
     public function testGetFieldsUsingArrayAccess()
@@ -43,10 +64,10 @@ class EntryTest extends \PHPUnit_Framework_TestCase
 
     public function testResolveLink()
     {
-        $link = m::mock('Markup\Contentful\Link');
-        $asset = m::mock('Markup\Contentful\AssetInterface');
+        $link = m::mock(Link::class);
+        $asset = m::mock(AssetInterface::class);
         $callback = function ($link) use ($asset) {
-            return $asset;
+            return promise_for($asset);
         };
         $fields = [
             'asset' => $link,
@@ -64,9 +85,11 @@ class EntryTest extends \PHPUnit_Framework_TestCase
 
     public function testUnresolvedLinkFiltersOutFromList()
     {
-        $link = m::mock('Markup\Contentful\Link')->shouldIgnoreMissing();
+        $link = m::mock(Link::class)->shouldIgnoreMissing();
         $callback = function ($link) {
-            throw new LinkUnresolvableException($link);
+            return new Promise(function () use ($link) {
+                throw new LinkUnresolvableException($link);
+            });
         };
         $fields = [
             'assets' => [$link],
@@ -79,9 +102,11 @@ class EntryTest extends \PHPUnit_Framework_TestCase
 
     public function testUnresolvedSingleLinkEmitsNull()
     {
-        $link = m::mock('Markup\Contentful\Link')->shouldIgnoreMissing();
+        $link = m::mock(Link::class)->shouldIgnoreMissing();
         $callback = function ($link) {
-            throw new LinkUnresolvableException($link);
+            return new Promise(function () use ($link) {
+                throw new LinkUnresolvableException($link);
+            });
         };
         $fields = [
             'asset' => $link,
