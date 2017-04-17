@@ -39,7 +39,7 @@ class MimeTypeGroupFilterTest extends \PHPUnit_Framework_TestCase
 
     public function testCannotCreateWithUnknownValue()
     {
-        $this->setExpectedException('InvalidArgumentException');
+        $this->expectException(\InvalidArgumentException::class);
         new MimeTypeGroupFilter('unknown');
     }
 }
