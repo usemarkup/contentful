@@ -217,25 +217,9 @@ class Contentful
         if ($this->envelope->hasContentType($id)) {
             return $this->envelope->findContentType($id);
         }
-        $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
-        $spaceData = $this->getSpaceDataForName(($space instanceof SpaceInterface) ? $space->getName() : $space);
-        $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
-        if ($options) {
-            return $this->doRequest(
-                $spaceData,
-                $spaceName,
-                $this->getEndpointUrl(sprintf('/spaces/%s/content_types/%s', $spaceData['key'], $id), $api),
-                sprintf('The content type with ID "%s" from the space "%s" was unavailable.', $id, $spaceName),
-                $api,
-                'content_type',
-                strval($id),
-                [],
-                $options
-            );
-        }
         //fetch them all and pick one out, as it is likely we'll want to access others
-        $contentTypes = $this->getContentTypes([], $space);
+        $contentTypes = $this->getContentTypes([], $space, $options);
         foreach ($contentTypes as $contentType) {
             $this->envelope->insertContentType($contentType);
         }
