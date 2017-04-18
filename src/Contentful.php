@@ -260,7 +260,7 @@ class Contentful
             'content_types',
             '',
             $parameters,
-            $options
+            array_merge($options, ['include_level' => null])
         );
     }
 
