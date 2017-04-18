@@ -219,12 +219,18 @@ class Contentful
         }
 
         //fetch them all and pick one out, as it is likely we'll want to access others
-        $contentTypes = $this->getContentTypes([], $space, $options);
-        foreach ($contentTypes as $contentType) {
-            $this->envelope->insertContentType($contentType);
-        }
+        $contentTypesPromise = promise_for($this->getContentTypes([], $space, $options))
+            ->then(
+                function ($contentTypes) use ($id) {
+                    foreach ($contentTypes as $contentType) {
+                        $this->envelope->insertContentType($contentType);
+                    }
 
-        return $this->envelope->findContentType($id);
+                    return promise_for($this->envelope->findContentType($id));
+                }
+            );
+
+        return (isset($options['async']) && $options['async']) ? $contentTypesPromise : $contentTypesPromise->wait();
     }
 
     /**
@@ -262,20 +268,27 @@ class Contentful
      */
     public function getContentTypeByName($name, $space = null, array $options = [])
     {
-        $contentTypeFromEnvelope = $this->envelope->findContentTypeByName($name);
-        if ($contentTypeFromEnvelope) {
-            return $contentTypeFromEnvelope;
-        }
-        $contentTypes = $this->getContentTypes([], $space, $options);
-        $foundContentType = null;
-        foreach ($contentTypes as $contentType) {
-            if ($contentType->getName() === $name) {
-                $foundContentType = $contentType;
-            }
-            $this->envelope->insertContentType($contentType);
-        }
+        $promise = coroutine(
+            function () use ($name, $space, $options) {
+                $contentTypeFromEnvelope = $this->envelope->findContentTypeByName($name);
+                if ($contentTypeFromEnvelope) {
+                    yield promise_for($contentTypeFromEnvelope);
+                    return;
+                }
+                $contentTypes = (yield $this->getContentTypes([], $space, array_merge($options, ['async' => true])));
+                $foundContentType = null;
+                foreach ($contentTypes as $contentType) {
+                    if ($contentType->getName() === $name) {
+                        $foundContentType = $contentType;
+                    }
+                    $this->envelope->insertContentType($contentType);
+                }
 
-        return $foundContentType;
+                yield $foundContentType;
+            }
+        );
+
+        return (isset($options['async']) && $options['async']) ? $promise : $promise->wait();
     }
 
     /**
