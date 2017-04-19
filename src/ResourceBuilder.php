@@ -159,8 +159,7 @@ class ResourceBuilder
                 return new Link($metadata, $spaceName);
             case 'Array':
                 $this->addToEnvelope((isset($data['includes'])) ? $data['includes'] : [], $buildFromData);
-
-                return new ResourceArray(
+                $resources = new ResourceArray(
                     array_map(function ($itemData) use ($buildFromData) {
                         $envelopeResource = $this->resolveResourceDataToEnvelopeResource($itemData);
                         if ($envelopeResource) {
@@ -176,6 +175,9 @@ class ResourceBuilder
                     intval($data['skip']),
                     $this->envelope
                 );
+                $this->envelope->insert($resources);
+
+                return $resources;
             default:
                 break;
         }
