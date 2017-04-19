@@ -20,20 +20,10 @@ trait GuzzleAbstractionTrait
 
     /**
      * @param Request $request
-     * @param array                                     $queryParams
-     * @return ResponseInterface
-     */
-    private function sendRequestWithQueryParams(Request $request, array $queryParams = [])
-    {
-        return $this->guzzle->send($request, [RequestOptions::QUERY => $queryParams]);
-    }
-
-    /**
-     * @param Request $request
      * @param array   $queryParams
      * @return PromiseInterface
      */
-    private function sendRequestAsync(Request $request, array $queryParams = [])
+    private function sendRequestWithQueryParams(Request $request, array $queryParams = [])
     {
         return $this->guzzle->sendAsync($request, [RequestOptions::QUERY => $queryParams]);
     }
@@ -74,7 +64,7 @@ trait GuzzleAbstractionTrait
     }
 
     /**
-     * @param \GuzzleHttp\Psr7\Response $response
+     * @param ResponseInterface $response
      * @return array
      */
     private function responseAsArrayFromJson($response)

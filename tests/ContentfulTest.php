@@ -445,7 +445,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $metadata->setId($data['id']);
         $link = new Link($metadata);
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $contentType = $contentful->resolveLink($link);
+        $contentType = $contentful->resolveLink($link)->wait();
         $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
         $this->assertEquals('cat', $contentType->getId());//of course, in a real situation this would be the same as the ID in the link - but this is the ID in the mock data
         $this->assertEquals('Name', $contentType->getDisplayField()->getName());
@@ -458,7 +458,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
         $logs = $contentful->getLogs();
         $this->assertCount(1, $logs);
-        $this->assertContainsOnlyInstancesOf('Markup\Contentful\Log\LogInterface', $logs);
+        $this->assertContainsOnlyInstancesOf(LogInterface::class, $logs);
         $log = reset($logs);
         $this->assertEquals(LogInterface::RESOURCE_ENTRY, $log->getResourceType());
     }

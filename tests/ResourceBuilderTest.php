@@ -2,10 +2,23 @@
 
 namespace Markup\Contentful\Tests;
 
+use Markup\Contentful\AssetInterface;
+use Markup\Contentful\ContentTypeField;
+use Markup\Contentful\ContentTypeInterface;
+use Markup\Contentful\EntryInterface;
+use Markup\Contentful\Link;
+use Markup\Contentful\Locale;
+use Markup\Contentful\ResourceArray;
 use Markup\Contentful\ResourceBuilder;
+use Markup\Contentful\SpaceInterface;
 
 class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var ResourceBuilder
+     */
+    private $builder;
+
     protected function setUp()
     {
         $this->builder = new ResourceBuilder();
@@ -32,11 +45,11 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $space = $this->builder->buildFromData($data, $spaceName);
-        $this->assertInstanceOf('Markup\Contentful\SpaceInterface', $space);
+        $space = $this->builder->buildFromData($data, $spaceName)->wait();
+        $this->assertInstanceOf(SpaceInterface::class, $space);
         $this->assertEquals('cfexampleapi', $space->getId());
         $locale = $space->getLocales()[1];
-        $this->assertInstanceOf('Markup\Contentful\Locale', $locale);
+        $this->assertInstanceOf(Locale::class, $locale);
         $this->assertEquals('Klingon', $locale->getName());
     }
 
@@ -75,17 +88,17 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ]
         ];
-        $entry = $this->builder->buildFromData($data, $spaceName);
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
+        $entry = $this->builder->buildFromData($data, $spaceName)->wait();
+        $this->assertInstanceOf(EntryInterface::class, $entry);
         $this->assertEquals('cat', $entry->getId());
         $spaceLink = $entry->getSpace();
-        $this->assertInstanceOf('Markup\Contentful\Link', $spaceLink);
+        $this->assertInstanceOf(Link::class, $spaceLink);
         $this->assertEquals('Space', $spaceLink->getLinkType());
         $fields = $entry->getFields();
         $this->assertCount(7, $fields);
         $this->assertEquals('Rainbow', $fields['color']);
         $bestFriend = $fields['bestFriend'];
-        $this->assertInstanceOf('Markup\Contentful\Link', $bestFriend);
+        $this->assertInstanceOf(Link::class, $bestFriend);
         $this->assertEquals('happycat', $bestFriend->getId());
     }
 
@@ -125,8 +138,8 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $asset = $this->builder->buildFromData($data, $spaceName);
-        $this->assertInstanceOf('Markup\Contentful\AssetInterface', $asset);
+        $asset = $this->builder->buildFromData($data, $spaceName)->wait();
+        $this->assertInstanceOf(AssetInterface::class, $asset);
         $this->assertEquals('nyancat.png', $asset->getFilename());
         $this->assertEquals('//images.contentful.com/cfexampleapi/4gp6taAwW4CmSgumq2ekUm/9da0cd1936871b8d72343e895a00d611/Nyan_cat_250px_frame.png', $asset->getUrl());
         $this->assertEquals(12273, $asset->getFileSizeInBytes());
@@ -162,8 +175,8 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $asset = $this->builder->buildFromData($data, $spaceName);
-        $this->assertInstanceOf('Markup\Contentful\AssetInterface', $asset);
+        $asset = $this->builder->buildFromData($data, $spaceName)->wait();
+        $this->assertInstanceOf(AssetInterface::class, $asset);
         $this->assertEquals('//images.contentful.com/cfexampleapi/4gp6taAwW4CmSgumq2ekUm/9da0cd1936871b8d72343e895a00d611/Nyan_cat_250px_frame.png', $asset->getUrl());
         $this->assertNull($asset->getFileSizeInBytes());
     }
@@ -171,7 +184,6 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
     public function testBuildContentType()
     {
         $spaceName = 'example_name';
-        $spaceId = 'i_am_the_space';
         $data = [
             'sys' => [
                 'type' => 'ContentType',
@@ -206,11 +218,11 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $contentType = $this->builder->buildFromData($data, $spaceName);
-        $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
+        $contentType = $this->builder->buildFromData($data, $spaceName)->wait();
+        $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
         $this->assertEquals('Cat', $contentType->getName());
         $fields = $contentType->getFields();
-        $this->assertContainsOnlyInstancesOf('Markup\Contentful\ContentTypeField', $fields);
+        $this->assertContainsOnlyInstancesOf(ContentTypeField::class, $fields);
         $this->assertTrue($fields['name']->isLocalized());
         $this->assertFalse($fields['likes']->isLocalized());
         $this->assertEquals([], $fields['lifes']->getItems());
@@ -285,9 +297,9 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ]
             ],
         ];
-        $entries = $this->builder->buildFromData($data, $spaceName);
+        $entries = $this->builder->buildFromData($data, $spaceName)->wait();
         $this->assertCount(2, $entries);
-        $this->assertContainsOnlyInstancesOf('Markup\Contentful\EntryInterface', $entries);
+        $this->assertContainsOnlyInstancesOf(EntryInterface::class, $entries);
         $this->assertEquals('cat2', $entries[1]->getId());
     }
 
@@ -328,11 +340,11 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ]
         ];
-        $entry = $this->builder->buildFromData($data, $spaceName);
+        $entry = $this->builder->buildFromData($data, $spaceName)->wait();
         $links = $entry->getField('bestFriend');
         $this->assertInternalType('array', $links);
         $this->assertCount(1, $links);
-        $this->assertContainsOnlyInstancesOf('Markup\Contentful\Link', $links);
+        $this->assertContainsOnlyInstancesOf(Link::class, $links);
     }
 
     public function testBuildArrayOfEntries()
@@ -514,8 +526,8 @@ class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $array = $this->builder->buildFromData($data, $spaceName);
-        $this->assertInstanceOf('Markup\Contentful\ResourceArray', $array);
+        $array = $this->builder->buildFromData($data, $spaceName)->wait();
+        $this->assertInstanceOf(ResourceArray::class, $array);
         $this->assertCount(1, $array);
     }
 }

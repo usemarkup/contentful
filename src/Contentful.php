@@ -4,8 +4,8 @@ namespace Markup\Contentful;
 
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
+use function GuzzleHttp\Promise\all;
 use function GuzzleHttp\Promise\coroutine;
-use GuzzleHttp\Promise\FulfilledPromise;
 use function GuzzleHttp\Promise\promise_for;
 use GuzzleHttp\Promise\PromiseInterface;
 use Markup\Contentful\Cache\NullCacheItemPool;
@@ -103,7 +103,9 @@ class Contentful
     public function getSpace($space = null, array $options = [])
     {
         if ($space instanceof SpaceInterface) {
-            return $space;
+            return ($this->isAsyncCall($options))
+                ? promise_for($space)
+                : $space;
         } else {
             $spaceName = $space;
         }
@@ -133,7 +135,9 @@ class Contentful
     public function getEntry($id, $space = null, array $options = [])
     {
         if ($this->envelope->hasEntry($id)) {
-            return $this->envelope->findEntry($id);
+            return ($this->isAsyncCall($options))
+                ? promise_for($this->envelope->findEntry($id))
+                : $this->envelope->findEntry($id);
         }
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         $spaceData = $this->getSpaceDataForName(($space instanceof SpaceInterface) ? $space->getName() : $space);
@@ -187,7 +191,9 @@ class Contentful
     public function getAsset($id, $space = null, array $options = [])
     {
         if ($this->envelope->hasAsset($id)) {
-            return $this->envelope->findAsset($id);
+            return ($this->isAsyncCall($options))
+                ? promise_for($this->envelope->findAsset($id))
+                : $this->envelope->findAsset($id);
         }
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         $spaceData = $this->getSpaceDataForName($spaceName);
@@ -215,7 +221,9 @@ class Contentful
     public function getContentType($id, $space = null, array $options = [])
     {
         if ($this->envelope->hasContentType($id)) {
-            return $this->envelope->findContentType($id);
+            return ($this->isAsyncCall($options))
+                ? promise_for($this->envelope->findContentType($id))
+                : $this->envelope->findContentType($id);
         }
 
         //fetch them all and pick one out, as it is likely we'll want to access others
@@ -242,6 +250,14 @@ class Contentful
     public function getContentTypes(array $parameters = [], $space = null, array $options = [])
     {
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
+        if (!$parameters) {
+            $stashedContentTypes = $this->envelope->getAllContentTypesForSpace($spaceName);
+            if (null !== $stashedContentTypes) {
+                return ($this->isAsyncCall($options))
+                    ? promise_for($stashedContentTypes)
+                    : $stashedContentTypes;
+            }
+        }
         $spaceData = $this->getSpaceDataForName(($space instanceof SpaceInterface) ? $space->getName() : $space);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
@@ -292,26 +308,40 @@ class Contentful
     }
 
     /**
-     * @param Link $link
+     * @param Link  $link
      * @param array $options
-     * @return ResourceInterface|PromiseInterface
+     * @return PromiseInterface
      */
     public function resolveLink($link, array $options = [])
     {
         //check whether the "link" is already actually a resolved resource
         if ($link instanceof ResourceInterface) {
-            return $link;
+            return promise_for($link);
         }
         try {
             switch ($link->getLinkType()) {
                 case 'Entry':
-                    return $this->getEntry($link->getId(), $link->getSpaceName(), $options);
+                    return $this->getEntry(
+                        $link->getId(),
+                        $link->getSpaceName(),
+                        array_merge($options, ['async' => true])
+                    );
                 case 'Asset':
-                    return $this->getAsset($link->getId(), $link->getSpaceName(), $options);
+                    return $this->getAsset(
+                        $link->getId(),
+                        $link->getSpaceName(),
+                        array_merge($options, ['async' => true])
+                    );
                 case 'ContentType':
-                    return $this->getContentType($link->getId(), $link->getSpaceName(), $options);
+                    return $this->getContentType(
+                        $link->getId(),
+                        $link->getSpaceName(),
+                        array_merge($options, ['async' => true])
+                    );
                 default:
-                    throw new \InvalidArgumentException(sprintf('Tried to resolve unknown link type "%s".', $link->getLinkType()));
+                    throw new \InvalidArgumentException(
+                        sprintf('Tried to resolve unknown link type "%s".', $link->getLinkType())
+                    );
             }
         } catch (ResourceUnavailableException $e) {
             throw new LinkUnresolvableException($link, null, 0, $e);
@@ -387,21 +417,24 @@ class Contentful
                  * Returns a built response if it passes test, or null if it doesn't.
                  *
                  * @param string $json
-                 * @return ResourceInterface|ResourceArray|null
+                 * @return PromiseInterface
                  */
                 $buildResponseFromJson = function ($json) use ($spaceData, $assetDecorator, $shouldBuildTypedResources, $test) {
                     $json = (is_array($json)) ? $json : json_decode($json, true);
                     if (null === $json) {
                         return null;
                     }
-                    $builtResponse = $this->buildResponseFromRaw(
+
+                    return $this->buildResponseFromRaw(
                         $json,
                         $spaceData['name'],
                         $assetDecorator,
                         $shouldBuildTypedResources
+                    )->then(
+                        function ($builtResponse) use ($test) {
+                            return (call_user_func($test, $builtResponse)) ? $builtResponse : null;
+                        }
                     );
-
-                    return (call_user_func($test, $builtResponse)) ? $builtResponse : null;
                 };
                 $log = function ($description, $isCacheHit, $type) use ($timer, $queryType, $api) {
                     $this->logger->log(
@@ -425,7 +458,7 @@ class Contentful
                                 LogInterface::TYPE_RESPONSE
                             );
 
-                            $builtResponse = $buildResponseFromJson($cacheItemJson);
+                            $builtResponse = (yield $buildResponseFromJson($cacheItemJson));
                             if ($builtResponse) {
                                 yield promise_for($builtResponse);
                                 return;
@@ -444,7 +477,7 @@ class Contentful
                                         true,
                                         LogInterface::TYPE_RESOURCE
                                     );
-                                    $builtResponse = $buildResponseFromJson($fallbackJson);
+                                    $builtResponse = (yield $buildResponseFromJson($fallbackJson));
                                     if ($builtResponse) {
                                         yield promise_for($builtResponse);
                                         return;
@@ -478,7 +511,12 @@ class Contentful
                     /**
                      * @var ResponseInterface $response
                      */
-                    $response = (yield $this->sendRequestAsync($request, $queryParams));
+                    $response = ($shouldBuildTypedResources)
+                        ? array_values((yield all([
+                            $this->sendRequestWithQueryParams($request, $queryParams),
+                            $this->ensureContentTypesLoaded($spaceName)
+                        ])))[0]
+                        : (yield $this->sendRequestWithQueryParams($request, $queryParams));
                 } catch (RequestException $e) {
                     /**
                      * @var CacheItemInterface $fallbackCacheItem
@@ -496,12 +534,12 @@ class Contentful
                             $writeCacheItem->set($fallbackJson);
                             $writeCache->save($writeCacheItem);
 
-                            yield promise_for($this->buildResponseFromRaw(
+                            yield $this->buildResponseFromRaw(
                                 json_decode($fallbackJson, true),
                                 $spaceData['name'],
                                 $assetDecorator,
                                 $shouldBuildTypedResources
-                            ));
+                            );
                             return;
                         }
                     }
@@ -542,7 +580,7 @@ class Contentful
                 $responseJson = json_encode(
                     (!$unavailableException) ? $this->responseAsArrayFromJson($response) : null
                 );
-                $builtResponse = ($responseJson) ? $buildResponseFromJson($responseJson) : null;
+                $builtResponse = ($responseJson) ? (yield $buildResponseFromJson($responseJson)) : null;
                 $isValidResponse = (bool) $builtResponse;
 
                 //save into cache
@@ -587,7 +625,7 @@ class Contentful
                                 true,
                                 LogInterface::TYPE_RESOURCE
                             );
-                            $builtResponse = $buildResponseFromJson($fallbackJson);
+                            $builtResponse = (yield $buildResponseFromJson($fallbackJson));
                             if ($builtResponse) {
                                 yield promise_for($builtResponse);
                                 return;
@@ -722,10 +760,10 @@ class Contentful
 
     /**
      * @param array $data
-     * @param string $spaceName
-     * @param AssetDecoratorInterface $assetDecorator
+     * @param null $spaceName
+     * @param AssetDecoratorInterface|null $assetDecorator
      * @param bool $useTypedResources
-     * @return ResourceInterface
+     * @return PromiseInterface
      */
     private function buildResponseFromRaw(
         array $data,
@@ -890,5 +928,30 @@ class Contentful
         }
 
         return $contentTypeFilterProvider->createForContentTypeName($filter->getValue(), $spaceName);
+    }
+
+    /**
+     * @param string $spaceName
+     * @return PromiseInterface
+     */
+    private function ensureContentTypesLoaded($spaceName)
+    {
+        return $this->getContentTypes([], $spaceName, ['async' => true, 'untyped' => true])
+            ->then(
+                function ($types) use ($spaceName) {
+                    $this->envelope->insertAllContentTypesForSpace($types, $spaceName);
+
+                    return $types;
+                }
+            );
+    }
+
+    /**
+     * @param array $options
+     * @return bool
+     */
+    private function isAsyncCall(array $options)
+    {
+        return isset($options['async']) && true === $options['async'];
     }
 }
