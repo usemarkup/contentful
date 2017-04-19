@@ -97,4 +97,35 @@ class ResourceEnvelopeTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($contentType1, $this->envelope->findContentTypeByName($contentTypeName1));
         $this->assertNull($this->envelope->findContentTypeByName('unknown'));
     }
+
+    public function testSetAndAccessUsingGenericInsertMethod()
+    {
+        $contentType1 = m::mock(ContentTypeInterface::class);
+        $id1 = 'id1';
+        $contentType1
+            ->shouldReceive('getId')
+            ->andReturn($id1);
+        $contentTypeName1 = 'name1';
+        $contentType1
+            ->shouldReceive('getName')
+            ->andReturn($contentTypeName1);
+        $contentType2 = m::mock(ContentTypeInterface::class);
+        $id2 = 'id2';
+        $contentType2
+            ->shouldReceive('getId')
+            ->andReturn($id2);
+        $contentTypeName2 = 'name2';
+        $contentType2
+            ->shouldReceive('getName')
+            ->andReturn($contentTypeName2);
+        $this->envelope->insert($contentType1);
+        $this->envelope->insert($contentType2);
+        $this->assertSame($contentType2, $this->envelope->findContentType($id2));
+        $this->assertTrue($this->envelope->hasContentType($id2));
+        $this->assertNull($this->envelope->findContentType('unknown'));
+        $this->assertFalse($this->envelope->hasContentType('unknown'));
+        $this->assertEquals(2, $this->envelope->getContentTypeCount());
+        $this->assertSame($contentType1, $this->envelope->findContentTypeByName($contentTypeName1));
+        $this->assertNull($this->envelope->findContentTypeByName('unknown'));
+    }
 }

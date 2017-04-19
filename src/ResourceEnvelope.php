@@ -117,6 +117,30 @@ class ResourceEnvelope
     }
 
     /**
+     * @param ResourceInterface|ResourceArray $resource
+     * @return $this
+     */
+    public function insert($resource)
+    {
+        if ($resource instanceof ResourceArray) {
+            foreach ($resource as $resourceItem) {
+                $this->insert($resourceItem);
+            }
+        }
+        if ($resource instanceof EntryInterface) {
+            return $this->insertEntry($resource);
+        }
+        if ($resource instanceof AssetInterface) {
+            return $this->insertAsset($resource);
+        }
+        if ($resource instanceof ContentTypeInterface) {
+            return $this->insertContentType($resource);
+        }
+
+        return $this;
+    }
+
+    /**
      * @param EntryInterface $entry
      * @return self
      */
