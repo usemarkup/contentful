@@ -3,6 +3,7 @@
 namespace Markup\Contentful\Tests;
 
 use Markup\Contentful\ResourceArray;
+use Markup\Contentful\ResourceArrayInterface;
 use Mockery as m;
 
 class ResourceArrayTest extends \PHPUnit_Framework_TestCase
@@ -10,6 +11,11 @@ class ResourceArrayTest extends \PHPUnit_Framework_TestCase
     protected function tearDown()
     {
         m::close();
+    }
+
+    public function testIsResourceArray()
+    {
+        $this->assertInstanceOf(ResourceArrayInterface::class, new ResourceArray([], 0, 0, 1));
     }
 
     public function testArray()
