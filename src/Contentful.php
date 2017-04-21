@@ -548,8 +548,12 @@ class Contentful
                 //save into cache
                 if ($api !== self::CONTENT_MANAGEMENT_API) {
                     $isSuccessResponseData = !$unavailableException && $isValidResponse;
-                    $writeCacheItem->set($responseJson);
-                    $writeCache->save($writeCacheItem);
+
+                    if ($isSuccessResponseData || $this->cacheFailResponses) {
+                        $writeCacheItem->set($responseJson);
+                        $writeCache->save($writeCacheItem);
+                    }
+
                     if (!isset($fallbackCacheItem)) {
                         /**
                          * @var CacheItemInterface $fallbackCacheItem
