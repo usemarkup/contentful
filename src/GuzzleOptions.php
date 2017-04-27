@@ -32,6 +32,7 @@ class GuzzleOptions
 
         if (isset($options['guzzle_timeout']) && (intval($options['guzzle_timeout']) > 0)) {
             $instance->defaults['timeout'] = intval($options['guzzle_timeout']);
+            $instance->defaults['connection_timeout'] = intval($options['guzzle_timeout']);
         }
 
         if (isset($options['guzzle_connection_timeout']) && (intval($options['guzzle_connection_timeout']) > 0)) {
