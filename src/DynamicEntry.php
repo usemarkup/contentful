@@ -7,6 +7,7 @@ namespace Markup\Contentful;
  */
 class DynamicEntry implements EntryInterface
 {
+    use DisallowArrayAccessMutationTrait;
     use EntryUnknownMethodTrait;
 
     /**
@@ -52,23 +53,6 @@ class DynamicEntry implements EntryInterface
     public function offsetGet($offset)
     {
         return $this->getField($offset);
-    }
-
-    /**
-     * @param mixed $offset
-     * @param mixed $value
-     */
-    public function offsetSet($offset, $value)
-    {
-        throw new \BadMethodCallException('Cannot set a field using array access');
-    }
-
-    /**
-     * @param mixed $offset
-     */
-    public function offsetUnset($offset)
-    {
-        throw new \BadMethodCallException('Cannot unset a field');
     }
 
     /**

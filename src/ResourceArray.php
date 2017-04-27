@@ -2,8 +2,9 @@
 
 namespace Markup\Contentful;
 
-class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface, \ArrayAccess
+class ResourceArray implements ResourceArrayInterface
 {
+    use DisallowArrayAccessMutationTrait;
     use MetadataAccessTrait;
 
     /**
@@ -155,25 +156,5 @@ class ResourceArray implements \Countable, \IteratorAggregate, MetadataInterface
         }
 
         return $this->items[$offset];
-    }
-
-    /**
-     * @param mixed $offset <p>
-     * @param mixed $value  <p>
-     * @return void
-     * @throws \BadMethodCallException
-     */
-    public function offsetSet($offset, $value)
-    {
-        throw new \BadMethodCallException();
-    }
-
-    /**
-     * @param mixed $offset
-     * @return void
-     */
-    public function offsetUnset($offset)
-    {
-        throw new \BadMethodCallException();
     }
 }

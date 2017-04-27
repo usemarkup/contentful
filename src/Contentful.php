@@ -18,6 +18,11 @@ use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Log\NullLogger;
 use Markup\Contentful\Log\StandardLogger;
+use Markup\Contentful\Promise\AssetPromise;
+use Markup\Contentful\Promise\ContentTypePromise;
+use Markup\Contentful\Promise\EntryPromise;
+use Markup\Contentful\Promise\ResourceArrayPromise;
+use Markup\Contentful\Promise\SpacePromise;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -126,6 +131,18 @@ class Contentful
     }
 
     /**
+     * @param string|SpaceInterface $space The space name, or space object.
+     * @param array $options
+     * @return SpaceInterface|PromiseInterface
+     */
+    public function getSpaceAsync($space = null, array $options = [])
+    {
+        return new SpacePromise(
+            $this->getSpace($space, array_merge($options, ['async' => true]))
+        );
+    }
+
+    /**
      * @param string $id
      * @param string|SpaceInterface $space
      * @param array  $options A set of options for the fetch, including 'include_level' being how many levels to include
@@ -157,10 +174,23 @@ class Contentful
     }
 
     /**
+     * @param string $id
+     * @param string|SpaceInterface $space
+     * @param array $options
+     * @return EntryInterface|PromiseInterface
+     */
+    public function getEntryAsync($id, $space = null, array $options = [])
+    {
+        return new EntryPromise(
+            $this->getEntry($id, $space, array_merge($options, ['async' => true]))
+        );
+    }
+
+    /**
      * @param ParameterInterface[] $parameters
      * @param string               $space
      * @param array                $options
-     * @return ResourceArray|EntryInterface[]|PromiseInterface
+     * @return ResourceArrayInterface|EntryInterface[]|PromiseInterface
      * @throws Exception\ResourceUnavailableException
      */
     public function getEntries(array $parameters = [], $space = null, array $options = [])
@@ -179,6 +209,19 @@ class Contentful
             '',
             $parameters,
             $options
+        );
+    }
+
+    /**
+     * @param ParameterInterface[] $parameters
+     * @param string               $space
+     * @param array                $options
+     * @return ResourceArrayInterface|PromiseInterface
+     */
+    public function getEntriesAsync(array $parameters = [], $space = null, array $options = [])
+    {
+        return new ResourceArrayPromise(
+            $this->getEntries($parameters, $space, array_merge($options, ['async' => true]))
         );
     }
 
@@ -216,6 +259,19 @@ class Contentful
      * @param string                $id
      * @param string|SpaceInterface $space
      * @param array                 $options
+     * @return AssetInterface|PromiseInterface
+     */
+    public function getAssetAsync($id, $space = null, array $options = [])
+    {
+        return new AssetPromise(
+            $this->getAsset($id, $space, array_merge($options, ['async' => true]))
+        );
+    }
+
+    /**
+     * @param string                $id
+     * @param string|SpaceInterface $space
+     * @param array                 $options
      * @return ContentTypeInterface|PromiseInterface
      */
     public function getContentType($id, $space = null, array $options = [])
@@ -239,6 +295,19 @@ class Contentful
             );
 
         return (isset($options['async']) && $options['async']) ? $contentTypesPromise : $contentTypesPromise->wait();
+    }
+
+    /**
+     * @param string                $id
+     * @param string|SpaceInterface $space
+     * @param array                 $options
+     * @return ContentTypeInterface|PromiseInterface
+     */
+    public function getContentTypeAsync($id, $space = null, array $options = [])
+    {
+        return new ContentTypePromise(
+            $this->getContentType($id, $space, array_merge($options, ['async' => true]))
+        );
     }
 
     /**
@@ -275,6 +344,19 @@ class Contentful
     }
 
     /**
+     * @param array                 $parameters
+     * @param string|SpaceInterface $space
+     * @param array                 $options
+     * @return ResourceArray|ContentTypeInterface[]|PromiseInterface
+     */
+    public function getContentTypesAsync(array $parameters = [], $space = null, array $options = [])
+    {
+        return new ResourceArrayPromise(
+            $this->getContentTypes($parameters, $space, array_merge($options, ['async' => true]))
+        );
+    }
+
+    /**
      * Gets a content type using its name. Assumes content types have unique names. Returns null if no content type with the given name can be found.
      *
      * @param string                $name
@@ -305,6 +387,21 @@ class Contentful
         );
 
         return (isset($options['async']) && $options['async']) ? $promise : $promise->wait();
+    }
+
+    /**
+     * Gets a (lazy-fetching) content type using its name. Assumes content types have unique names. Returns null if no content type with the given name can be found.
+     *
+     * @param string                $name
+     * @param string|SpaceInterface $space
+     * @param array                 $options
+     * @return ContentTypeInterface|PromiseInterface|null
+     */
+    public function getContentTypeByNameAsync($name, $space = null, array $options = [])
+    {
+        return new ContentTypePromise(
+            $this->getContentTypeByName($name, $space, array_merge($options, ['async' => true]))
+        );
     }
 
     /**

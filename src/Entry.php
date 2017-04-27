@@ -6,7 +6,9 @@ use Markup\Contentful\Exception\LinkUnresolvableException;
 
 class Entry implements EntryInterface
 {
-    use MetadataAccessTrait, EntryUnknownMethodTrait;
+    use DisallowArrayAccessMutationTrait;
+    use EntryUnknownMethodTrait;
+    use MetadataAccessTrait;
 
     /**
      * @var array
@@ -103,22 +105,6 @@ class Entry implements EntryInterface
     public function offsetGet($offset)
     {
         return $this->getField($offset);
-    }
-
-    /**
-     * @throws \BadMethodCallException
-     */
-    public function offsetSet($offset, $value)
-    {
-        throw new \BadMethodCallException('Cannot set a field using array access');
-    }
-
-    /**
-     * @throws \BadMethodCallException
-     */
-    public function offsetUnset($offset)
-    {
-        throw new \BadMethodCallException('Cannot unset a field');
     }
 
     /**

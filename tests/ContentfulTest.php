@@ -4,8 +4,11 @@ namespace Markup\Contentful\Tests;
 
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Promise\PromiseInterface;
+use Markup\Contentful\AssetInterface;
 use Markup\Contentful\Contentful;
 use Markup\Contentful\ContentTypeInterface;
+use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\EntryInterface;
 use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Filter\EqualFilter;
@@ -16,11 +19,14 @@ use Markup\Contentful\Metadata;
 use Markup\Contentful\Property\FieldProperty;
 use Markup\Contentful\Property\SystemProperty;
 use Markup\Contentful\ResourceArray;
+use Markup\Contentful\ResourceArrayInterface;
+use Markup\Contentful\SpaceInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
-class ContentfulTest extends \PHPUnit_Framework_TestCase
+class ContentfulTest extends MockeryTestCase
 {
     /**
      * @var array
@@ -50,14 +56,30 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    protected function tearDown()
-    {
-        m::close();
-    }
-
     public function testGetSpace()
     {
-        $data = [
+        $data = $this->getSpaceData();
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $space = $contentful->getSpace();
+        $this->assertInstanceOf(SpaceInterface::class, $space);
+        $this->assertEquals('Contentful Example API', $space->getName());
+    }
+
+    public function testGetSpaceAsync()
+    {
+        $data = $this->getSpaceData();
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $space = $contentful->getSpaceAsync();
+        $this->assertInstanceOf(PromiseInterface::class, $space);
+        $this->assertInstanceOf(SpaceInterface::class, $space);
+        $this->assertEquals('Contentful Example API', $space->getName());
+    }
+
+    private function getSpaceData()
+    {
+        return [
             'sys' => [
                 'type' => 'Space',
                 'id' => 'cfexampleapi',
@@ -74,16 +96,42 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
         ];
-        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
-        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $space = $contentful->getSpace();
-        $this->assertInstanceOf('Markup\Contentful\SpaceInterface', $space);
-        $this->assertEquals('Contentful Example API', $space->getName());
     }
 
     public function testGetEntry()
     {
-        $data = [
+        $data = $this->getEntryData();
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $entry = $contentful->getEntry('cat');
+        $this->assertInstanceOf(EntryInterface::class, $entry);
+        $this->assertEquals(['rainbows', 'fish'], $entry->getFields()['likes']);
+    }
+
+    public function testGetEntryAsync()
+    {
+        $data = $this->getEntryData();
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $entry = $contentful->getEntryAsync('cat');
+        $this->assertInstanceOf(PromiseInterface::class, $entry);
+        $this->assertInstanceOf(EntryInterface::class, $entry);
+        $this->assertEquals(['rainbows', 'fish'], $entry->getFields()['likes']);
+    }
+
+    public function testGetEntryAsyncDoesNotBlowUpWhenDelayedFetchExplodes()
+    {
+        $handlerOption = $this->getExplodyHandlerOption();
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $entry = $contentful->getEntryAsync('cat');
+        $this->assertInstanceOf(PromiseInterface::class, $entry);
+        $this->assertInstanceOf(EntryInterface::class, $entry);
+        $this->assertEquals('', $entry->getField('field'));
+    }
+
+    private function getEntryData()
+    {
+        return [
             'sys' => [
                 'type' => 'Entry',
                 'id' => 'cat',
@@ -114,11 +162,6 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
                 ],
             ]
         ];
-        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
-        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $entry = $contentful->getEntry('cat');
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
-        $this->assertEquals(['rainbows', 'fish'], $entry->getFields()['likes']);
     }
 
     public function testGetAsset()
@@ -126,17 +169,27 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $asset = $contentful->getAsset('nyancat');
-        $this->assertInstanceOf('Markup\Contentful\AssetInterface', $asset);
+        $this->assertInstanceOf(AssetInterface::class, $asset);
+        $this->assertEquals(1, $asset->getRevision());
+    }
+
+    public function testGetAssetAsync()
+    {
+        $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $asset = $contentful->getAssetAsync('nyancat');
+        $this->assertInstanceOf(PromiseInterface::class, $asset);
+        $this->assertInstanceOf(AssetInterface::class, $asset);
         $this->assertEquals(1, $asset->getRevision());
     }
 
     public function testGetAssetDecorates()
     {
-        $assetDecorator = m::mock('Markup\Contentful\Decorator\AssetDecoratorInterface');
-        $decoratedAsset = m::mock('Markup\Contentful\AssetInterface')->shouldIgnoreMissing();
+        $assetDecorator = m::mock(AssetDecoratorInterface::class);
+        $decoratedAsset = m::mock(AssetInterface::class)->shouldIgnoreMissing();
         $assetDecorator
             ->shouldReceive('decorate')
-            ->with(m::type('Markup\Contentful\AssetInterface'))
+            ->with(m::type(AssetInterface::class))
             ->andReturn($decoratedAsset);
         $spaces = array_merge_recursive($this->spaces, ['test' => ['asset_decorator' => $assetDecorator]]);
         $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
@@ -187,7 +240,18 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $contentType = $contentful->getContentType('cat');
-        $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
+        $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
+        $this->assertEquals('Meow.', $contentType->getDescription());
+    }
+
+    public function testGetContentTypeAsync()
+    {
+        $data = $this->getContentTypesData();
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $contentType = $contentful->getContentTypeAsync('cat');
+        $this->assertInstanceOf(PromiseInterface::class, $contentType);
+        $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
         $this->assertEquals('Meow.', $contentType->getDescription());
     }
 
@@ -196,11 +260,24 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $entries = $contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
-        $this->assertInstanceOf('Markup\Contentful\ResourceArray', $entries);
+        $this->assertInstanceOf(ResourceArrayInterface::class, $entries);
         $this->assertCount(1, $entries);
         $entry = array_values(iterator_to_array($entries))[0];
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
+        $this->assertInstanceOf(EntryInterface::class, $entry);
+        $this->assertInstanceOf(EntryInterface::class, $entry['bestFriend']);
+    }
+
+    public function testGetEntriesAsync()
+    {
+        $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $entries = $contentful->getEntriesAsync([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
+        $this->assertInstanceOf(PromiseInterface::class, $entries);
+        $this->assertInstanceOf(ResourceArrayInterface::class, $entries);
+        $this->assertCount(1, $entries);
+        $entry = array_values(iterator_to_array($entries))[0];
+        $this->assertInstanceOf(EntryInterface::class, $entry);
+        $this->assertInstanceOf(EntryInterface::class, $entry['bestFriend']);
     }
 
     public function testCacheMissDoesFetch()
@@ -248,8 +325,8 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $entries = $contentful->getEntries($parameters);
         $entry = array_values(iterator_to_array($entries))[0];
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
+        $this->assertInstanceOf(EntryInterface::class, $entry);
+        $this->assertInstanceOf(EntryInterface::class, $entry['bestFriend']);
     }
 
     public function testUsesFallbackCacheOnRequestFailure()
@@ -282,8 +359,8 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $entries = $contentful->getEntries($parameters);
         $entry = array_values(iterator_to_array($entries))[0];
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
+        $this->assertInstanceOf(EntryInterface::class, $entry);
+        $this->assertInstanceOf(EntryInterface::class, $entry['bestFriend']);
     }
 
     public function testThrowsResourceUnavailableExceptionIfFailResponseCachedInFallbackCache()
@@ -496,7 +573,18 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $contentTypes = $contentful->getContentTypes();
         $this->assertCount(1, $contentTypes);
-        $this->assertContainsOnlyInstancesOf('Markup\Contentful\ContentTypeInterface', $contentTypes);
+        $this->assertContainsOnlyInstancesOf(ContentTypeInterface::class, $contentTypes);
+    }
+
+    public function testGetContentTypesAsync()
+    {
+        $data = [$this->getContentTypeData()];
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $contentTypes = $contentful->getContentTypesAsync();
+        $this->assertInstanceOf(PromiseInterface::class, $contentTypes);
+        $this->assertCount(1, $contentTypes);
+        $this->assertContainsOnlyInstancesOf(ContentTypeInterface::class, $contentTypes);
     }
 
     public function testGetContentTypeByNameWhenExists()
@@ -506,7 +594,7 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $name = 'Cat';
         $contentType = $contentful->getContentTypeByName($name);
-        $this->assertInstanceOf('Markup\Contentful\ContentTypeInterface', $contentType);
+        $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
         $this->assertEquals($name, $contentType->getName());
     }
 
@@ -516,6 +604,18 @@ class ContentfulTest extends \PHPUnit_Framework_TestCase
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $this->assertNull($contentful->getContentTypeByName('Dog'));
+    }
+
+    public function testGetContentTypeByNameAsync()
+    {
+        $data = [$this->getContentTypeData()];
+        $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $name = 'Cat';
+        $contentType = $contentful->getContentTypeByNameAsync($name);
+        $this->assertInstanceOf(PromiseInterface::class, $contentType);
+        $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
+        $this->assertEquals($name, $contentType->getName());
     }
 
     public function testGetNonExistentResourceWhenCachedThrowsWithoutRequest()
