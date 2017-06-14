@@ -3,6 +3,7 @@
 namespace Markup\Contentful;
 
 use Markup\Contentful\Exception\LinkUnresolvableException;
+use Markup\Contentful\Exception\ResourceUnavailableException;
 
 class Entry implements EntryInterface
 {
@@ -62,6 +63,8 @@ class Entry implements EntryInterface
                         $resolvedLink = call_user_func($this->resolveLinkFunction, $this->fields[$key])->wait();
                     } catch (LinkUnresolvableException $e) {
                         $resolvedLink = null;
+                    } catch (ResourceUnavailableException $e) {
+                        $resolvedLink = null;
                     }
                     $this->resolvedLinks[$key] = $resolvedLink;
                 }
@@ -75,6 +78,8 @@ class Entry implements EntryInterface
                             $resolvedLink = call_user_func($this->resolveLinkFunction, $link)->wait();
                         } catch (LinkUnresolvableException $e) {
                             //if the link is unresolvable we should consider it not published and return null so this is filtered out
+                            return null;
+                        } catch (ResourceUnavailableException $e) {
                             return null;
                         }
 
