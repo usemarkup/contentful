@@ -24,6 +24,9 @@
         "phpunit/phpunit": "^5.7",
         "mockery/mockery": "~0.9.9"
     },
+    "conflict": {
+        "hhvm": "*"
+    },
     "autoload": {
         "psr-4": {
           "Markup\\Contentful\\Tests\\": "tests/",
