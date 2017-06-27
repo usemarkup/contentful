@@ -9,7 +9,9 @@ class Entry implements EntryInterface
 {
     use DisallowArrayAccessMutationTrait;
     use EntryUnknownMethodTrait;
-    use MetadataAccessTrait;
+    use MetadataAccessTrait {
+        getContentType as protected getMetadataContentType;
+    }
 
     /**
      * @var array
@@ -92,6 +94,19 @@ class Entry implements EntryInterface
         }
 
         return $this->fields[$key];
+    }
+
+    public function getContentType()
+    {
+        $metadataContentType = $this->getMetadataContentType();
+        if (!$metadataContentType instanceof Link) {
+            return $metadataContentType;
+        }
+        if (null === $this->resolveLinkFunction) {
+            return null;
+        }
+
+        return call_user_func($this->resolveLinkFunction, $metadataContentType)->wait();
     }
 
     /**
