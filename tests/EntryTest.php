@@ -5,6 +5,7 @@ namespace Markup\Contentful\Tests;
 use GuzzleHttp\Promise\Promise;
 use function GuzzleHttp\Promise\promise_for;
 use Markup\Contentful\AssetInterface;
+use Markup\Contentful\ContentTypeInterface;
 use Markup\Contentful\Entry;
 use Markup\Contentful\EntryInterface;
 use Markup\Contentful\Exception\LinkUnresolvableException;
@@ -114,5 +115,30 @@ class EntryTest extends \PHPUnit_Framework_TestCase
         $entry = new Entry($fields, $this->metadata);
         $entry->setResolveLinkFunction($callback);
         $this->assertNull($entry['asset']);
+    }
+
+    public function testGetResolvedContentType()
+    {
+        $contentType = m::mock(ContentTypeInterface::class);
+        $this->metadata
+            ->shouldReceive('getContentType')
+            ->andReturn($contentType);
+        $this->assertSame($contentType, $this->entry->getContentType());
+    }
+
+    public function testGetUnresolvedContentType()
+    {
+        $link = m::mock(Link::class);
+        $this->metadata
+            ->shouldReceive('getContentType')
+            ->andReturn($link);
+        $contentType = m::mock(ContentTypeInterface::class);
+        $callback = function ($link) use ($contentType) {
+            $this->assertInstanceOf(Link::class, $link);
+
+            return promise_for($contentType);
+        };
+        $this->entry->setResolveLinkFunction($callback);
+        $this->assertSame($contentType, $this->entry->getContentType());
     }
 }
