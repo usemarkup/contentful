@@ -3,6 +3,7 @@
 namespace Markup\Contentful\Tests\Log;
 
 use Markup\Contentful\Log\StandardTimer;
+use Markup\Contentful\Log\TimerInterface;
 
 class StandardTimerTest extends \PHPUnit_Framework_TestCase
 {
@@ -13,7 +14,7 @@ class StandardTimerTest extends \PHPUnit_Framework_TestCase
 
     public function testIsTimer()
     {
-        $this->assertInstanceOf('Markup\Contentful\Log\TimerInterface', $this->timer);
+        $this->assertInstanceOf(TimerInterface::class, $this->timer);
     }
 
     public function testStandardCycle()

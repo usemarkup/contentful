@@ -3,8 +3,10 @@
 namespace Markup\Contentful\Tests\Log;
 
 use Markup\Contentful\Contentful;
+use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Log\StandardLogger;
+use Markup\Contentful\Log\TimerInterface;
 
 class StandardLoggerTest extends \PHPUnit_Framework_TestCase
 {
@@ -15,7 +17,7 @@ class StandardLoggerTest extends \PHPUnit_Framework_TestCase
 
     public function testIsLogger()
     {
-        $this->assertInstanceOf('Markup\Contentful\Log\LoggerInterface', $this->logger);
+        $this->assertInstanceOf(LoggerInterface::class, $this->logger);
     }
 
     public function testLogOneItem()
@@ -23,7 +25,7 @@ class StandardLoggerTest extends \PHPUnit_Framework_TestCase
         $initialLogs = $this->logger->getLogs();
         $this->assertCount(0, $initialLogs);
         $timer = $this->logger->getStartedTimer();
-        $this->assertInstanceOf('Markup\Contentful\Log\TimerInterface', $timer);
+        $this->assertInstanceOf(TimerInterface::class, $timer);
         $this->assertTrue($timer->isStarted());
         $description = 'description goes here';
         $isCacheHit = true;
@@ -34,7 +36,7 @@ class StandardLoggerTest extends \PHPUnit_Framework_TestCase
         $finalLogs = $this->logger->getLogs();
         $this->assertCount(1, $finalLogs);
         $log = reset($finalLogs);
-        $this->assertInstanceOf('Markup\Contentful\Log\LogInterface', $log);
+        $this->assertInstanceOf(LogInterface::class, $log);
         $this->assertEquals($type, $log->getType());
         $this->assertEquals($description, $log->getDescription());
         $this->assertInternalType('float', $log->getDurationInSeconds());

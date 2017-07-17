@@ -2,6 +2,9 @@
 
 namespace Markup\Contentful\Tests\Filter;
 
+use Markup\Contentful\Contentful;
+use Markup\Contentful\ContentTypeInterface;
+use Markup\Contentful\Filter\ContentTypeFilter;
 use Markup\Contentful\Filter\ContentTypeFilterProvider;
 use Mockery as m;
 
@@ -9,7 +12,7 @@ class ContentTypeFilterProviderTest extends \PHPUnit_Framework_TestCase
 {
     protected function setUp()
     {
-        $this->contentful = m::mock('Markup\Contentful\Contentful');
+        $this->contentful = m::mock(Contentful::class);
         $this->provider = new ContentTypeFilterProvider($this->contentful);
     }
 
@@ -20,7 +23,7 @@ class ContentTypeFilterProviderTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateForExistingContentType()
     {
-        $contentType = m::mock('Markup\Contentful\ContentTypeInterface');
+        $contentType = m::mock(ContentTypeInterface::class);
         $id = 42;
         $contentType
             ->shouldReceive('getId')
@@ -34,7 +37,7 @@ class ContentTypeFilterProviderTest extends \PHPUnit_Framework_TestCase
             ->with($name, m::any())
             ->andReturn($contentType);
         $filter = $this->provider->createForContentTypeName($name);
-        $this->assertInstanceOf('Markup\Contentful\Filter\ContentTypeFilter', $filter);
+        $this->assertInstanceOf(ContentTypeFilter::class, $filter);
         $this->assertEquals($id, $filter->getValue());
     }
 

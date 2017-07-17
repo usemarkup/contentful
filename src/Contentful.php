@@ -918,7 +918,7 @@ class Contentful
     {
         $key = $spaceKey . '-' . $queryType . (($isPreview) ? '-preview' : '');
         if ($disambiguator) {
-            $key .= ':' . $disambiguator;
+            $key .= '↦' . $disambiguator;
         }
         if (count($parameters) > 0) {
             //sort parameters by name, then key
@@ -932,11 +932,12 @@ class Contentful
             };
             usort($parameters, $paramSort);
             $key .= '-' . implode(',', array_map(function (ParameterInterface $param) {
-                return sprintf('(%s)%s:%s', $param->getName(), $param->getKey(), $param->getValue());
+                return sprintf('|%s|%s↦%s', $param->getName(), $param->getKey(), $param->getValue());
             }, $parameters));
         }
+        $illegalPsr6Characters = '{}()/\@:';
 
-        return $key;
+        return strtr($key, array_fill_keys(str_split($illegalPsr6Characters), ''));
     }
 
     /**

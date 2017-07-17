@@ -3,13 +3,31 @@
 namespace Markup\Contentful\Tests\Filter;
 
 use Markup\Contentful\Filter\ExcludeFilter;
+use Markup\Contentful\Filter\PropertyFilter;
+use Markup\Contentful\FilterInterface;
+use Markup\Contentful\PropertyInterface;
 use Mockery as m;
 
 class ExcludeFilterTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var PropertyInterface|m\MockInterface
+     */
+    private $property;
+
+    /**
+     * @var string[]
+     */
+    private $values;
+
+    /**
+     * @var ExcludeFilter
+     */
+    private $filter;
+
     protected function setUp()
     {
-        $this->property = m::mock('Markup\Contentful\PropertyInterface');
+        $this->property = m::mock(PropertyInterface::class);
         $this->values = ['foo', 'bar'];
         $this->filter = new ExcludeFilter($this->property, $this->values);
     }
@@ -21,12 +39,12 @@ class ExcludeFilterTest extends \PHPUnit_Framework_TestCase
 
     public function testIsFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\FilterInterface', $this->filter);
+        $this->assertInstanceOf(FilterInterface::class, $this->filter);
     }
 
     public function testIsPropertyFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\Filter\PropertyFilter', $this->filter);
+        $this->assertInstanceOf(PropertyFilter::class, $this->filter);
     }
 
     public function testGetKey()

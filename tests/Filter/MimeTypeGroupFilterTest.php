@@ -3,6 +3,8 @@
 namespace Markup\Contentful\Tests\Filter;
 
 use Markup\Contentful\Filter\MimeTypeGroupFilter;
+use Markup\Contentful\Filter\PropertyFilter;
+use Markup\Contentful\FilterInterface;
 
 class MimeTypeGroupFilterTest extends \PHPUnit_Framework_TestCase
 {
@@ -14,12 +16,12 @@ class MimeTypeGroupFilterTest extends \PHPUnit_Framework_TestCase
 
     public function testIsFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\FilterInterface', $this->filter);
+        $this->assertInstanceOf(FilterInterface::class, $this->filter);
     }
 
     public function testIsPropertyFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\Filter\PropertyFilter', $this->filter);
+        $this->assertInstanceOf(PropertyFilter::class, $this->filter);
     }
 
     public function testGetKey()

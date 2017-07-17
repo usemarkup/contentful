@@ -3,6 +3,7 @@
 namespace Markup\Contentful\Tests\Filter;
 
 use Markup\Contentful\Filter\ContentTypeFilter;
+use Markup\Contentful\FilterInterface;
 
 class ContentTypeFilterTest extends \PHPUnit_Framework_TestCase
 {
@@ -14,7 +15,7 @@ class ContentTypeFilterTest extends \PHPUnit_Framework_TestCase
 
     public function testIsFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\FilterInterface', $this->filter);
+        $this->assertInstanceOf(FilterInterface::class, $this->filter);
     }
 
     public function testGetKey()
