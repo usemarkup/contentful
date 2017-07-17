@@ -2,6 +2,8 @@
 
 namespace Markup\Contentful\Tests\Decorator;
 
+use Markup\Contentful\AssetInterface;
+use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\Decorator\CompositeAssetDecorator;
 use Mockery as m;
 
@@ -19,7 +21,7 @@ class CompositeAssetDecoratorTest extends \PHPUnit_Framework_TestCase
 
     public function testIsDecorator()
     {
-        $this->assertInstanceOf('Markup\Contentful\Decorator\AssetDecoratorInterface', $this->composite);
+        $this->assertInstanceOf(AssetDecoratorInterface::class, $this->composite);
     }
 
     public function testCompositeDoesNullDecorationByDefault()
@@ -54,11 +56,11 @@ class CompositeAssetDecoratorTest extends \PHPUnit_Framework_TestCase
 
     private function getMockAsset()
     {
-        return m::mock('Markup\Contentful\AssetInterface')->shouldIgnoreMissing();
+        return m::mock(AssetInterface::class)->shouldIgnoreMissing();
     }
 
     private function getMockDecorator()
     {
-        return m::mock('Markup\Contentful\Decorator\AssetDecoratorInterface')->shouldIgnoreMissing();
+        return m::mock(AssetDecoratorInterface::class)->shouldIgnoreMissing();
     }
 }

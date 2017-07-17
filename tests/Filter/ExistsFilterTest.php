@@ -3,13 +3,30 @@
 namespace Markup\Contentful\Tests\Filter;
 
 use Markup\Contentful\Filter\ExistsFilter;
+use Markup\Contentful\FilterInterface;
+use Markup\Contentful\PropertyInterface;
 use Mockery as m;
 
 class ExistsFilterTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var PropertyInterface|m\MockInterface
+     */
+    private $property;
+
+    /**
+     * @var bool
+     */
+    private $value;
+
+    /**
+     * @var ExistsFilter
+     */
+    private $filter;
+
     protected function setUp()
     {
-        $this->property = m::mock('Markup\Contentful\PropertyInterface');
+        $this->property = m::mock(PropertyInterface::class);
         $this->propertyKey = 'prop';
         $this->property
             ->shouldReceive('getKey')
@@ -25,7 +42,7 @@ class ExistsFilterTest extends \PHPUnit_Framework_TestCase
 
     public function testIsFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\FilterInterface', $this->filter);
+        $this->assertInstanceOf(FilterInterface::class, $this->filter);
     }
 
     public function testGetKey()

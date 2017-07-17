@@ -2,13 +2,14 @@
 
 namespace Markup\Contentful\Tests\Decorator;
 
+use Markup\Contentful\AssetInterface;
 use Mockery as m;
 
 class DecoratedAssetTest extends \PHPUnit_Framework_TestCase
 {
     protected function setUp()
     {
-        $this->asset = m::mock('Markup\Contentful\AssetInterface');
+        $this->asset = m::mock(AssetInterface::class);
         $this->decorated = new ConcreteDecoratedAsset($this->asset);
     }
 

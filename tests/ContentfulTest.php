@@ -283,7 +283,7 @@ class ContentfulTest extends MockeryTestCase
     public function testCacheMissDoesFetch()
     {
         $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
-        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $expectedCacheKey = 'jskdfjhsdfk-entries-|equal|fields.old↦6,|less_than|fields.ghosts[lt]↦6';
         $cachePool = $this->getMockCachePool();
         $cacheItem = $this->getMockCacheItem();
         $cachePool
@@ -306,7 +306,7 @@ class ContentfulTest extends MockeryTestCase
     public function testCacheHitUsesCacheAndDoesNotFetch()
     {
         $handlerOption = $this->getExplodyHandlerOption();
-        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $expectedCacheKey = 'jskdfjhsdfk-entries-|equal|fields.old↦6,|less_than|fields.ghosts[lt]↦6';
         $cachePool = $this->getMockCachePool();
         $cacheItem = $this->getMockCacheItem();
         $cachePool
@@ -332,7 +332,7 @@ class ContentfulTest extends MockeryTestCase
     public function testUsesFallbackCacheOnRequestFailure()
     {
         $handlerOption = $this->getExplodyHandlerOption();
-        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $expectedCacheKey = 'jskdfjhsdfk-entries-|equal|fields.old↦6,|less_than|fields.ghosts[lt]↦6';
         $frontCacheItem = $this->getMockCacheItem();
         $frontCachePool = $this->getMockCachePool();
         $frontCachePool
@@ -366,7 +366,7 @@ class ContentfulTest extends MockeryTestCase
     public function testThrowsResourceUnavailableExceptionIfFailResponseCachedInFallbackCache()
     {
         $handlerOption = $this->getExplodyHandlerOption();
-        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $expectedCacheKey = 'jskdfjhsdfk-entries-|equal|fields.old↦6,|less_than|fields.ghosts[lt]↦6';
         $frontCacheItem = $this->getMockCacheItem();
         $frontCachePool = $this->getMockCachePool();
         $frontCachePool
@@ -398,7 +398,7 @@ class ContentfulTest extends MockeryTestCase
     public function testFailResponseDoesNotSaveIntoFallbackCacheEvenIfCachingFailResponses()
     {
         $handlerOption = $this->getExplodyHandlerOption();
-        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $expectedCacheKey = 'jskdfjhsdfk-entries-|equal|fields.old↦6,|less_than|fields.ghosts[lt]↦6';
         $frontCacheItem = $this->getMockCacheItem();
         $frontCachePool = $this->getMockCachePool();
         $frontCachePool
@@ -424,7 +424,7 @@ class ContentfulTest extends MockeryTestCase
     public function testUsesFallbackCacheOnRequestSuccessfulButInvalid()
     {
         $handlerOption = $this->getSuccessHandlerOption($this->getEmptyEntriesData(), '235345lj34h53j4h');
-        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $expectedCacheKey = 'jskdfjhsdfk-entries-|equal|fields.old↦6,|less_than|fields.ghosts[lt]↦6';
         $frontCacheItem = $this->getMockCacheItem();
         $frontCachePool = $this->getMockCachePool();
         $frontCachePool
@@ -466,7 +466,7 @@ class ContentfulTest extends MockeryTestCase
     public function testInvalidResponseDoesNotSaveIntoFallbackCacheEvenIfCachingFailResponses()
     {
         $handlerOption = $this->getSuccessHandlerOption($this->getEmptyEntriesData(), '235345lj34h53j4h');
-        $expectedCacheKey = 'jskdfjhsdfk-entries-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $expectedCacheKey = 'jskdfjhsdfk-entries-|equal|fields.old↦6,|less_than|fields.ghosts[lt]↦6';
         $frontCacheItem = $this->getMockCacheItem();
         $frontCachePool = $this->getMockCachePool();
         $frontCachePool
@@ -543,7 +543,7 @@ class ContentfulTest extends MockeryTestCase
     public function testUsePreviewApiForCachedGetEntriesCall()
     {
         $handlerOption = $this->getExplodyHandlerOption();
-        $expectedCacheKey = 'jskdfjhsdfk-entries-preview-(equal)fields.old:6,(less_than)fields.ghosts[lt]:6';
+        $expectedCacheKey = 'jskdfjhsdfk-entries-preview-|equal|fields.old↦6,|less_than|fields.ghosts[lt]↦6';
         $cachePool = $this->getMockCachePool();
         $cacheItem = $this->getMockCacheItem();
         $cachePool
@@ -562,8 +562,8 @@ class ContentfulTest extends MockeryTestCase
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $entries = $contentful->getEntries($parameters);
         $entry = array_values(iterator_to_array($entries))[0];
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry);
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $entry['bestFriend']);
+        $this->assertInstanceOf(EntryInterface::class, $entry);
+        $this->assertInstanceOf(EntryInterface::class, $entry['bestFriend']);
     }
 
     public function testGetContentTypes()
@@ -620,7 +620,7 @@ class ContentfulTest extends MockeryTestCase
 
     public function testGetNonExistentResourceWhenCachedThrowsWithoutRequest()
     {
-        $expectedCacheKey = 'jskdfjhsdfk-entry:cat';
+        $expectedCacheKey = 'jskdfjhsdfk-entry↦cat';
         $cachePool = $this->getMockCachePool();
         $cacheItem = $this->getMockCacheItem();
         $cachePool
