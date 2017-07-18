@@ -14,6 +14,7 @@ use Markup\Contentful\Decorator\NullAssetDecorator;
 use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Filter\ContentTypeFilterProvider;
+use Markup\Contentful\Filter\DecidesCacheKeyInterface;
 use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Log\NullLogger;
@@ -932,6 +933,10 @@ class Contentful
             };
             usort($parameters, $paramSort);
             $key .= '-' . implode(',', array_map(function (ParameterInterface $param) {
+                if ($param instanceof DecidesCacheKeyInterface) {
+                    return $param->getCacheKey();
+                }
+
                 return sprintf('|%s|%s↦%s', $param->getName(), $param->getKey(), $param->getValue());
             }, $parameters));
         }

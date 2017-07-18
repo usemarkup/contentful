@@ -11,6 +11,7 @@ use Markup\Contentful\ContentTypeInterface;
 use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\EntryInterface;
 use Markup\Contentful\Exception\ResourceUnavailableException;
+use Markup\Contentful\Filter\BeforeFilter;
 use Markup\Contentful\Filter\EqualFilter;
 use Markup\Contentful\Filter\LessThanFilter;
 use Markup\Contentful\Link;
@@ -300,6 +301,26 @@ class ContentfulTest extends MockeryTestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool]]);
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $filters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
+        $contentful->getEntries($filters);
+    }
+
+    public function testBeforeFilterUsesOwnCacheKey()
+    {
+        $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
+        $expectedCacheKey = 'jskdfjhsdfk-entries-|before|fields.published↦now';
+        $cachePool = $this->getMockCachePool();
+        $cacheItem = $this->getMockCacheItem();
+        $cachePool
+            ->shouldReceive('getItem')
+            ->with($expectedCacheKey)
+            ->andReturn($cacheItem);
+        $cacheItem
+            ->shouldReceive('isHit')
+            ->once()
+            ->andReturn(false);
+        $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool]]);
+        $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
+        $filters = [new BeforeFilter(new FieldProperty('published'), 'now')];
         $contentful->getEntries($filters);
     }
 
