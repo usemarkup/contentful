@@ -3,6 +3,7 @@
 namespace Markup\Contentful\Promise;
 
 use function GuzzleHttp\Promise\is_fulfilled;
+use GuzzleHttp\Promise\PromiseInterface;
 use Markup\Contentful\ResourceArray;
 use Markup\Contentful\ResourceInterface;
 
@@ -21,7 +22,17 @@ trait ResolvedResourceTrait
         if (is_fulfilled($promise) && null !== $this->resolvedResource) {
             return;
         }
-        $this->resolvedResource = $promise->wait();
+        $this->doResolve($promise);
+    }
+
+    protected function doResolve(PromiseInterface $promise)
+    {
+        $this->setResolvedResource($promise->wait());
+    }
+
+    protected function setResolvedResource($resource)
+    {
+        $this->resolvedResource = $resource;
     }
 
     /**
