@@ -37,9 +37,11 @@ class ResourceArrayPromiseTest extends MockeryTestCase
     public function testGetEnvelope()
     {
         $envelope = m::mock(ResourceEnvelope::class);
-        $inner = m::mock(ResourceArrayInterface::class)
+        $inner = m::spy(ResourceArrayInterface::class)
             ->shouldReceive('getEnvelope')
             ->andReturn($envelope)
+            ->shouldReceive('getIterator')
+            ->andReturn(new \ArrayIterator())
             ->getMock();
         $resourceArray = new ResourceArrayPromise(promise_for($inner));
         $this->assertSame($envelope, $resourceArray->getEnvelope());
@@ -55,5 +57,18 @@ class ResourceArrayPromiseTest extends MockeryTestCase
         $this->assertCount(2, $resourceArray);
         $this->assertInstanceOf(EntryInterface::class, $resourceArray->first());
         $this->assertInstanceOf(AssetInterface::class, $resourceArray->last());
+    }
+
+    public function testFiltersEmpty()
+    {
+        $resourceArray = new ResourceArrayPromise(promise_for([
+            m::mock(EntryInterface::class),
+            null,
+            m::mock(AssetInterface::class),
+        ]));
+        $this->assertCount(2, $resourceArray);
+        $this->assertInstanceOf(EntryInterface::class, $resourceArray->first());
+        $this->assertInstanceOf(AssetInterface::class, $resourceArray->last());
+        $this->assertInstanceOf(AssetInterface::class, $resourceArray[1]);
     }
 }

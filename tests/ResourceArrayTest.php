@@ -2,6 +2,7 @@
 
 namespace Markup\Contentful\Tests;
 
+use Markup\Contentful\EntryInterface;
 use Markup\Contentful\ResourceArray;
 use Markup\Contentful\ResourceArrayInterface;
 use Mockery as m;
@@ -85,6 +86,6 @@ class ResourceArrayTest extends \PHPUnit_Framework_TestCase
 
     private function getMockEntry()
     {
-        return m::mock('Markup\Contentful\EntryInterface');
+        return m::mock(EntryInterface::class);
     }
 }

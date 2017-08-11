@@ -145,4 +145,19 @@ class ResourceArrayPromise extends ResourcePromise implements ResourceArrayInter
                 return new ResourceArray([], 0, 0, 0);
             });
     }
+
+    protected function doResolve(PromiseInterface $promise)
+    {
+        $resolved = $promise->wait();
+        //temporarily set resolved resource with array that may contain nulls
+        $this->setResolvedResource($resolved);
+        //now set it again but with access to skip/limit parameters etc - using a resource array will auto-filter nulls
+        $this->setResolvedResource(new ResourceArray(
+            $resolved,
+            $this->getTotal(),
+            $this->getSkip(),
+            $this->getLimit(),
+            $this->getEnvelope()
+        ));
+    }
 }

@@ -45,9 +45,9 @@ class ResourceArray implements ResourceArrayInterface
             return $resource instanceof ResourceInterface;
         };
         if ($items instanceof \Traversable) {
-            $this->items = array_filter(array_values(iterator_to_array($items)), $filterNonResource);
+            $this->items = array_values(array_filter(array_values(iterator_to_array($items)), $filterNonResource));
         } elseif (is_array($items)) {
-            $this->items = array_filter(array_values($items), $filterNonResource);
+            $this->items = array_values(array_filter(array_values($items), $filterNonResource));
         } else {
             throw new \InvalidArgumentException('Items parameter should be an array or a traversable object.');
         }
@@ -156,5 +156,18 @@ class ResourceArray implements ResourceArrayInterface
         }
 
         return $this->items[$offset];
+    }
+
+    /**
+     * Ensures that this resource array strips out missing resources if they don't exist, so that counts and members
+     * always reflect resources only.
+     *
+     * This will resolve a resource array if it is a promise/ future.
+     *
+     * @return void
+     */
+    public function ensureNoMissing()
+    {
+        // constructor already ensures no missing, so no action necessary here
     }
 }
