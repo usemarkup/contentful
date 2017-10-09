@@ -11,8 +11,9 @@ use Markup\Contentful\Locale;
 use Markup\Contentful\ResourceArray;
 use Markup\Contentful\ResourceBuilder;
 use Markup\Contentful\SpaceInterface;
+use PHPUnit\Framework\TestCase;
 
-class ResourceBuilderTest extends \PHPUnit_Framework_TestCase
+class ResourceBuilderTest extends TestCase
 {
     /**
      * @var ResourceBuilder

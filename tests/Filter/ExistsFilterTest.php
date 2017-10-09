@@ -6,8 +6,9 @@ use Markup\Contentful\Filter\ExistsFilter;
 use Markup\Contentful\FilterInterface;
 use Markup\Contentful\PropertyInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class ExistsFilterTest extends \PHPUnit_Framework_TestCase
+class ExistsFilterTest extends MockeryTestCase
 {
     /**
      * @var PropertyInterface|m\MockInterface
@@ -33,11 +34,6 @@ class ExistsFilterTest extends \PHPUnit_Framework_TestCase
             ->andReturn($this->propertyKey);
         $this->value = true;
         $this->filter = new ExistsFilter($this->property, $this->value);
-    }
-
-    protected function tearDown()
-    {
-        m::close();
     }
 
     public function testIsFilter()

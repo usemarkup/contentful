@@ -7,9 +7,15 @@ use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Log\StandardLogger;
 use Markup\Contentful\Log\TimerInterface;
+use PHPUnit\Framework\TestCase;
 
-class StandardLoggerTest extends \PHPUnit_Framework_TestCase
+class StandardLoggerTest extends TestCase
 {
+    /**
+     * @var StandardLogger
+     */
+    private $logger;
+
     protected function setUp()
     {
         $this->logger = new StandardLogger();

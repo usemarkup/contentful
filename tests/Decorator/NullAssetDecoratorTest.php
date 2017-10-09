@@ -5,8 +5,9 @@ namespace Markup\Contentful\Tests\Decorator;
 use Markup\Contentful\AssetInterface;
 use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\Decorator\NullAssetDecorator;
+use PHPUnit\Framework\TestCase;
 
-class NullAssetDecoratorTest extends \PHPUnit_Framework_TestCase
+class NullAssetDecoratorTest extends TestCase
 {
     protected function setUp()
     {

@@ -7,18 +7,14 @@ use Markup\Contentful\ContentTypeInterface;
 use Markup\Contentful\Filter\ContentTypeFilter;
 use Markup\Contentful\Filter\ContentTypeFilterProvider;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class ContentTypeFilterProviderTest extends \PHPUnit_Framework_TestCase
+class ContentTypeFilterProviderTest extends MockeryTestCase
 {
     protected function setUp()
     {
         $this->contentful = m::mock(Contentful::class);
         $this->provider = new ContentTypeFilterProvider($this->contentful);
-    }
-
-    protected function tearDown()
-    {
-        m::close();
     }
 
     public function testCreateForExistingContentType()

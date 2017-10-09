@@ -3,25 +3,23 @@
 namespace Markup\Contentful\Tests\Filter;
 
 use Markup\Contentful\Filter\SearchFilter;
+use Markup\Contentful\FilterInterface;
+use Markup\Contentful\PropertyInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class SearchFilterTest extends \PHPUnit_Framework_TestCase
+class SearchFilterTest extends MockeryTestCase
 {
     protected function setUp()
     {
         $this->query = 'look_for_me';
-        $this->property = m::mock('Markup\Contentful\PropertyInterface');
+        $this->property = m::mock(PropertyInterface::class);
         $this->filter = new SearchFilter($this->query, $this->property);
-    }
-
-    protected function tearDown()
-    {
-        m::close();
     }
 
     public function testIsFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\FilterInterface', $this->filter);
+        $this->assertInstanceOf(FilterInterface::class, $this->filter);
     }
 
     public function testGetKeyForQueryWithProperty()

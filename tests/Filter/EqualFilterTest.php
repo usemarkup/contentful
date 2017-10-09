@@ -7,8 +7,9 @@ use Markup\Contentful\Filter\PropertyFilter;
 use Markup\Contentful\FilterInterface;
 use Markup\Contentful\PropertyInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class EqualFilterTest extends \PHPUnit_Framework_TestCase
+class EqualFilterTest extends MockeryTestCase
 {
     /**
      * @var PropertyInterface|m\MockInterface
@@ -30,11 +31,6 @@ class EqualFilterTest extends \PHPUnit_Framework_TestCase
         $this->property = m::mock(PropertyInterface::class);
         $this->value = 'value';
         $this->filter = new EqualFilter($this->property, $this->value);
-    }
-
-    protected function tearDown()
-    {
-        m::close();
     }
 
     public function testIsFilter()

@@ -3,24 +3,22 @@
 namespace Markup\Contentful\Tests\Parameter;
 
 use Markup\Contentful\Parameter\OrderBy;
+use Markup\Contentful\ParameterInterface;
+use Markup\Contentful\PropertyInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class OrderByTest extends \PHPUnit_Framework_TestCase
+class OrderByTest extends MockeryTestCase
 {
     protected function setUp()
     {
-        $this->property = m::mock('Markup\Contentful\PropertyInterface');
+        $this->property = m::mock(PropertyInterface::class);
         $this->orderBy = new OrderBy($this->property);
-    }
-
-    protected function tearDown()
-    {
-        m::close();
     }
 
     public function testIsParameter()
     {
-        $this->assertInstanceOf('Markup\Contentful\ParameterInterface', $this->orderBy);
+        $this->assertInstanceOf(ParameterInterface::class, $this->orderBy);
     }
 
     public function testGetKey()

@@ -3,9 +3,22 @@
 namespace Markup\Contentful\Tests\Filter;
 
 use Markup\Contentful\Filter\LocaleFilter;
+use Markup\Contentful\Filter\PropertyFilter;
+use Markup\Contentful\FilterInterface;
+use PHPUnit\Framework\TestCase;
 
-class LocaleFilterTest extends \PHPUnit_Framework_TestCase
+class LocaleFilterTest extends TestCase
 {
+    /**
+     * @var string
+     */
+    private $localeString;
+
+    /**
+     * @var LocaleFilter
+     */
+    private $filter;
+
     protected function setUp()
     {
         $this->localeString = 'de_DE';
@@ -14,12 +27,12 @@ class LocaleFilterTest extends \PHPUnit_Framework_TestCase
 
     public function testIsFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\FilterInterface', $this->filter);
+        $this->assertInstanceOf(FilterInterface::class, $this->filter);
     }
 
     public function testIsPropertyFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\Filter\PropertyFilter', $this->filter);
+        $this->assertInstanceOf(PropertyFilter::class, $this->filter);
     }
 
     public function testGetKey()

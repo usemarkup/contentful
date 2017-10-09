@@ -6,17 +6,18 @@ use Markup\Contentful\AssetInterface;
 use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\Decorator\CompositeAssetDecorator;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class CompositeAssetDecoratorTest extends \PHPUnit_Framework_TestCase
+class CompositeAssetDecoratorTest extends MockeryTestCase
 {
+    /**
+     * @var CompositeAssetDecorator
+     */
+    private $composite;
+
     protected function setUp()
     {
         $this->composite = new CompositeAssetDecorator();
-    }
-
-    protected function tearDown()
-    {
-        m::close();
     }
 
     public function testIsDecorator()

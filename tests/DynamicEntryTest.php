@@ -2,35 +2,36 @@
 
 namespace Markup\Contentful\Tests;
 
+use Markup\Contentful\ContentType;
+use Markup\Contentful\ContentTypeField;
 use Markup\Contentful\DynamicEntry;
+use Markup\Contentful\Entry;
+use Markup\Contentful\EntryInterface;
+use Markup\Contentful\Location;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class DynamicEntryTest extends \PHPUnit_Framework_TestCase
+class DynamicEntryTest extends MockeryTestCase
 {
     protected function setUp()
     {
-        $this->entry = m::mock('Markup\Contentful\Entry');
-        $this->contentType = m::mock('Markup\Contentful\ContentType')->shouldIgnoreMissing();
+        $this->entry = m::mock(Entry::class);
+        $this->contentType = m::mock(ContentType::class)->shouldIgnoreMissing();
         $this->entry
             ->shouldReceive('getContentType')
             ->andReturn($this->contentType);
         $this->dynamicEntry = new DynamicEntry($this->entry, $this->contentType);
     }
 
-    protected function tearDown()
-    {
-        m::close();
-    }
-
     public function testIsEntry()
     {
-        $this->assertInstanceOf('Markup\Contentful\EntryInterface', $this->dynamicEntry);
+        $this->assertInstanceOf(EntryInterface::class, $this->dynamicEntry);
     }
 
     public function testCoercesToDate()
     {
         $key = 'date';
-        $contentTypeField = m::mock('Markup\Contentful\ContentTypeField');
+        $contentTypeField = m::mock(ContentTypeField::class);
         $contentTypeField
             ->shouldReceive('getType')
             ->andReturn('Date');
@@ -50,7 +51,7 @@ class DynamicEntryTest extends \PHPUnit_Framework_TestCase
     public function testGetLocation()
     {
         $key = 'location';
-        $contentTypeField = m::mock('Markup\Contentful\ContentTypeField');
+        $contentTypeField = m::mock(ContentTypeField::class);
         $contentTypeField
             ->shouldReceive('getType')
             ->andReturn('Location');
@@ -63,7 +64,7 @@ class DynamicEntryTest extends \PHPUnit_Framework_TestCase
             ->with($key)
             ->andReturn('23,42');
         $location = $this->dynamicEntry->getField($key);
-        $this->assertInstanceOf('Markup\Contentful\Location', $location);
+        $this->assertInstanceOf(Location::class, $location);
         $this->assertEquals(42, $location->getLongitude());
     }
 
@@ -82,7 +83,7 @@ class DynamicEntryTest extends \PHPUnit_Framework_TestCase
     {
         $contentTypeFieldIds = ['yes', 'ja'];
         $contentTypeFields = array_map(function ($id) {
-            $field = m::mock('Markup\Contentful\ContentTypeField');
+            $field = m::mock(ContentTypeField::class);
             $field
                 ->shouldReceive('getId')
                 ->andReturn($id);

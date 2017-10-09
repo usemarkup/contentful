@@ -3,15 +3,12 @@
 namespace Markup\Contentful\Tests;
 
 use Markup\Contentful\Link;
+use Markup\Contentful\MetadataInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class LinkTest extends \PHPUnit_Framework_TestCase
+class LinkTest extends MockeryTestCase
 {
-    protected function tearDown()
-    {
-        m::close();
-    }
-
     public function testGetSpaceName()
     {
         $name = 'space_name';
@@ -21,6 +18,6 @@ class LinkTest extends \PHPUnit_Framework_TestCase
 
     private function getMockMetadata()
     {
-        return m::mock('Markup\Contentful\MetadataInterface');
+        return m::mock(MetadataInterface::class);
     }
 }

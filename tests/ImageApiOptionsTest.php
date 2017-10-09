@@ -3,8 +3,9 @@
 namespace Markup\Contentful\Tests;
 
 use Markup\Contentful\ImageApiOptions;
+use PHPUnit\Framework\TestCase;
 
-class ImageApiOptionsTest extends \PHPUnit_Framework_TestCase
+class ImageApiOptionsTest extends TestCase
 {
     public function testWithAllOptions()
     {
@@ -20,7 +21,7 @@ class ImageApiOptionsTest extends \PHPUnit_Framework_TestCase
             'background_color' => 'AAAAAA',
         ];
         $options = ImageApiOptions::createFromHumanOptions($optionsArr);
-        $this->assertInstanceOf('Markup\Contentful\ImageApiOptions', $options);
+        $this->assertInstanceOf(ImageApiOptions::class, $options);
         $expected = [
             'bg' => 'rgb:aaaaaa',
             'f' => 'faces',

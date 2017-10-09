@@ -3,26 +3,24 @@
 namespace Markup\Contentful\Tests\Filter;
 
 use Markup\Contentful\Filter\NearFilter;
+use Markup\Contentful\FilterInterface;
 use Markup\Contentful\Location;
+use Markup\Contentful\PropertyInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class NearFilterTest extends \PHPUnit_Framework_TestCase
+class NearFilterTest extends MockeryTestCase
 {
     protected function setUp()
     {
-        $this->property = m::mock('Markup\Contentful\PropertyInterface');
+        $this->property = m::mock(PropertyInterface::class);
         $this->location = new Location(10, 20);
         $this->filter = new NearFilter($this->property, $this->location);
     }
 
-    protected function tearDown()
-    {
-        m::close();
-    }
-
     public function testIsFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\FilterInterface', $this->filter);
+        $this->assertInstanceOf(FilterInterface::class, $this->filter);
     }
 
     public function testGetKey()

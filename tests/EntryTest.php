@@ -12,8 +12,9 @@ use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Link;
 use Markup\Contentful\MetadataInterface;
 use Mockery as m;
+use PHPUnit\Framework\TestCase;
 
-class EntryTest extends \PHPUnit_Framework_TestCase
+class EntryTest extends TestCase
 {
     /**
      * @var array
