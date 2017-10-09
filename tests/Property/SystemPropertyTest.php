@@ -3,9 +3,21 @@
 namespace Markup\Contentful\Tests\Property;
 
 use Markup\Contentful\Property\SystemProperty;
+use Markup\Contentful\PropertyInterface;
+use PHPUnit\Framework\TestCase;
 
-class SystemPropertyTest extends \PHPUnit_Framework_TestCase
+class SystemPropertyTest extends TestCase
 {
+    /**
+     * @var string
+     */
+    private $propertyName;
+
+    /**
+     * @var SystemProperty
+     */
+    private $property;
+
     protected function setUp()
     {
         $this->propertyName = 'id';
@@ -14,7 +26,7 @@ class SystemPropertyTest extends \PHPUnit_Framework_TestCase
 
     public function testIsProperty()
     {
-        $this->assertInstanceOf('Markup\Contentful\PropertyInterface', $this->property);
+        $this->assertInstanceOf(PropertyInterface::class, $this->property);
     }
 
     public function testGetKey()

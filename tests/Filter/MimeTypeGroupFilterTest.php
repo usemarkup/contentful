@@ -5,9 +5,20 @@ namespace Markup\Contentful\Tests\Filter;
 use Markup\Contentful\Filter\MimeTypeGroupFilter;
 use Markup\Contentful\Filter\PropertyFilter;
 use Markup\Contentful\FilterInterface;
+use PHPUnit\Framework\TestCase;
 
-class MimeTypeGroupFilterTest extends \PHPUnit_Framework_TestCase
+class MimeTypeGroupFilterTest extends TestCase
 {
+    /**
+     * @var string
+     */
+    private $mimeTypeGroup;
+
+    /**
+     * @var MimeTypeGroupFilter
+     */
+    private $filter;
+
     protected function setUp()
     {
         $this->mimeTypeGroup = 'plaintext';

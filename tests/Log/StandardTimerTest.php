@@ -4,8 +4,9 @@ namespace Markup\Contentful\Tests\Log;
 
 use Markup\Contentful\Log\StandardTimer;
 use Markup\Contentful\Log\TimerInterface;
+use PHPUnit\Framework\TestCase;
 
-class StandardTimerTest extends \PHPUnit_Framework_TestCase
+class StandardTimerTest extends TestCase
 {
     protected function setUp()
     {

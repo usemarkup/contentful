@@ -6,14 +6,10 @@ use Markup\Contentful\EntryInterface;
 use Markup\Contentful\ResourceArray;
 use Markup\Contentful\ResourceArrayInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class ResourceArrayTest extends \PHPUnit_Framework_TestCase
+class ResourceArrayTest extends MockeryTestCase
 {
-    protected function tearDown()
-    {
-        m::close();
-    }
-
     public function testIsResourceArray()
     {
         $this->assertInstanceOf(ResourceArrayInterface::class, new ResourceArray([], 0, 0, 1));

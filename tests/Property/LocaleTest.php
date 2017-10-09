@@ -3,8 +3,10 @@
 namespace Markup\Contentful\Tests\Property;
 
 use Markup\Contentful\Property\Locale;
+use Markup\Contentful\PropertyInterface;
+use PHPUnit\Framework\TestCase;
 
-class LocaleTest extends \PHPUnit_Framework_TestCase
+class LocaleTest extends TestCase
 {
     protected function setUp()
     {
@@ -13,7 +15,7 @@ class LocaleTest extends \PHPUnit_Framework_TestCase
 
     public function testIsProperty()
     {
-        $this->assertInstanceOf('Markup\Contentful\PropertyInterface', $this->localeProp);
+        $this->assertInstanceOf(PropertyInterface::class, $this->localeProp);
     }
 
     public function testGetKey()

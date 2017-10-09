@@ -6,8 +6,9 @@ use Markup\Contentful\Contentful;
 use Markup\Contentful\Log\Log;
 use Markup\Contentful\Log\LogInterface;
 use Mockery as m;
+use PHPUnit\Framework\TestCase;
 
-class LogTest extends \PHPUnit_Framework_TestCase
+class LogTest extends TestCase
 {
     public function testLog()
     {

@@ -3,8 +3,10 @@
 namespace Markup\Contentful\Tests\Parameter;
 
 use Markup\Contentful\Parameter\Limit;
+use Markup\Contentful\ParameterInterface;
+use PHPUnit\Framework\TestCase;
 
-class LimitTest extends \PHPUnit_Framework_TestCase
+class LimitTest extends TestCase
 {
     protected function setUp()
     {
@@ -14,7 +16,7 @@ class LimitTest extends \PHPUnit_Framework_TestCase
 
     public function testIsParameter()
     {
-        $this->assertInstanceOf('Markup\Contentful\ParameterInterface', $this->limit);
+        $this->assertInstanceOf(ParameterInterface::class, $this->limit);
     }
 
     public function testGetKey()

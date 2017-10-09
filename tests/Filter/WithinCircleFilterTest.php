@@ -7,8 +7,9 @@ use Markup\Contentful\FilterInterface;
 use Markup\Contentful\Location;
 use Markup\Contentful\PropertyInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class WithinCircleFilterTest extends \PHPUnit_Framework_TestCase
+class WithinCircleFilterTest extends MockeryTestCase
 {
     protected function setUp()
     {
@@ -16,11 +17,6 @@ class WithinCircleFilterTest extends \PHPUnit_Framework_TestCase
         $this->center = new Location(15, 40);
         $this->radiusInKm = 42;
         $this->filter = new WithinCircleFilter($this->property, $this->center, $this->radiusInKm);
-    }
-
-    protected function tearDown()
-    {
-        m::close();
     }
 
     public function testIsFilter()

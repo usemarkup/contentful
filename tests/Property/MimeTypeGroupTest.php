@@ -3,9 +3,16 @@
 namespace Markup\Contentful\Tests\Property;
 
 use Markup\Contentful\Property\MimeTypeGroup;
+use Markup\Contentful\PropertyInterface;
+use PHPUnit\Framework\TestCase;
 
-class MimeTypeGroupTest extends \PHPUnit_Framework_TestCase
+class MimeTypeGroupTest extends TestCase
 {
+    /**
+     * @var MimeTypeGroup
+     */
+    private $mimeTypeProp;
+
     protected function setUp()
     {
         $this->mimeTypeProp = new MimeTypeGroup();
@@ -13,7 +20,7 @@ class MimeTypeGroupTest extends \PHPUnit_Framework_TestCase
 
     public function testIsProperty()
     {
-        $this->assertInstanceOf('Markup\Contentful\PropertyInterface', $this->mimeTypeProp);
+        $this->assertInstanceOf(PropertyInterface::class, $this->mimeTypeProp);
     }
 
     public function testGetKey()

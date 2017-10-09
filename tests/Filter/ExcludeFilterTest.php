@@ -7,8 +7,9 @@ use Markup\Contentful\Filter\PropertyFilter;
 use Markup\Contentful\FilterInterface;
 use Markup\Contentful\PropertyInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class ExcludeFilterTest extends \PHPUnit_Framework_TestCase
+class ExcludeFilterTest extends MockeryTestCase
 {
     /**
      * @var PropertyInterface|m\MockInterface
@@ -30,11 +31,6 @@ class ExcludeFilterTest extends \PHPUnit_Framework_TestCase
         $this->property = m::mock(PropertyInterface::class);
         $this->values = ['foo', 'bar'];
         $this->filter = new ExcludeFilter($this->property, $this->values);
-    }
-
-    protected function tearDown()
-    {
-        m::close();
     }
 
     public function testIsFilter()

@@ -3,27 +3,26 @@
 namespace Markup\Contentful\Tests;
 
 use Markup\Contentful\Asset;
+use Markup\Contentful\AssetFile;
+use Markup\Contentful\AssetInterface;
 use Markup\Contentful\ImageApiOptions;
+use Markup\Contentful\MetadataInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class AssetTest extends \PHPUnit_Framework_TestCase
+class AssetTest extends MockeryTestCase
 {
-    protected function tearDown()
-    {
-        m::close();
-    }
-
     public function testIsAsset()
     {
-        $refl = new \ReflectionClass('Markup\Contentful\Asset');
-        $this->assertTrue($refl->implementsInterface('Markup\Contentful\AssetInterface'));
+        $refl = new \ReflectionClass(Asset::class);
+        $this->assertTrue($refl->implementsInterface(AssetInterface::class));
     }
 
     public function testCreateAssetWithNoFile()
     {
         $title = 'No File';
         $description = 'This asset has no file, and so will be in draft';
-        $metadata = m::mock('Markup\Contentful\MetadataInterface');
+        $metadata = m::mock(MetadataInterface::class);
         $asset = new Asset($title, $description, null, $metadata);
         $this->assertEquals($title, $asset->getTitle());
         $this->assertEquals($description, $asset->getDescription());
@@ -36,12 +35,12 @@ class AssetTest extends \PHPUnit_Framework_TestCase
 
     public function testGetUrlUsingImageApiOptionsArray()
     {
-        $assetFile = m::mock('Markup\Contentful\AssetFile');
+        $assetFile = m::mock(AssetFile::class);
         $baseUrl = 'http://domain.com/image';
         $assetFile
             ->shouldReceive('getUrl')
             ->andReturn($baseUrl);
-        $asset = new Asset('', '', $assetFile, m::mock('Markup\Contentful\MetadataInterface'));
+        $asset = new Asset('', '', $assetFile, m::mock(MetadataInterface::class));
         $apiOptions = [
             'width' => 300,
             'height' => 400,
@@ -53,12 +52,12 @@ class AssetTest extends \PHPUnit_Framework_TestCase
 
     public function testGetUrlUsingImageApiOptionsObject()
     {
-        $assetFile = m::mock('Markup\Contentful\AssetFile');
+        $assetFile = m::mock(AssetFile::class);
         $baseUrl = 'http://domain.com/image';
         $assetFile
             ->shouldReceive('getUrl')
             ->andReturn($baseUrl);
-        $asset = new Asset('', '', $assetFile, m::mock('Markup\Contentful\MetadataInterface'));
+        $asset = new Asset('', '', $assetFile, m::mock(MetadataInterface::class));
         $apiOptions = new ImageApiOptions();
         $apiOptions->setProgressive(true);
         $apiOptions->setWidth(300);

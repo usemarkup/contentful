@@ -8,8 +8,9 @@ use Markup\Contentful\EntryInterface;
 use Markup\Contentful\ResourceArray;
 use Markup\Contentful\ResourceEnvelope;
 use Mockery as m;
+use PHPUnit\Framework\TestCase;
 
-class ResourceEnvelopeTest extends \PHPUnit_Framework_TestCase
+class ResourceEnvelopeTest extends TestCase
 {
     /**
      * @var ResourceEnvelope

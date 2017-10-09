@@ -3,30 +3,29 @@
 namespace Markup\Contentful\Tests\Filter;
 
 use Markup\Contentful\Filter\IncludeFilter;
+use Markup\Contentful\Filter\PropertyFilter;
+use Markup\Contentful\FilterInterface;
+use Markup\Contentful\PropertyInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class IncludeFilterTest extends \PHPUnit_Framework_TestCase
+class IncludeFilterTest extends MockeryTestCase
 {
     protected function setUp()
     {
-        $this->property = m::mock('Markup\Contentful\PropertyInterface');
+        $this->property = m::mock(PropertyInterface::class);
         $this->values = ['foo', 'bar'];
         $this->filter = new IncludeFilter($this->property, $this->values);
     }
 
-    protected function tearDown()
-    {
-        m::close();
-    }
-
     public function testIsFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\FilterInterface', $this->filter);
+        $this->assertInstanceOf(FilterInterface::class, $this->filter);
     }
 
     public function testIsPropertyFilter()
     {
-        $this->assertInstanceOf('Markup\Contentful\Filter\PropertyFilter', $this->filter);
+        $this->assertInstanceOf(PropertyFilter::class, $this->filter);
     }
 
     public function testGetKey()

@@ -7,23 +7,39 @@ use Markup\Contentful\FilterInterface;
 use Markup\Contentful\Location;
 use Markup\Contentful\PropertyInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
 /**
  * A filter for narrowing to locations within a bounding rectangle.
  */
-class WithinRectangleFilterTest extends \PHPUnit_Framework_TestCase
+class WithinRectangleFilterTest extends MockeryTestCase
 {
+    /**
+     * @var PropertyInterface|m\MockInterface
+     */
+    private $property;
+
+    /**
+     * @var Location
+     */
+    private $bottomLeftLocation;
+
+    /**
+     * @var Location
+     */
+    private $topRightLocation;
+
+    /**
+     * @var WithinRectangleFilter
+     */
+    private $filter;
+
     protected function setUp()
     {
         $this->property = m::mock(PropertyInterface::class);
         $this->bottomLeftLocation = new Location(35, 55);
         $this->topRightLocation = new Location(20, 70);
         $this->filter = new WithinRectangleFilter($this->property, $this->bottomLeftLocation, $this->topRightLocation);
-    }
-
-    protected function tearDown()
-    {
-        m::close();
     }
 
     public function testIsFilter()

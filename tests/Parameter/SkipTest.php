@@ -3,8 +3,10 @@
 namespace Markup\Contentful\Tests\Parameter;
 
 use Markup\Contentful\Parameter\Skip;
+use Markup\Contentful\ParameterInterface;
+use PHPUnit\Framework\TestCase;
 
-class SkipTest extends \PHPUnit_Framework_TestCase
+class SkipTest extends TestCase
 {
     protected function setUp()
     {
@@ -14,7 +16,7 @@ class SkipTest extends \PHPUnit_Framework_TestCase
 
     public function testIsParameter()
     {
-        $this->assertInstanceOf('Markup\Contentful\ParameterInterface', $this->skip);
+        $this->assertInstanceOf(ParameterInterface::class, $this->skip);
     }
 
     public function testGetKey()

@@ -4,8 +4,9 @@ namespace Markup\Contentful\Tests\Filter;
 
 use Markup\Contentful\Filter\ContentTypeFilter;
 use Markup\Contentful\FilterInterface;
+use PHPUnit\Framework\TestCase;
 
-class ContentTypeFilterTest extends \PHPUnit_Framework_TestCase
+class ContentTypeFilterTest extends TestCase
 {
     protected function setUp()
     {

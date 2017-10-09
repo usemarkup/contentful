@@ -4,18 +4,14 @@ namespace Markup\Contentful\Tests\Decorator;
 
 use Markup\Contentful\AssetInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class DecoratedAssetTest extends \PHPUnit_Framework_TestCase
+class DecoratedAssetTest extends MockeryTestCase
 {
     protected function setUp()
     {
         $this->asset = m::mock(AssetInterface::class);
         $this->decorated = new ConcreteDecoratedAsset($this->asset);
-    }
-
-    protected function tearDown()
-    {
-        m::close();
     }
 
     public function testGetUrlPassesApiOptions()

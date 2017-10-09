@@ -2,15 +2,18 @@
 
 namespace Markup\Contentful\Tests;
 
+use Markup\Contentful\MetadataInterface;
 use Markup\Contentful\Webhook;
+use Markup\Contentful\WebhookInterface;
 use Mockery as m;
+use PHPUnit\Framework\TestCase;
 
-class WebhookTest extends \PHPUnit_Framework_TestCase
+class WebhookTest extends TestCase
 {
     protected function setUp()
     {
         $this->url = 'http://domain.com/hook';
-        $this->metadata = m::mock('Markup\Contentful\MetadataInterface');
+        $this->metadata = m::mock(MetadataInterface::class);
         $this->hook = new Webhook($this->url, $this->metadata);
     }
 
@@ -21,7 +24,7 @@ class WebhookTest extends \PHPUnit_Framework_TestCase
 
     public function testIsWebhook()
     {
-        $this->assertInstanceOf('Markup\Contentful\WebhookInterface', $this->hook);
+        $this->assertInstanceOf(WebhookInterface::class, $this->hook);
     }
 
     public function testGetId()
