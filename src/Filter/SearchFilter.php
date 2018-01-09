@@ -15,7 +15,7 @@ class SearchFilter implements FilterInterface
     const OPERATOR_ALL_PROPERTIES = 'query';
 
     /**
-     * @var PropertyInterface
+     * @var PropertyInterface|null
      */
     private $property;
 

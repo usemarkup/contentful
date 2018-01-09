@@ -5,6 +5,7 @@ namespace Markup\Contentful\Promise;
 use Markup\Contentful\ContentTypeInterface;
 use Markup\Contentful\DisallowArrayAccessMutationTrait;
 use Markup\Contentful\ResourceArray;
+use Markup\Contentful\ResourceArrayInterface;
 use Markup\Contentful\ResourceInterface;
 use Markup\Contentful\SpaceInterface;
 
@@ -23,7 +24,12 @@ trait DelegatingMetadataPropertyAccessTrait
      */
     public function offsetExists($offset)
     {
-        return $this->getResolved()->offsetExists($offset);
+        $resolved = $this->getResolved();
+        if (!$resolved instanceof ResourceArrayInterface) {
+            return false;
+        }
+
+        return $resolved->offsetExists($offset);
     }
 
     /**
@@ -32,7 +38,12 @@ trait DelegatingMetadataPropertyAccessTrait
      */
     public function offsetGet($offset)
     {
-        return $this->getResolved()->offsetGet($offset);
+        $resolved = $this->getResolved();
+        if (!$resolved instanceof ResourceArrayInterface) {
+            return null;
+        }
+
+        return $resolved->offsetGet($offset);
     }
 
     /**

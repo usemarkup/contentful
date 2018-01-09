@@ -40,7 +40,7 @@ class StandardLogger implements LoggerInterface
      * @param string         $resourceType
      * @param string         $api
      */
-    public function log($description, $isCacheHit, TimerInterface $timer = null, $type, $resourceType, $api)
+    public function log($description, $isCacheHit, TimerInterface $timer, $type, $resourceType, $api)
     {
         if ($timer->isStarted()) {
             $timer->stop();//will have no effect if already stopped

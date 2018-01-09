@@ -63,7 +63,7 @@ class AssetPromise extends ResourcePromise implements AssetInterface
     }
 
     /**
-     * @param array|ImageApiOptions $options Options for rendering the image using the Image API @see http://docs.contentfulimagesapi.apiary.io/
+     * @param array|ImageApiOptions $imageApiOptions Options for rendering the image using the Image API @see http://docs.contentfulimagesapi.apiary.io/
      * @return string
      */
     public function getUrl($imageApiOptions = null)

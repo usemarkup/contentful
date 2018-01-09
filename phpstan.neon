@@ -1,0 +1,6 @@
+parameters:
+    excludes_analyse:
+        - %currentWorkingDirectory%/tests/*
+        - %currentWorkingDirectory%/vendor/*
+    ignoreErrors:
+        - '#is not subtype of Throwable#'

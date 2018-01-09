@@ -18,7 +18,7 @@ class OrderBy implements ParameterInterface
     private $property;
 
     /**
-     * @var string
+     * @var int
      */
     private $direction;
 

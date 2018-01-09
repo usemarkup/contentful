@@ -14,6 +14,6 @@ trait ClassBasedNameTrait
         //generate snake case name based on class name
         preg_match('/\\\?(\w+)Filter$/', get_class($this), $matches);
 
-        return ltrim(strtolower(preg_replace('/[A-Z]/', '_$0', $matches[1])), '_');
+        return ltrim(strtolower(strval(preg_replace('/[A-Z]/', '_$0', $matches[1]))), '_');
     }
 }

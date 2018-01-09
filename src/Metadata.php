@@ -181,7 +181,7 @@ class Metadata implements MetadataInterface
     }
 
     /**
-     * @param string|null $locale
+     * @param string $locale
      */
     public function setLocale($locale)
     {

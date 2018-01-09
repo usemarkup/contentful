@@ -24,6 +24,7 @@ install:
     - if [ "$deps" = "low" ]; then composer --prefer-source --prefer-lowest --prefer-stable update; fi
 
 script:
+    - vendor/bin/phpstan analyse -c phpstan.neon --level 7 .
     - vendor/bin/phpunit
 
 notifications:

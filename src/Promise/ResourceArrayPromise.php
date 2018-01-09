@@ -19,9 +19,6 @@ class ResourceArrayPromise extends ResourcePromise implements ResourceArrayInter
         if (!$resolved instanceof ResourceArrayInterface) {
             return new \ArrayIterator();
         }
-        if (is_array($resolved)) {
-            return new \ArrayIterator($resolved);
-        }
 
         return $resolved->getIterator();
     }
@@ -37,9 +34,6 @@ class ResourceArrayPromise extends ResourcePromise implements ResourceArrayInter
         if (!$resolved instanceof ResourceArrayInterface) {
             return 0;
         }
-        if (is_array($resolved)) {
-            return count($resolved);
-        }
 
         return $resolved->getTotal();
     }
@@ -50,7 +44,7 @@ class ResourceArrayPromise extends ResourcePromise implements ResourceArrayInter
     public function getSkip()
     {
         $resolved = $this->getResolved();
-        if (!$resolved instanceof ResourceArrayInterface || is_array($resolved)) {
+        if (!$resolved instanceof ResourceArrayInterface) {
             return 0;
         }
 
@@ -63,7 +57,7 @@ class ResourceArrayPromise extends ResourcePromise implements ResourceArrayInter
     public function getLimit()
     {
         $resolved = $this->getResolved();
-        if (!$resolved instanceof ResourceArrayInterface || is_array($resolved)) {
+        if (!$resolved instanceof ResourceArrayInterface) {
             return 0;
         }
 
@@ -91,7 +85,7 @@ class ResourceArrayPromise extends ResourcePromise implements ResourceArrayInter
     public function count()
     {
         $resolved = $this->getResolved();
-        if (!$resolved instanceof ResourceArrayInterface && !is_array($resolved)) {
+        if (!$resolved instanceof ResourceArrayInterface) {
             return 0;
         }
 
@@ -106,11 +100,8 @@ class ResourceArrayPromise extends ResourcePromise implements ResourceArrayInter
     public function first()
     {
         $resolved = $this->getResolved();
-        if (!$resolved instanceof ResourceArrayInterface && !is_array($resolved)) {
+        if (!$resolved instanceof ResourceArrayInterface) {
             return null;
-        }
-        if (is_array($resolved)) {
-            return (count($resolved) > 0) ? array_values($resolved)[0] : null;
         }
 
         return $resolved->first();
@@ -124,11 +115,8 @@ class ResourceArrayPromise extends ResourcePromise implements ResourceArrayInter
     public function last()
     {
         $resolved = $this->getResolved();
-        if (!$resolved instanceof ResourceArrayInterface && !is_array($resolved)) {
+        if (!$resolved instanceof ResourceArrayInterface) {
             return null;
-        }
-        if (is_array($resolved)) {
-            return (count($resolved) > 0) ? array_values(array_slice($resolved, -1))[0] : null;
         }
 
         return $resolved->last();
