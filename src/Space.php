@@ -7,7 +7,7 @@ class Space implements SpaceInterface
     use MetadataAccessTrait;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $name;
 
@@ -22,10 +22,10 @@ class Space implements SpaceInterface
     private $defaultLocale;
 
     /**
-     * @param string   $name
-     * @param Metadata $metadata
-     * @param Locale[] $locales
-     * @param Locale   $defaultLocale
+     * @param string|null $name
+     * @param Metadata    $metadata
+     * @param Locale[]    $locales
+     * @param Locale      $defaultLocale
      */
     public function __construct($name, Metadata $metadata, array $locales, Locale $defaultLocale = null)
     {
@@ -39,7 +39,7 @@ class Space implements SpaceInterface
     /**
      * Gets the name of the space.
      *
-     * @return string
+     * @return string|null
      */
     public function getName()
     {

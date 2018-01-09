@@ -21,7 +21,7 @@ interface LoggerInterface
      * @param string $resourceType
      * @param string $api
      */
-    public function log($description, $isCacheHit, TimerInterface $timer = null, $type, $resourceType, $api);
+    public function log($description, $isCacheHit, TimerInterface $timer, $type, $resourceType, $api);
 
     /**
      * Gets the collected logs.

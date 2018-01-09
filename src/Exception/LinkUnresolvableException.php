@@ -15,10 +15,10 @@ class LinkUnresolvableException extends \RuntimeException implements ExceptionIn
     private $link;
 
     /**
-     * @param Link       $link
-     * @param string     $message
-     * @param int        $code
-     * @param \Exception $previous
+     * @param Link        $link
+     * @param string|null $message
+     * @param int         $code
+     * @param \Exception  $previous
      */
     public function __construct(Link $link, $message = '', $code = 0, \Exception $previous = null)
     {

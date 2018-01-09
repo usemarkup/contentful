@@ -5,12 +5,12 @@ namespace Markup\Contentful;
 trait MetadataAccessTrait
 {
     /**
-     * @var Metadata
+     * @var MetadataInterface
      */
     private $metadata;
 
     /**
-     * @return Metadata
+     * @return MetadataInterface
      */
     private function getMetadata()
     {
@@ -42,7 +42,7 @@ trait MetadataAccessTrait
     }
 
     /**
-     * @return ContentTypeInterface
+     * @return ContentTypeInterface|null
      */
     public function getContentType()
     {

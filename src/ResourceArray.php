@@ -33,7 +33,7 @@ class ResourceArray implements ResourceArrayInterface
     private $envelope;
 
     /**
-     * @param  $items
+     * @param iterable $items
      * @param int $total
      * @param int $skip
      * @param int $limit

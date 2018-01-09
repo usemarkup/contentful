@@ -26,7 +26,7 @@ class Link implements MetadataInterface
     /**
      * Gets a space name (not intrinsic, but how the space is referred to in configuration) that this link is associated with, if available.
      *
-     * @return string|null
+     * @return string
      */
     public function getSpaceName()
     {

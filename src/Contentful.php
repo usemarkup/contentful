@@ -8,6 +8,7 @@ use function GuzzleHttp\Promise\all;
 use function GuzzleHttp\Promise\coroutine;
 use function GuzzleHttp\Promise\promise_for;
 use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Psr7\Response;
 use Markup\Contentful\Cache\NullCacheItemPool;
 use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\Decorator\NullAssetDecorator;
@@ -123,9 +124,10 @@ class Contentful
         $spaceData = $this->getSpaceDataForName($spaceName);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
-        return $this->doRequest(
+        /** @var SpaceInterface|PromiseInterface $space */
+        $space = $this->doRequest(
             $spaceData,
-            $spaceName,
+            $spaceName ?: '',
             $this->getEndpointUrl(sprintf('/spaces/%s', $spaceData['key']), $api),
             sprintf('The space "%s" was unavailable.', $spaceName),
             $api,
@@ -134,6 +136,8 @@ class Contentful
             [],
             $options
         );
+
+        return $space;
     }
 
     /**
@@ -143,9 +147,10 @@ class Contentful
      */
     public function getSpaceAsync($space, array $options = [])
     {
-        return new SpacePromise(
-            $this->getSpace($space, array_merge($options, ['async' => true]))
-        );
+        /** @var PromiseInterface $space */
+        $space = $this->getSpace($space, array_merge($options, ['async' => true]));
+
+        return new SpacePromise($space);
     }
 
     /**
@@ -160,15 +165,19 @@ class Contentful
     {
         $envelope = $this->findEnvelopeForSpace($space);
         if ($envelope->hasEntry($id, $locale)) {
-            return ($this->isAsyncCall($options))
+            /** @var EntryInterface|PromiseInterface $entry */
+            $entry = ($this->isAsyncCall($options))
                 ? promise_for($envelope->findEntry($id, $locale))
                 : $envelope->findEntry($id, $locale);
+
+            return $entry;
         }
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         $spaceData = $this->getSpaceDataForName(($space instanceof SpaceInterface) ? $space->getName() : $space);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
-        return $this->doRequest(
+        /** @var EntryInterface|PromiseInterface $entry */
+        $entry = $this->doRequest(
             $spaceData,
             $spaceName,
             $this->getEndpointUrl(sprintf('/spaces/%s/entries/%s', $spaceData['key'], $id), $api),
@@ -179,6 +188,8 @@ class Contentful
             ($locale) ? [new LocaleFilter($locale)] : [],
             $options
         );
+
+        return $entry;
     }
 
     /**
@@ -190,15 +201,18 @@ class Contentful
      */
     public function getEntryAsync($id, $space, array $options = [], $locale = null)
     {
-        return new EntryPromise(
-            $this->getEntry($id, $space, array_merge($options, ['async' => true]), $locale)
-        );
+        /** @var PromiseInterface $entry */
+        $entry = $this->getEntry($id, $space, array_merge($options, ['async' => true]), $locale);
+        /** @var EntryInterface|PromiseInterface $promise */
+        $promise = new EntryPromise($entry);
+
+        return $promise;
     }
 
     /**
-     * @param ParameterInterface[] $parameters
-     * @param string               $space
-     * @param array                $options
+     * @param ParameterInterface[]  $parameters
+     * @param string|SpaceInterface $space
+     * @param array                 $options
      * @return ResourceArrayInterface|EntryInterface[]|PromiseInterface
      * @throws Exception\ResourceUnavailableException
      */
@@ -208,7 +222,8 @@ class Contentful
         $spaceData = $this->getSpaceDataForName($spaceName);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
-        return $this->doRequest(
+        /** @var ResourceArrayInterface|EntryInterface[]|PromiseInterface $entries */
+        $entries = $this->doRequest(
             $spaceData,
             $spaceName,
             $this->getEndpointUrl(sprintf('/spaces/%s/entries', $spaceData['key']), $api),
@@ -219,6 +234,8 @@ class Contentful
             $parameters,
             $options
         );
+
+        return $entries;
     }
 
     /**
@@ -229,9 +246,10 @@ class Contentful
      */
     public function getEntriesAsync(array $parameters, $space, array $options = [])
     {
-        return new ResourceArrayPromise(
-            $this->getEntries($parameters, $space, array_merge($options, ['async' => true]))
-        );
+        /** @var PromiseInterface $entries */
+        $entries = $this->getEntries($parameters, $space, array_merge($options, ['async' => true]));
+
+        return new ResourceArrayPromise($entries);
     }
 
     /**
@@ -253,7 +271,8 @@ class Contentful
         $spaceData = $this->getSpaceDataForName($spaceName);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
-        return $this->doRequest(
+        /** @var AssetInterface|PromiseInterface $asset */
+        $asset = $this->doRequest(
             $spaceData,
             $spaceName,
             $this->getEndpointUrl(sprintf('/spaces/%s/assets/%s', $spaceData['key'], $id), $api),
@@ -264,6 +283,8 @@ class Contentful
             ($locale) ? [new LocaleFilter($locale)] : [],
             $options
         );
+
+        return $asset;
     }
 
     /**
@@ -275,14 +296,15 @@ class Contentful
      */
     public function getAssetAsync($id, $space, array $options = [], $locale = null)
     {
-        return new AssetPromise(
-            $this->getAsset($id, $space, array_merge($options, ['async' => true]), $locale)
-        );
+        /** @var PromiseInterface $asset */
+        $asset = $this->getAsset($id, $space, array_merge($options, ['async' => true]), $locale);
+
+        return new AssetPromise($asset);
     }
 
     /**
      * @param array $parameters
-     * @param null $space
+     * @param string|SpaceInterface $space
      * @param array $options
      * @return PromiseInterface|AssetInterface[]
      */
@@ -292,7 +314,8 @@ class Contentful
         $spaceData = $this->getSpaceDataForName($spaceName);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
-        return $this->doRequest(
+        /** @var PromiseInterface|AssetInterface[] $assets */
+        $assets = $this->doRequest(
             $spaceData,
             $spaceName,
             $this->getEndpointUrl(sprintf('/spaces/%s/assets', $spaceData['key']), $api),
@@ -303,19 +326,22 @@ class Contentful
             $parameters,
             $options
         );
+
+        return $assets;
     }
 
     /**
      * @param array $parameters
-     * @param null $space
+     * @param string|SpaceInterface $space
      * @param array $options
      * @return ResourceArrayPromise
      */
     public function getAssetsAsync(array $parameters, $space, array $options = [])
     {
-        return new ResourceArrayPromise(
-            $this->getAssets($parameters, $space, array_merge($options, ['async' => true]))
-        );
+        /** @var PromiseInterface $assets */
+        $assets = $this->getAssets($parameters, $space, array_merge($options, ['async' => true]));
+
+        return new ResourceArrayPromise($assets);
     }
 
     /**
@@ -328,6 +354,7 @@ class Contentful
         $filters = [];
         $filters[] = new LinksToAssetFilter($assetId);
 
+        /** @var ResourceArrayInterface $linkedEntries */
         $linkedEntries = $this->getEntries($filters, $space);
 
         $totalEntries = $linkedEntries->getTotal();
@@ -373,9 +400,10 @@ class Contentful
      */
     public function getContentTypeAsync($id, $space, array $options = [])
     {
-        return new ContentTypePromise(
-            $this->getContentType($id, $space, array_merge($options, ['async' => true]))
-        );
+        /** @var PromiseInterface $contentType */
+        $contentType = $this->getContentType($id, $space, array_merge($options, ['async' => true]));
+
+        return new ContentTypePromise($contentType);
     }
 
     /**
@@ -398,7 +426,8 @@ class Contentful
         $spaceData = $this->getSpaceDataForName(($space instanceof SpaceInterface) ? $space->getName() : $space);
         $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
 
-        return $this->doRequest(
+        /** @var ResourceArray|ContentTypeInterface[]|PromiseInterface $contentTypes */
+        $contentTypes = $this->doRequest(
             $spaceData,
             $spaceName,
             $this->getEndpointUrl(sprintf('/spaces/%s/content_types', $spaceData['key']), $api),
@@ -409,6 +438,8 @@ class Contentful
             $parameters,
             array_merge($options, ['include_level' => null])
         );
+
+        return $contentTypes;
     }
 
     /**
@@ -419,9 +450,10 @@ class Contentful
      */
     public function getContentTypesAsync(array $parameters, $space, array $options = [])
     {
-        return new ResourceArrayPromise(
-            $this->getContentTypes($parameters, $space, array_merge($options, ['async' => true]))
-        );
+        /** @var PromiseInterface $contentTypes */
+        $contentTypes = $this->getContentTypes($parameters, $space, array_merge($options, ['async' => true]));
+
+        return new ResourceArrayPromise($contentTypes);
     }
 
     /**
@@ -468,9 +500,10 @@ class Contentful
      */
     public function getContentTypeByNameAsync($name, $space, array $options = [])
     {
-        return new ContentTypePromise(
-            $this->getContentTypeByName($name, $space, array_merge($options, ['async' => true]))
-        );
+        /** @var PromiseInterface $contentType */
+        $contentType = $this->getContentTypeByName($name, $space, array_merge($options, ['async' => true]));
+
+        return new ContentTypePromise($contentType);
     }
 
     /**
@@ -488,25 +521,34 @@ class Contentful
         try {
             switch ($link->getLinkType()) {
                 case 'Entry':
-                    return $this->getEntry(
+                    /** @var PromiseInterface $entry */
+                    $entry = $this->getEntry(
                         $link->getId(),
                         $link->getSpaceName(),
                         array_merge($options, ['async' => true]),
                         $locale
                     );
+
+                    return $entry;
                 case 'Asset':
-                    return $this->getAsset(
+                    /** @var PromiseInterface $asset */
+                    $asset = $this->getAsset(
                         $link->getId(),
                         $link->getSpaceName(),
                         array_merge($options, ['async' => true]),
                         $locale
                     );
+
+                    return $asset;
                 case 'ContentType':
-                    return $this->getContentType(
+                    /** @var PromiseInterface $contentType */
+                    $contentType = $this->getContentType(
                         $link->getId(),
                         $link->getSpaceName(),
                         array_merge($options, ['async' => true])
                     );
+
+                    return $contentType;
                 default:
                     throw new \InvalidArgumentException(
                         sprintf('Tried to resolve unknown link type "%s".', $link->getLinkType())
@@ -677,9 +719,7 @@ class Contentful
                 $unavailableException = null;
                 $response = null;
                 try {
-                    /**
-                     * @var ResponseInterface $response
-                     */
+                    /** @var Response $response */
                     $response = ($shouldBuildTypedResources)
                         ? array_values((yield all([
                             $this->sendRequestWithQueryParams($request, $queryParams),
@@ -713,7 +753,9 @@ class Contentful
                         }
                     }
                     //if there is a rate limit error, wait (if applicable)
-                    if ($e->hasResponse() && $e->getResponse()->getStatusCode() === 429 && $spaceData['retry_time_after_rate_limit_in_ms']) {
+                    /** @var Response|null $exceptionResponse */
+                    $exceptionResponse = ($e->hasResponse()) ? $e->getResponse() : null;
+                    if ($exceptionResponse && $exceptionResponse->getStatusCode() === 429 && $spaceData['retry_time_after_rate_limit_in_ms']) {
                         usleep(intval($spaceData['retry_time_after_rate_limit_in_ms']));
 
                         yield $this->doRequest(
@@ -729,9 +771,9 @@ class Contentful
                         );
                         return;
                     }
-                    $unavailableException = new ResourceUnavailableException($e->getResponse(), $exceptionMessage, 0, $e);
+                    $unavailableException = new ResourceUnavailableException($exceptionResponse, $exceptionMessage, 0, $e);
                 }
-                if (!$unavailableException && $response->getStatusCode() != '200') {
+                if (!$unavailableException && $response && $response->getStatusCode() != '200') {
                     $unavailableException = new ResourceUnavailableException(
                         $response,
                         sprintf(
@@ -747,7 +789,7 @@ class Contentful
                 }
                 //build the response so we can check it is valid
                 $responseJson = json_encode(
-                    (!$unavailableException) ? $this->responseAsArrayFromJson($response) : null
+                    (!$unavailableException && $response) ? $this->responseAsArrayFromJson($response) : null
                 );
                 $builtResponse = ($responseJson) ? (yield $buildResponseFromJson($responseJson)) : null;
                 $isValidResponse = (bool) $builtResponse;
@@ -828,7 +870,7 @@ class Contentful
 
     /**
      * @param string $queryType
-     * @return string|null
+     * @return string
      */
     private function getLogResourceTypeForQueryType($queryType)
     {
@@ -840,7 +882,7 @@ class Contentful
             'content_type' => LogInterface::RESOURCE_CONTENT_TYPE,
         ];
         if (!isset($map[$queryType])) {
-            return null;
+            return '';
         }
 
         return $map[$queryType];
@@ -1084,7 +1126,7 @@ class Contentful
     /**
      * @param IncompleteParameterInterface $filter
      * @param string                       $spaceName
-     * @return ParameterInterface
+     * @return ParameterInterface|null
      */
     private function resolveContentTypeNameFilter(IncompleteParameterInterface $filter, $spaceName)
     {
@@ -1102,7 +1144,10 @@ class Contentful
      */
     private function ensureContentTypesLoaded($spaceName)
     {
-        return $this->getContentTypes([], $spaceName, ['async' => true, 'untyped' => true])
+        /** @var PromiseInterface $contentTypes */
+        $contentTypes = $this->getContentTypes([], $spaceName, ['async' => true, 'untyped' => true]);
+
+        return $contentTypes
             ->then(
                 function ($types) use ($spaceName) {
                     $this->findEnvelopeForSpace($spaceName)->insertAllContentTypesForSpace($types, $spaceName);

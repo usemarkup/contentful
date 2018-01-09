@@ -24,7 +24,7 @@ class ContentType implements ContentTypeInterface
     private $fields;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $displayField;
 

@@ -17,7 +17,7 @@ class Asset implements AssetInterface
     private $description;
 
     /**
-     * @var AssetFile
+     * @var AssetFile|null
      */
     private $assetFile;
 
@@ -91,7 +91,7 @@ class Asset implements AssetInterface
         }
         $url = $file->getUrl();
         $urlContainsQueryString = function ($url) {
-            return strlen(parse_url($url, PHP_URL_QUERY)) > 0;
+            return strlen(parse_url($url, PHP_URL_QUERY) ?? '') > 0;
         };
         if ($imageApiOptions) {
             $apiOptions = ($imageApiOptions instanceof ImageApiOptions)

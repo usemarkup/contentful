@@ -12,12 +12,12 @@ class Webhook implements WebhookInterface
     private $url;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $httpBasicUsername;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $httpBasicPassword;
 

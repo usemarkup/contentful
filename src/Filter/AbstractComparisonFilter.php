@@ -10,7 +10,7 @@ abstract class AbstractComparisonFilter extends PropertyFilter
 
     /**
      * @param PropertyInterface $property
-     * @param string            $value
+     * @param mixed             $value
      */
     public function __construct(PropertyInterface $property, $value)
     {

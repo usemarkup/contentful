@@ -16,14 +16,16 @@
     ],
     "require": {
         "php": ">=7.1",
-        "guzzlehttp/guzzle": "^6.0",
-        "guzzlehttp/promises": "~1.1",
-        "psr/cache": "~1.0.0"
+        "guzzlehttp/guzzle": "^6",
+        "guzzlehttp/promises": "^1.1",
+        "psr/cache": "~1.0.0",
+        "psr/http-message": "^1.0.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^7.5",
         "mockery/mockery": "^1",
-        "symfony/phpunit-bridge": "^4.2"
+        "symfony/phpunit-bridge": "^4.2",
+        "phpstan/phpstan-shim": "0.11.5"
     },
     "conflict": {
         "hhvm": "*"

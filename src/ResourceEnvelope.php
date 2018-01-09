@@ -12,21 +12,21 @@ class ResourceEnvelope
     /**
      * A list of entries keyed by locale, and then by ID.
      *
-     * @var EntryInterface[]
+     * @var array
      */
     private $entries;
 
     /**
      * A list of assets keyed by ID.
      *
-     * @var AssetInterface[]
+     * @var array
      */
     private $assets;
 
     /**
      * A list of content types keyed by ID.
      *
-     * @var ContentTypeInterface[]
+     * @var array
      */
     private $contentTypes;
 
@@ -160,7 +160,7 @@ class ResourceEnvelope
 
     /**
      * @param EntryInterface $entry
-     * @return self
+     * @return $this
      */
     public function insertEntry(EntryInterface $entry)
     {
@@ -176,7 +176,7 @@ class ResourceEnvelope
 
     /**
      * @param AssetInterface $asset
-     * @return self
+     * @return $this
      */
     public function insertAsset(AssetInterface $asset)
     {
@@ -192,7 +192,7 @@ class ResourceEnvelope
 
     /**
      * @param ContentTypeInterface $contentType
-     * @return self
+     * @return $this
      */
     public function insertContentType(ContentTypeInterface $contentType)
     {

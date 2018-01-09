@@ -3,6 +3,8 @@
 namespace Markup\Contentful\Filter;
 
 use Markup\Contentful\Contentful;
+use Markup\Contentful\ContentType;
+use Markup\Contentful\ContentTypeInterface;
 
 /**
  * A provider object that can generate a content type filter given a content type name.
@@ -14,9 +16,6 @@ class ContentTypeFilterProvider
      */
     private $contentful;
 
-    /**
-     * @param Contentful $contentful
-     */
     public function __construct(Contentful $contentful)
     {
         $this->contentful = $contentful;
@@ -29,6 +28,7 @@ class ContentTypeFilterProvider
      */
     public function createForContentTypeName($contentTypeName, $spaceName)
     {
+        /** @var ContentTypeInterface|null $contentType */
         $contentType = $this->contentful->getContentTypeByName($contentTypeName, $spaceName);
         if (!$contentType) {
             return null;

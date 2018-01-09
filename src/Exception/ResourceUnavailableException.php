@@ -7,7 +7,7 @@ use GuzzleHttp\Psr7\Response;
 class ResourceUnavailableException extends \RuntimeException implements ExceptionInterface
 {
     /**
-     * @var Response
+     * @var Response|null
      */
     private $response;
 

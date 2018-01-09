@@ -3,6 +3,8 @@
 namespace Markup\Contentful\Decorator;
 
 use Markup\Contentful\AssetInterface;
+use Markup\Contentful\ContentTypeInterface;
+use Markup\Contentful\ImageApiOptions;
 use Markup\Contentful\SpaceInterface;
 
 /**
@@ -47,15 +49,16 @@ abstract class AbstractDecoratedAsset implements AssetInterface
         return $this->decorated->getFilename();
     }
 
+    /**
+     * @return string
+     */
     public function getMimeType()
     {
         return $this->decorated->getMimeType();
     }
 
     /**
-     * Gets the content type of the asset. This is a MIME type, *not* a Contentful type.
-     *
-     * @return string
+     * @return ContentTypeInterface|null
      */
     public function getContentType()
     {
@@ -63,7 +66,7 @@ abstract class AbstractDecoratedAsset implements AssetInterface
     }
 
     /**
-     * @param array|ImageApiOptions
+     * @param array|ImageApiOptions $imageApiOptions
      * @return string
      */
     public function getUrl($imageApiOptions = null)
@@ -89,7 +92,7 @@ abstract class AbstractDecoratedAsset implements AssetInterface
 
 
     /**
-     * @return int
+     * @return int|null
      */
     public function getWidth()
     {
@@ -98,7 +101,7 @@ abstract class AbstractDecoratedAsset implements AssetInterface
 
 
     /**
-     * @return float
+     * @return int|null
      */
     public function getHeight()
     {
@@ -107,7 +110,7 @@ abstract class AbstractDecoratedAsset implements AssetInterface
 
 
     /**
-     * @return int
+     * @return float|null
      */
     public function getRatio()
     {
