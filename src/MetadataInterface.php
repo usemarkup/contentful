@@ -62,4 +62,11 @@ interface MetadataInterface
      * @return \DateTime
      */
     public function getUpdatedAt();
+
+    /**
+     * The single locale of this resource, if there is one.
+     *
+     * @return string|null
+     */
+    public function getLocale();
 }
