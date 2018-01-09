@@ -151,4 +151,14 @@ abstract class AbstractDecoratedAsset implements AssetInterface
     {
         return $this->decorated->getUpdatedAt();
     }
+
+    /**
+     * Gets the locale for the asset, if there is one.
+     *
+     * @return null|string
+     */
+    public function getLocale()
+    {
+        return $this->decorated->getLocale();
+    }
 }

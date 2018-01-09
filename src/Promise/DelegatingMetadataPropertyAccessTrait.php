@@ -114,4 +114,14 @@ trait DelegatingMetadataPropertyAccessTrait
     {
         return $this->getResolved()->getUpdatedAt();
     }
+
+    /**
+     * Gets the single locale for this resource, if there is one.
+     *
+     * @return null|string
+     */
+    public function getLocale()
+    {
+        return $this->getResolved()->getLocale();
+    }
 }

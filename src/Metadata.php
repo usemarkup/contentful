@@ -45,6 +45,11 @@ class Metadata implements MetadataInterface
     private $updatedAt;
 
     /**
+     * @var string
+     */
+    private $locale;
+
+    /**
      * @param string $id
      */
     public function setId($id)
@@ -173,5 +178,21 @@ class Metadata implements MetadataInterface
     public function getUpdatedAt()
     {
         return $this->updatedAt;
+    }
+
+    /**
+     * @param string|null $locale
+     */
+    public function setLocale($locale)
+    {
+        $this->locale = $locale;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getLocale()
+    {
+        return $this->locale;
     }
 }

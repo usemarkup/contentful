@@ -160,6 +160,16 @@ class DynamicEntry implements EntryInterface
         return $this->entry->getUpdatedAt();
     }
 
+    /**
+     * Gets the single locale for this entry resource, if there is one.
+     *
+     * @return null|string
+     */
+    public function getLocale()
+    {
+        return $this->entry->getLocale();
+    }
+
     private function getCoercedField($key)
     {
         $contentTypeField = $this->contentType->getField($key);

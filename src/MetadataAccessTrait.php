@@ -80,4 +80,12 @@ trait MetadataAccessTrait
     {
         return $this->getMetadata()->getUpdatedAt();
     }
+
+    /**
+     * @return string|null
+     */
+    public function getLocale()
+    {
+        return $this->getMetadata()->getLocale();
+    }
 }
