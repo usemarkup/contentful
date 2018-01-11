@@ -3,7 +3,7 @@
 <phpunit bootstrap="./vendor/autoload.php" colors="true">
 
     <testsuites>
-        <testsuite name="contentful api client test suite">
+        <testsuite name="Contentful API client test suite">
             <directory suffix="Test.php">./tests</directory>
         </testsuite>
     </testsuites>

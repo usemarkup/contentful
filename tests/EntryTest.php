@@ -12,9 +12,9 @@ use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Link;
 use Markup\Contentful\MetadataInterface;
 use Mockery as m;
-use PHPUnit\Framework\TestCase;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class EntryTest extends TestCase
+class EntryTest extends MockeryTestCase
 {
     /**
      * @var array
@@ -36,13 +36,8 @@ class EntryTest extends TestCase
         $this->fields = [
             'foo' => 'bar',
         ];
-        $this->metadata = m::mock(MetadataInterface::class);
+        $this->metadata = m::spy(MetadataInterface::class);
         $this->entry = new Entry($this->fields, $this->metadata);
-    }
-
-    protected function tearDown()
-    {
-        m::close();
     }
 
     public function testIsEntry()
