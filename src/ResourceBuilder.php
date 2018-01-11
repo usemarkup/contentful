@@ -272,6 +272,9 @@ class ResourceBuilder
                 if (isset($sys['updatedAt'])) {
                     $metadata->setUpdatedAt(new \DateTime($sys['updatedAt']));
                 }
+                if (isset($sys['locale'])) {
+                    $metadata->setLocale($sys['locale']);
+                }
 
                 yield $metadata;
             }
