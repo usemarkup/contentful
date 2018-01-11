@@ -7,8 +7,10 @@ namespace Markup\Contentful;
  */
 class ResourceEnvelope
 {
+    const WILDCARD_KEY = '*';
+
     /**
-     * A list of entries keyed by ID.
+     * A list of entries keyed by locale, and then by ID.
      *
      * @var EntryInterface[]
      */
@@ -43,46 +45,56 @@ class ResourceEnvelope
 
     /**
      * @param string $entryId
+     * @param string|null $locale
      * @return EntryInterface|null
      */
-    public function findEntry($entryId)
+    public function findEntry($entryId, $locale = null)
     {
-        if (!isset($this->entries[$entryId])) {
+        $identifier = $this->getIdentifierForLocale($locale);
+        if (!isset($this->entries[$identifier][$entryId])) {
             return null;
         }
 
-        return $this->entries[$entryId];
+        return $this->entries[$identifier][$entryId];
     }
 
     /**
      * @param string $entryId
+     * @param string|null $locale
      * @return bool
      */
-    public function hasEntry($entryId)
+    public function hasEntry($entryId, $locale = null)
     {
-        return isset($this->entries[$entryId]);
+        $identifier = $this->getIdentifierForLocale($locale);
+
+        return isset($this->entries[$identifier][$entryId]);
     }
 
     /**
      * @param string $assetId
+     * @param string|null $locale
      * @return AssetInterface|null
      */
-    public function findAsset($assetId)
+    public function findAsset($assetId, $locale = null)
     {
-        if (!isset($this->assets[$assetId])) {
+        $identifier = $this->getIdentifierForLocale($locale);
+        if (!isset($this->assets[$identifier][$assetId])) {
             return null;
         }
 
-        return $this->assets[$assetId];
+        return $this->assets[$identifier][$assetId];
     }
 
     /**
      * @param string $assetId
+     * @param string|null $locale
      * @return bool
      */
-    public function hasAsset($assetId)
+    public function hasAsset($assetId, $locale = null)
     {
-        return isset($this->assets[$assetId]);
+        $identifier = $this->getIdentifierForLocale($locale);
+
+        return isset($this->assets[$identifier][$assetId]);
     }
 
     /**
@@ -152,7 +164,12 @@ class ResourceEnvelope
      */
     public function insertEntry(EntryInterface $entry)
     {
-        $this->entries[$entry->getId()] = $entry;
+        if (!isset($this->entries[self::WILDCARD_KEY][$entry->getId()])) {
+            $this->entries[self::WILDCARD_KEY][$entry->getId()] = $entry;
+        }
+        if (null !== $entry->getLocale()) {
+            $this->entries[$entry->getLocale()][$entry->getId()] = $entry;
+        }
 
         return $this;
     }
@@ -163,7 +180,12 @@ class ResourceEnvelope
      */
     public function insertAsset(AssetInterface $asset)
     {
-        $this->assets[$asset->getId()] = $asset;
+        if (!isset($this->assets[self::WILDCARD_KEY][$asset->getId()])) {
+            $this->assets[self::WILDCARD_KEY][$asset->getId()] = $asset;
+        }
+        if (null !== $asset->getLocale()) {
+            $this->assets[$asset->getLocale()][$asset->getId()] = $asset;
+        }
 
         return $this;
     }
@@ -213,7 +235,11 @@ class ResourceEnvelope
      */
     public function getEntryCount()
     {
-        return count($this->entries);
+        if (!isset($this->entries[self::WILDCARD_KEY])) {
+            return 0;
+        }
+
+        return count($this->entries[self::WILDCARD_KEY]);
     }
 
     /**
@@ -221,7 +247,11 @@ class ResourceEnvelope
      */
     public function getAssetCount()
     {
-        return count($this->assets);
+        if (!isset($this->assets[self::WILDCARD_KEY])) {
+            return 0;
+        }
+
+        return count($this->assets[self::WILDCARD_KEY]);
     }
 
     /**
@@ -230,5 +260,14 @@ class ResourceEnvelope
     public function getContentTypeCount()
     {
         return count($this->contentTypes);
+    }
+
+    /**
+     * @param string|null $locale
+     * @return string
+     */
+    private function getIdentifierForLocale($locale)
+    {
+        return $locale ?: self::WILDCARD_KEY;
     }
 }

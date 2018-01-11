@@ -38,15 +38,21 @@ class ResourceBuilder
      * @param array                   $data      The raw data returned from the Contentful APIs.
      * @param string                  $spaceName The name being used for the space this data is from.
      * @param AssetDecoratorInterface $assetDecorator
+     * @param string|null             $locale
      * @return PromiseInterface
      */
-    public function buildFromData(array $data, $spaceName = null, AssetDecoratorInterface $assetDecorator = null)
-    {
+    public function buildFromData(
+        array $data,
+        $spaceName = null,
+        AssetDecoratorInterface $assetDecorator = null,
+        $locale = null
+    ) {
         return coroutine(
-            function () use ($data, $spaceName, $assetDecorator) {
+            function () use ($data, $spaceName, $assetDecorator, $locale) {
                 $assetDecorator = $assetDecorator ?: new NullAssetDecorator();
-                $buildFromData = function ($data) use ($spaceName, $assetDecorator) {
-                    return $this->buildFromData($data, $spaceName, $assetDecorator);
+                $dataLocale = $locale ?: ((isset($data['sys']['locale'])) ? $data['sys']['locale'] : null);
+                $buildFromData = function ($data) use ($spaceName, $assetDecorator, $dataLocale) {
+                    return $this->buildFromData($data, $spaceName, $assetDecorator, $dataLocale);
                 };
                 if ($this->isArrayResourceData($data)) {
                     yield all(
@@ -158,14 +164,14 @@ class ResourceBuilder
                     case 'Link':
                         switch ($metadata->getLinkType()) {
                             case 'Entry':
-                                $entry = $this->envelope->findEntry($metadata->getId());
+                                $entry = $this->envelope->findEntry($metadata->getId(), $dataLocale);
                                 if ($entry) {
                                     yield promise_for($entry);
                                     return;
                                 }
                                 break;
                             case 'Asset':
-                                $asset = $this->envelope->findAsset($metadata->getId());
+                                $asset = $this->envelope->findAsset($metadata->getId(), $dataLocale);
                                 if ($asset) {
                                     yield promise_for($asset);
                                     return;
@@ -290,12 +296,13 @@ class ResourceBuilder
         if (!isset($data['sys']['id']) || !isset($data['sys']['type'])) {
             return null;
         }
+        $dataLocale = (isset($data['sys']['locale'])) ? $data['sys']['locale'] : null;
         switch ($data['sys']['type']) {
             case 'Entry':
-                return $this->envelope->findEntry($data['sys']['id']);
+                return $this->envelope->findEntry($data['sys']['id'], $dataLocale);
                 break;
             case 'Asset':
-                return $this->envelope->findAsset($data['sys']['id']);
+                return $this->envelope->findAsset($data['sys']['id'], $dataLocale);
                 break;
             case 'ContentType':
                 return $this->envelope->findContentType($data['sys']['id']);
@@ -347,7 +354,8 @@ class ResourceBuilder
             function () use ($includesData, $buildFromData) {
                 if (isset($includesData['Entry'])) {
                     foreach ($includesData['Entry'] as $entryData) {
-                        if (!isset($entryData['sys']['id']) || $this->envelope->hasEntry($entryData['sys']['id'])) {
+                        $entryLocale = (isset($entryData['sys']['locale'])) ? $entryData['sys']['locale'] : null;
+                        if (!isset($entryData['sys']['id']) || $this->envelope->hasEntry($entryData['sys']['id'], $entryLocale)) {
                             continue;
                         }
                         $this->envelope->insertEntry((yield $buildFromData($entryData)));
@@ -355,7 +363,8 @@ class ResourceBuilder
                 }
                 if (isset($includesData['Asset'])) {
                     foreach ($includesData['Asset'] as $assetData) {
-                        if (!isset($assetData['sys']['id']) || $this->envelope->hasAsset($assetData['sys']['id'])) {
+                        $assetLocale = (isset($assetData['sys']['locale'])) ? $assetData['sys']['locale'] : null;
+                        if (!isset($assetData['sys']['id']) || $this->envelope->hasAsset($assetData['sys']['id'], $assetLocale)) {
                             continue;
                         }
                         $this->envelope->insertAsset((yield $buildFromData($assetData)));

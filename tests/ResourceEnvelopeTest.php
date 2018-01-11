@@ -8,9 +8,9 @@ use Markup\Contentful\EntryInterface;
 use Markup\Contentful\ResourceArray;
 use Markup\Contentful\ResourceEnvelope;
 use Mockery as m;
-use PHPUnit\Framework\TestCase;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class ResourceEnvelopeTest extends TestCase
+class ResourceEnvelopeTest extends MockeryTestCase
 {
     /**
      * @var ResourceEnvelope
@@ -22,11 +22,6 @@ class ResourceEnvelopeTest extends TestCase
         $this->envelope = new ResourceEnvelope();
     }
 
-    protected function tearDown()
-    {
-        m::close();
-    }
-
     public function testSetAndAccessEntries()
     {
         $entry1 = m::mock(EntryInterface::class);
@@ -34,17 +29,26 @@ class ResourceEnvelopeTest extends TestCase
         $entry1
             ->shouldReceive('getId')
             ->andReturn($id1);
+        $entry1
+            ->shouldReceive('getLocale')
+            ->andReturn('fr-FR');
         $entry2 = m::mock(EntryInterface::class);
         $id2 = 'id2';
         $entry2
             ->shouldReceive('getId')
             ->andReturn($id2);
+        $entry2
+            ->shouldReceive('getLocale')
+            ->andReturn('de-DE');
         $this->envelope->insertEntry($entry1);
         $this->envelope->insertEntry($entry2);
         $this->assertSame($entry2, $this->envelope->findEntry($id2));
         $this->assertTrue($this->envelope->hasEntry($id2));
         $this->assertNull($this->envelope->findEntry('unknown'));
         $this->assertFalse($this->envelope->hasEntry('unknown'));
+        $this->assertTrue($this->envelope->hasEntry($id2, 'de-DE'));
+        $this->assertFalse($this->envelope->hasEntry($id2, 'fr-FR'));
+        $this->assertNull($this->envelope->findEntry($id1, 'de-DE'));
         $this->assertEquals(2, $this->envelope->getEntryCount());
     }
 
@@ -55,17 +59,27 @@ class ResourceEnvelopeTest extends TestCase
         $asset1
             ->shouldReceive('getId')
             ->andReturn($id1);
+        $asset1
+            ->shouldReceive('getLocale')
+            ->andReturn('fr-FR');
         $asset2 = m::mock(AssetInterface::class);
         $id2 = 'id2';
         $asset2
             ->shouldReceive('getId')
             ->andReturn($id2);
+        $asset2
+            ->shouldReceive('getLocale')
+            ->andReturn('de-DE');
         $this->envelope->insertAsset($asset1);
         $this->envelope->insertAsset($asset2);
         $this->assertSame($asset2, $this->envelope->findAsset($id2));
         $this->assertTrue($this->envelope->hasAsset($id2));
         $this->assertNull($this->envelope->findAsset('unknown'));
         $this->assertFalse($this->envelope->hasAsset('unknown'));
+        $this->assertFalse($this->envelope->hasAsset($id2, 'fr-FR'));
+        $this->assertTrue($this->envelope->hasAsset($id2, 'de-DE'));
+        $this->assertNull($this->envelope->findAsset($id1, 'de-DE'));
+        $this->assertSame($asset1, $this->envelope->findAsset($id1, 'fr-FR'));
         $this->assertEquals(2, $this->envelope->getAssetCount());
     }
 

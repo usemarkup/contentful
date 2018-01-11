@@ -62,7 +62,7 @@ class Entry implements EntryInterface
             if ($this->fields[$key] instanceof Link) {
                 if (!isset($this->resolvedLinks[$key])) {
                     try {
-                        $resolvedLink = call_user_func($this->resolveLinkFunction, $this->fields[$key])->wait();
+                        $resolvedLink = call_user_func($this->resolveLinkFunction, $this->fields[$key], $this->getLocale())->wait();
                     } catch (LinkUnresolvableException $e) {
                         $resolvedLink = null;
                     } catch (ResourceUnavailableException $e) {
@@ -77,7 +77,7 @@ class Entry implements EntryInterface
                 if (!isset($this->resolvedLinks[$key])) {
                     $this->resolvedLinks[$key] = array_filter(array_map(function ($link) {
                         try {
-                            $resolvedLink = call_user_func($this->resolveLinkFunction, $link)->wait();
+                            $resolvedLink = call_user_func($this->resolveLinkFunction, $link, $this->getLocale())->wait();
                         } catch (LinkUnresolvableException $e) {
                             //if the link is unresolvable we should consider it not published and return null so this is filtered out
                             return null;

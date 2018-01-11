@@ -15,6 +15,7 @@ use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Filter\ContentTypeFilterProvider;
 use Markup\Contentful\Filter\DecidesCacheKeyInterface;
+use Markup\Contentful\Filter\LocaleFilter;
 use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Log\NullLogger;
@@ -147,15 +148,16 @@ class Contentful
      * @param string $id
      * @param string|SpaceInterface $space
      * @param array  $options A set of options for the fetch, including 'include_level' being how many levels to include
+     * @param string $locale  A locale for the entry data, if one is specified (otherwise, API will use default locale for the space)
      * @return EntryInterface|PromiseInterface
      * @throws Exception\ResourceUnavailableException
      */
-    public function getEntry($id, $space = null, array $options = [])
+    public function getEntry($id, $space = null, array $options = [], $locale = null)
     {
-        if ($this->envelope->hasEntry($id)) {
+        if ($this->envelope->hasEntry($id, $locale)) {
             return ($this->isAsyncCall($options))
-                ? promise_for($this->envelope->findEntry($id))
-                : $this->envelope->findEntry($id);
+                ? promise_for($this->envelope->findEntry($id, $locale))
+                : $this->envelope->findEntry($id, $locale);
         }
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         $spaceData = $this->getSpaceDataForName(($space instanceof SpaceInterface) ? $space->getName() : $space);
@@ -169,7 +171,7 @@ class Contentful
             $api,
             'entry',
             strval($id),
-            [],
+            ($locale) ? [new LocaleFilter($locale)] : [],
             $options
         );
     }
@@ -178,12 +180,13 @@ class Contentful
      * @param string $id
      * @param string|SpaceInterface $space
      * @param array $options
+     * @param string|null $locale
      * @return EntryInterface|PromiseInterface
      */
-    public function getEntryAsync($id, $space = null, array $options = [])
+    public function getEntryAsync($id, $space = null, array $options = [], $locale = null)
     {
         return new EntryPromise(
-            $this->getEntry($id, $space, array_merge($options, ['async' => true]))
+            $this->getEntry($id, $space, array_merge($options, ['async' => true]), $locale)
         );
     }
 
@@ -230,14 +233,15 @@ class Contentful
      * @param string                $id
      * @param string|SpaceInterface $space
      * @param array                 $options
+     * @param string|null           $locale
      * @return AssetInterface|PromiseInterface
      */
-    public function getAsset($id, $space = null, array $options = [])
+    public function getAsset($id, $space = null, array $options = [], $locale = null)
     {
-        if ($this->envelope->hasAsset($id)) {
+        if ($this->envelope->hasAsset($id, $locale)) {
             return ($this->isAsyncCall($options))
-                ? promise_for($this->envelope->findAsset($id))
-                : $this->envelope->findAsset($id);
+                ? promise_for($this->envelope->findAsset($id, $locale))
+                : $this->envelope->findAsset($id, $locale);
         }
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         $spaceData = $this->getSpaceDataForName($spaceName);
@@ -251,7 +255,7 @@ class Contentful
             $api,
             'asset',
             strval($id),
-            [],
+            ($locale) ? [new LocaleFilter($locale)] : [],
             $options
         );
     }
@@ -260,12 +264,13 @@ class Contentful
      * @param string                $id
      * @param string|SpaceInterface $space
      * @param array                 $options
+     * @param string|null           $locale
      * @return AssetInterface|PromiseInterface
      */
-    public function getAssetAsync($id, $space = null, array $options = [])
+    public function getAssetAsync($id, $space = null, array $options = [], $locale = null)
     {
         return new AssetPromise(
-            $this->getAsset($id, $space, array_merge($options, ['async' => true]))
+            $this->getAsset($id, $space, array_merge($options, ['async' => true]), $locale)
         );
     }
 
@@ -406,11 +411,12 @@ class Contentful
     }
 
     /**
-     * @param Link  $link
-     * @param array $options
+     * @param Link        $link
+     * @param array       $options
+     * @param string|null $locale
      * @return PromiseInterface
      */
-    public function resolveLink($link, array $options = [])
+    public function resolveLink($link, array $options = [], $locale = null)
     {
         //check whether the "link" is already actually a resolved resource
         if ($link instanceof ResourceInterface) {
@@ -422,13 +428,15 @@ class Contentful
                     return $this->getEntry(
                         $link->getId(),
                         $link->getSpaceName(),
-                        array_merge($options, ['async' => true])
+                        array_merge($options, ['async' => true]),
+                        $locale
                     );
                 case 'Asset':
                     return $this->getAsset(
                         $link->getId(),
                         $link->getSpaceName(),
-                        array_merge($options, ['async' => true])
+                        array_merge($options, ['async' => true]),
+                        $locale
                     );
                 case 'ContentType':
                     return $this->getContentType(
@@ -876,8 +884,8 @@ class Contentful
         static $resourceBuilder;
         if (empty($resourceBuilder)) {
             $resourceBuilder = new ResourceBuilder($this->envelope);
-            $resourceBuilder->setResolveLinkFunction(function ($link) {
-                return $this->resolveLink($link);
+            $resourceBuilder->setResolveLinkFunction(function ($link, $locale = null) {
+                return $this->resolveLink($link, [], $locale);
             });
         }
         $resourceBuilder->setUseDynamicEntries($useTypedResources);
