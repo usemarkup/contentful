@@ -17,6 +17,7 @@ use Markup\Contentful\Filter\LessThanFilter;
 use Markup\Contentful\Link;
 use Markup\Contentful\Log\LogInterface;
 use Markup\Contentful\Metadata;
+use Markup\Contentful\Promise\ResourceArrayPromise;
 use Markup\Contentful\Property\FieldProperty;
 use Markup\Contentful\Property\SystemProperty;
 use Markup\Contentful\ResourceArray;
@@ -197,6 +198,32 @@ class ContentfulTest extends MockeryTestCase
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $asset = $contentful->getAsset('nyancat');
         $this->assertSame($asset, $decoratedAsset);
+    }
+
+    public function testGetAssets()
+    {
+        $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $assets = $contentful->getAssets();
+        $this->assertInstanceOf(AssetInterface::class, $assets);
+    }
+
+    public function testGetAssetsAsync()
+    {
+        $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $assets = $contentful->getAssetsAsync();
+        $this->assertInstanceOf(ResourceArrayPromise::class, $assets);
+        $this->assertInstanceOf(PromiseInterface::class, $assets);
+    }
+
+    public function testIsAssetUnlinked()
+    {
+        $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
+        $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
+        $assetUnlinked = $contentful->isAssetUnlinked('nyancat');
+        $this->assertInternalType('bool', $assetUnlinked);
+        $this->assertFalse($assetUnlinked);
     }
 
     private function getSuccessAssetData()

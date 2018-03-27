@@ -15,6 +15,7 @@ use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Filter\ContentTypeFilterProvider;
 use Markup\Contentful\Filter\DecidesCacheKeyInterface;
+use Markup\Contentful\Filter\LinksToAssetFilter;
 use Markup\Contentful\Filter\LocaleFilter;
 use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
@@ -272,6 +273,61 @@ class Contentful
         return new AssetPromise(
             $this->getAsset($id, $space, array_merge($options, ['async' => true]), $locale)
         );
+    }
+
+    /**
+     * @param array $parameters
+     * @param null $space
+     * @param array $options
+     * @return PromiseInterface|AssetInterface[]
+     */
+    public function getAssets(array $parameters = [], $space = null, array $options = [])
+    {
+        $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
+        $spaceData = $this->getSpaceDataForName($spaceName);
+        $api = ($spaceData['preview_mode']) ? self::PREVIEW_API : self::CONTENT_DELIVERY_API;
+
+        return $this->doRequest(
+            $spaceData,
+            $spaceName,
+            $this->getEndpointUrl(sprintf('/spaces/%s/assets', $spaceData['key']), $api),
+            sprintf('The assets from the space "%s" were unavailable.', $spaceName),
+            $api,
+            'assets',
+            '',
+            $parameters,
+            $options
+        );
+    }
+
+    /**
+     * @param array $parameters
+     * @param null $space
+     * @param array $options
+     * @return ResourceArrayPromise
+     */
+    public function getAssetsAsync(array $parameters = [], $space = null, array $options = [])
+    {
+        return new ResourceArrayPromise(
+            $this->getAssets($parameters, $space, array_merge($options, ['async' => true]))
+        );
+    }
+
+    /**
+     * @param string $assetId
+     * @param string|SpaceInterface $space
+     * @return bool
+     */
+    public function isAssetUnlinked($assetId, $space = null)
+    {
+        $filters = [];
+        $filters[] = new LinksToAssetFilter($assetId);
+
+        $linkedEntries = $this->getEntries($filters, $space);
+
+        $totalEntries = $linkedEntries->getTotal();
+
+        return ($totalEntries > 0) ? false : true;
     }
 
     /**
