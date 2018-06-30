@@ -127,6 +127,45 @@ class Asset implements AssetInterface
     /**
      * @return int|null
      */
+    public function getWidth()
+    {
+        $file = $this->getFile();
+        if (!$file) {
+            return null;
+        }
+
+        return $file->getWidth();
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getHeight()
+    {
+        $file = $this->getFile();
+        if (!$file) {
+            return null;
+        }
+
+        return $file->getHeight();
+    }
+
+    /**
+     * @return float|null
+     */
+    public function getRatio()
+    {
+        $file = $this->getFile();
+        if (!$file) {
+            return null;
+        }
+
+        return $file->getRatio();
+    }
+
+    /**
+     * @return int|null
+     */
     public function getFileSizeInBytes()
     {
         $file = $this->getFile();
