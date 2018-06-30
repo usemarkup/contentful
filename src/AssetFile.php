@@ -76,6 +76,46 @@ class AssetFile
     }
 
     /**
+     * @return int|null
+     */
+    public function getWidth()
+    {
+        $details = $this->getDetails();
+        if (!isset($details['width'])) {
+            return null;
+        }
+
+        return intval($details['width']);
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getHeight()
+    {
+        $details = $this->getDetails();
+        if (!isset($details['height'])) {
+            return null;
+        }
+
+        return intval($details['height']);
+    }
+
+    /**
+     * @return float|null
+     */
+    public function getRatio()
+    {
+        $width = $this->getWidth();
+        $height = $this->getHeight();
+        if (!$width || !$height) {
+            return null;
+        }
+
+        return (float) $width/$height;
+    }
+
+    /**
      * @return string
      */
     public function getUrl()
