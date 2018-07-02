@@ -103,4 +103,43 @@ class AssetPromise extends ResourcePromise implements AssetInterface
                 return new Asset('', '', null, new Metadata());
             });
     }
+
+    /**
+     * @return int|null
+     */
+    public function getWidth()
+    {
+        $resolved = $this->getResolved();
+        if (!$resolved instanceof AssetInterface) {
+            return 0;
+        }
+
+        return $resolved->getWidth();
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getHeight()
+    {
+        $resolved = $this->getResolved();
+        if (!$resolved instanceof AssetInterface) {
+            return 0;
+        }
+
+        return $resolved->getHeight();
+    }
+
+    /**
+     * @return float|null
+     */
+    public function getRatio()
+    {
+        $resolved = $this->getResolved();
+        if (!$resolved instanceof AssetInterface) {
+            return (float) 0;
+        }
+
+        return $resolved->getRatio();
+    }
 }
