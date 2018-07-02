@@ -111,7 +111,7 @@ class AssetPromise extends ResourcePromise implements AssetInterface
     {
         $resolved = $this->getResolved();
         if (!$resolved instanceof AssetInterface) {
-            return 0;
+            return null;
         }
 
         return $resolved->getWidth();
@@ -124,7 +124,7 @@ class AssetPromise extends ResourcePromise implements AssetInterface
     {
         $resolved = $this->getResolved();
         if (!$resolved instanceof AssetInterface) {
-            return 0;
+            return null;
         }
 
         return $resolved->getHeight();
@@ -137,7 +137,7 @@ class AssetPromise extends ResourcePromise implements AssetInterface
     {
         $resolved = $this->getResolved();
         if (!$resolved instanceof AssetInterface) {
-            return (float) 0;
+            return null;
         }
 
         return $resolved->getRatio();
