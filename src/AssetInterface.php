@@ -41,4 +41,19 @@ interface AssetInterface extends ResourceInterface
      * @return int
      */
     public function getFileSizeInBytes();
+
+    /**
+     * @return int|null
+     */
+    public function getWidth();
+
+    /**
+     * @return int|null
+     */
+    public function getHeight();
+
+    /**
+     * @return float|null
+     */
+    public function getRatio();
 }

@@ -82,6 +82,33 @@ abstract class AbstractDecoratedAsset implements AssetInterface
         return $this->decorated->getFileSizeInBytes();
     }
 
+
+    /**
+     * @return int
+     */
+    public function getWidth()
+    {
+        return $this->decorated->getWidth();
+    }
+
+
+    /**
+     * @return float
+     */
+    public function getHeight()
+    {
+        return $this->decorated->getHeight();
+    }
+
+
+    /**
+     * @return int
+     */
+    public function getRatio()
+    {
+        return $this->decorated->getRatio();
+    }
+
     /**
      * Gets the type of resource.
      *
