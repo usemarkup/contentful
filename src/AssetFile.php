@@ -81,11 +81,18 @@ class AssetFile
     public function getWidth()
     {
         $details = $this->getDetails();
-        if (!isset($details['width'])) {
+
+        if (!isset($details['image'])) {
             return null;
         }
 
-        return intval($details['width']);
+        $image = $details['image'];
+
+        if (!isset($image['width'])) {
+            return null;
+        }
+
+        return intval($image['width']);
     }
 
     /**
@@ -94,11 +101,18 @@ class AssetFile
     public function getHeight()
     {
         $details = $this->getDetails();
-        if (!isset($details['height'])) {
+
+        if (!isset($details['image'])) {
             return null;
         }
 
-        return intval($details['height']);
+        $image = $details['image'];
+
+        if (!isset($image['height'])) {
+            return null;
+        }
+
+        return intval($image['height']);
     }
 
     /**
