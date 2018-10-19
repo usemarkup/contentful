@@ -24,7 +24,7 @@ class OrderBy implements ParameterInterface
 
     /**
      * @param PropertyInterface $property
-     * @param string $direction The direction of sort - either SORT_ASC or SORT_DESC
+     * @param int $direction The direction of sort - either SORT_ASC or SORT_DESC
      */
     public function __construct(PropertyInterface $property, $direction = SORT_ASC)
     {
