@@ -1,7 +1,7 @@
 contentful
 ==========
 
-Provides integrations with Contentful APIs (Delivery and Preview) for PHP 5.6+.
+Provides integrations with Contentful APIs (Delivery and Preview) for PHP 7.1+.
 
 There is an official Contentful PHP SDK now ([contentful/contentful](https://packagist.org/packages/contentful/contentful)) - so use what makes sense for you. This package has been in large-scale production for over two years now, and I am focusing on making it the fastest client available for fetching Contentful data.
 
