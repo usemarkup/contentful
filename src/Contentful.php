@@ -69,6 +69,16 @@ class Contentful
     private $envelope;
 
     /**
+     * @var bool
+     */
+    private $compressCache;
+
+    /**
+     * @var bool
+     */
+    private $compressFallbackCache;
+
+    /**
      * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with:
      *                      'key', 'access_token'
      *                      and, optionally:
@@ -100,6 +110,9 @@ class Contentful
             $this->logger = ($options['logger'] instanceof LoggerInterface) ? $options['logger'] : new StandardLogger();
         }
         $this->envelope = new ResourceEnvelope();
+        
+        $this->compressCache = false;
+        $this->compressFallbackCache = true;
     }
 
     /**
@@ -609,8 +622,14 @@ class Contentful
                     );
                 };
                 if ($api !== self::CONTENT_MANAGEMENT_API && $readCacheItem->isHit()) {
-                    $cacheItemJson = $readCacheItem->get();
-                    if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
+                    $cacheItem = $readCacheItem->get();
+                    
+                    if (is_string($cacheItem) && strlen($cacheItem) > 0) {
+                        if ($this->compressCache) {
+                            $cacheItemJson = $this->uncompressCache($cacheItem);
+                        } else {
+                            $cacheItemJson = $cacheItem;
+                        }
                         $cacheItemData = json_decode($cacheItemJson, true);
                         //if we are caching fail responses, and this cache item has null content, it's a fail
                         if (null !== $cacheItemData) {
@@ -633,6 +652,9 @@ class Contentful
                             $fallbackCacheItem = $getItemFromCache($readFallbackCache);
                             if ($api === self::CONTENT_DELIVERY_API && $fallbackCacheItem->isHit()) {
                                 $fallbackJson = $fallbackCacheItem->get();
+                                if ($this->compressFallbackCache) {
+                                    $fallbackJson = $this->uncompressCache($fallbackJson);
+                                }
                                 if (is_string($fallbackJson) && $fallbackJson !== json_encode(null) && strlen($fallbackJson) > 0) {
                                     $log(
                                         sprintf('Used successful fallback cache value as main cache has a fail response for key "%s".', $cacheKey),
@@ -693,6 +715,9 @@ class Contentful
                                 LogInterface::TYPE_RESOURCE
                             );
                             //save fallback value into main cache
+                            if ($this->compressFallbackCache) {
+                                $fallbackJson = $this->compressItem($fallbackJson);
+                            }
                             $writeCacheItem->set($fallbackJson);
                             $writeCache->save($writeCacheItem);
 
@@ -750,6 +775,9 @@ class Contentful
                     $isSuccessResponseData = !$unavailableException && $isValidResponse;
 
                     if ($isSuccessResponseData || $this->cacheFailResponses) {
+                        if ($this->compressCache) {
+                            $responseJson = $this->compressItem($responseJson);
+                        }
                         $writeCacheItem->set($responseJson);
                         $writeCache->save($writeCacheItem);
                     }
@@ -761,6 +789,10 @@ class Contentful
                         $fallbackCacheItem = $getItemFromCache($writeFallbackCache);
                     }
                     if ((!$unavailableException || $fallbackCacheItem->get() === null) && $isSuccessResponseData) {
+                        if ($this->compressFallbackCache) {
+                            $responseJson = $this->compressItem($responseJson);
+                        }
+                        
                         $fallbackCacheItem->set($responseJson);
                         $writeFallbackCache->save($fallbackCacheItem);
                     }
@@ -817,6 +849,39 @@ class Contentful
         );
 
         return (isset($options['async']) && $options['async']) ? $promise : $promise->wait();
+    }
+
+    /**
+     * @param string $cacheItem
+     * @return string
+     * @throws \LogicException
+     */
+    private function uncompressCache($cacheItem)
+    {
+        $uncompressedCacheItem = gzuncompress($cacheItem);
+        if (!$uncompressedCacheItem) {
+            throw new \LogicException(
+                sprintf('Tried to unserialize invalid contentful compression.')
+            );
+        } else {
+            return unserialize($uncompressedCacheItem);
+        }
+    }
+
+    /**
+     * @param string $cacheItem
+     * @return string|false
+     */
+    private function compressItem($cacheItem)
+    {
+        $serialized = serialize($cacheItem);
+        if (!$serialized) {
+            throw new \LogicException(
+                sprintf('Tried to unserialize invalid contentful compression.')
+            );
+        } else {
+            return gzcompress($serialized, -1);
+        }
     }
 
     /**
