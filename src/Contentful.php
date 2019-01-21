@@ -715,12 +715,14 @@ class Contentful
                                 LogInterface::TYPE_RESOURCE
                             );
                             //save fallback value into main cache
-                            if ($this->compressFallbackCache) {
-                                $fallbackJson = $this->compressItem($fallbackJson);
-                            }
-                            $writeCacheItem->set($fallbackJson);
-                            $writeCache->save($writeCacheItem);
+                            $fallbackJsonToWrite = $fallbackJson;
 
+                            if ($this->compressFallbackCache) {
+                                $fallbackJsonToWrite = $this->compressItem($fallbackJson);
+                            }
+                            $writeCacheItem->set($fallbackJsonToWrite);
+                            $writeCache->save($writeCacheItem);
+                            
                             yield $this->buildResponseFromRaw(
                                 json_decode($fallbackJson, true),
                                 $spaceData['name'],
