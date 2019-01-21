@@ -440,6 +440,7 @@ class ContentfulTest extends MockeryTestCase
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $this->expectException(ResourceUnavailableException::class);
+        $this->expectExceptionMessage('The entries from the space "" were unavailable.');
         $contentful->getEntries($parameters);
     }
 
@@ -466,6 +467,7 @@ class ContentfulTest extends MockeryTestCase
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $this->expectException(ResourceUnavailableException::class);
+        $this->expectExceptionMessage('The entries from the space "" were unavailable.');
         $contentful->getEntries($parameters);
     }
 
@@ -534,6 +536,7 @@ class ContentfulTest extends MockeryTestCase
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $this->expectException(ResourceUnavailableException::class);
+        $this->expectExceptionMessage('Contentful returned a valid response but it did not pass the provided test');
         $contentful->getEntries($parameters, null, [
             'test' => function ($builtResponse) {
                 if (!$builtResponse instanceof ResourceArray) {
@@ -687,6 +690,7 @@ class ContentfulTest extends MockeryTestCase
         $handlerOption = $this->getExplodyHandlerOption();
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
         $this->expectException(ResourceUnavailableException::class);
+        $this->expectExceptionMessage('Fetched fail response from cache for key "jskdfjhsdfk-entry↦cat".');
         $contentful->getEntry('cat');
     }
 
