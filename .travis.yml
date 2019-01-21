@@ -1,5 +1,5 @@
 language: php
-sudo: required
+sudo: false
 dist: trusty
 group: edge
 php:
@@ -26,9 +26,7 @@ install:
     - if [ "$deps" = "low" ]; then composer --prefer-source --prefer-lowest --prefer-stable update; fi
 
 script:
-    - vendor/bin/phpunit -v
+    - vendor/bin/phpunit
 
 notifications:
   email: "douglas@usemarkup.com"
-
-sudo: false

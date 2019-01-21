@@ -97,7 +97,7 @@ class DynamicEntryTest extends MockeryTestCase
         $this->contentType
             ->shouldReceive('getFields')
             ->andReturn($keyedFields);
-        $this->assertTrue(isset($this->dynamicEntry['ja']));
-        $this->assertFalse(isset($this->dynamicEntry['nein']));
+        $this->assertArrayHasKey('ja', $this->dynamicEntry);
+        $this->assertArrayNotHasKey('nein', $this->dynamicEntry);
     }
 }

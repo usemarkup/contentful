@@ -53,6 +53,7 @@ class MimeTypeGroupFilterTest extends TestCase
     public function testCannotCreateWithUnknownValue()
     {
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('"unknown" is not a known MIME type group. Known types: attachment, plaintext, image, audio, video, richtext, presentation, spreadsheet, pdf_document, archive, code, markup.');
         new MimeTypeGroupFilter('unknown');
     }
 }

@@ -47,8 +47,8 @@ class EntryTest extends MockeryTestCase
 
     public function testGetFieldsUsingArrayAccess()
     {
-        $this->assertTrue(isset($this->entry['foo']));
-        $this->assertFalse(isset($this->entry['unknown']));
+        $this->assertArrayHasKey('foo', $this->entry);
+        $this->assertArrayNotHasKey('unknown', $this->entry);
         $this->assertEquals('bar', $this->entry['foo']);
         $this->assertNull($this->entry['unknown']);
     }
@@ -77,7 +77,7 @@ class EntryTest extends MockeryTestCase
     public function testUnknownMethodFallsBackToFieldLookup()
     {
         $this->assertEquals('bar', $this->entry->foo());
-        $this->assertEquals(null, $this->entry->baz());
+        $this->assertNull($this->entry->baz());
     }
 
     public function testUnresolvedLinkFiltersOutFromList()
