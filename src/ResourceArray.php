@@ -28,7 +28,7 @@ class ResourceArray implements ResourceArrayInterface
     private $limit;
 
     /**
-     * @var ResourceEnvelope
+     * @var ResourceEnvelopeInterface
      */
     private $envelope;
 
@@ -37,9 +37,9 @@ class ResourceArray implements ResourceArrayInterface
      * @param int $total
      * @param int $skip
      * @param int $limit
-     * @param ResourceEnvelope $envelope
+     * @param ResourceEnvelopeInterface $envelope
      */
-    public function __construct($items, $total, $skip, $limit, ResourceEnvelope $envelope = null)
+    public function __construct($items, $total, $skip, $limit, ResourceEnvelopeInterface $envelope = null)
     {
         $filterNonResource = function ($resource) {
             return $resource instanceof ResourceInterface;
@@ -54,7 +54,7 @@ class ResourceArray implements ResourceArrayInterface
         $this->total = $total;
         $this->skip = $skip;
         $this->limit = $limit;
-        $this->envelope = $envelope ?: new ResourceEnvelope();
+        $this->envelope = $envelope ?: new MemoizedResourceEnvelope();
     }
 
     /**
@@ -92,7 +92,7 @@ class ResourceArray implements ResourceArrayInterface
     }
 
     /**
-     * @return ResourceEnvelope
+     * @return ResourceEnvelopeInterface
      */
     public function getEnvelope()
     {

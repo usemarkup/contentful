@@ -3,9 +3,9 @@
 namespace Markup\Contentful;
 
 /**
- * An envelope for stashing and accessing entries, assets and content types from a search on Contentful.
+ * A memoization envelope for stashing and accessing entries, assets and content types from a search on Contentful.
  */
-class ResourceEnvelope
+class MemoizedResourceEnvelope implements ResourceEnvelopeInterface
 {
     const WILDCARD_KEY = '*';
 
@@ -32,6 +32,8 @@ class ResourceEnvelope
 
     /**
      * A set of all known content types for specific groups.
+     *
+     * @var ResourceArray[]
      */
     private $contentTypeGroups;
 
@@ -48,7 +50,7 @@ class ResourceEnvelope
      * @param string|null $locale
      * @return EntryInterface|null
      */
-    public function findEntry($entryId, $locale = null)
+    public function findEntry(string $entryId, ?string $locale = null): ?EntryInterface
     {
         $identifier = $this->getIdentifierForLocale($locale);
         if (!isset($this->entries[$identifier][$entryId])) {
@@ -63,7 +65,7 @@ class ResourceEnvelope
      * @param string|null $locale
      * @return bool
      */
-    public function hasEntry($entryId, $locale = null)
+    public function hasEntry(string $entryId, ?string $locale = null): bool
     {
         $identifier = $this->getIdentifierForLocale($locale);
 
@@ -75,7 +77,7 @@ class ResourceEnvelope
      * @param string|null $locale
      * @return AssetInterface|null
      */
-    public function findAsset($assetId, $locale = null)
+    public function findAsset(string $assetId, ?string $locale = null): ?AssetInterface
     {
         $identifier = $this->getIdentifierForLocale($locale);
         if (!isset($this->assets[$identifier][$assetId])) {
@@ -90,7 +92,7 @@ class ResourceEnvelope
      * @param string|null $locale
      * @return bool
      */
-    public function hasAsset($assetId, $locale = null)
+    public function hasAsset(string $assetId, ?string $locale = null): bool
     {
         $identifier = $this->getIdentifierForLocale($locale);
 
@@ -101,7 +103,7 @@ class ResourceEnvelope
      * @param string $contentTypeId
      * @return ContentTypeInterface|null
      */
-    public function findContentType($contentTypeId)
+    public function findContentType(string $contentTypeId): ?ContentTypeInterface
     {
         if (!isset($this->contentTypes[$contentTypeId])) {
             return null;
@@ -112,9 +114,9 @@ class ResourceEnvelope
 
     /**
      * @param string $contentTypeName
-     * @return ContentTypeInterface|mixed|null
+     * @return ContentTypeInterface|null
      */
-    public function findContentTypeByName($contentTypeName)
+    public function findContentTypeByName(string $contentTypeName): ?ContentTypeInterface
     {
         foreach ($this->contentTypes as $contentType) {
             if ($contentType->getName() === $contentTypeName) {
@@ -129,7 +131,7 @@ class ResourceEnvelope
      * @param string $contentTypeId
      * @return bool
      */
-    public function hasContentType($contentTypeId)
+    public function hasContentType(string $contentTypeId): bool
     {
         return isset($this->contentTypes[$contentTypeId]);
     }
@@ -138,7 +140,7 @@ class ResourceEnvelope
      * @param ResourceInterface|ResourceArray $resource
      * @return $this
      */
-    public function insert($resource)
+    public function insert($resource): ResourceEnvelopeInterface
     {
         if ($resource instanceof ResourceArray) {
             foreach ($resource as $resourceItem) {
@@ -162,7 +164,7 @@ class ResourceEnvelope
      * @param EntryInterface $entry
      * @return $this
      */
-    public function insertEntry(EntryInterface $entry)
+    public function insertEntry(EntryInterface $entry): ResourceEnvelopeInterface
     {
         if (!isset($this->entries[self::WILDCARD_KEY][$entry->getId()])) {
             $this->entries[self::WILDCARD_KEY][$entry->getId()] = $entry;
@@ -178,7 +180,7 @@ class ResourceEnvelope
      * @param AssetInterface $asset
      * @return $this
      */
-    public function insertAsset(AssetInterface $asset)
+    public function insertAsset(AssetInterface $asset): ResourceEnvelopeInterface
     {
         if (!isset($this->assets[self::WILDCARD_KEY][$asset->getId()])) {
             $this->assets[self::WILDCARD_KEY][$asset->getId()] = $asset;
@@ -194,7 +196,7 @@ class ResourceEnvelope
      * @param ContentTypeInterface $contentType
      * @return $this
      */
-    public function insertContentType(ContentTypeInterface $contentType)
+    public function insertContentType(ContentTypeInterface $contentType): ResourceEnvelopeInterface
     {
         $this->contentTypes[$contentType->getId()] = $contentType;
 
@@ -202,13 +204,15 @@ class ResourceEnvelope
     }
 
     /**
-     * @param ContentTypeInterface[] $contentTypes
+     * @param ResourceArray $contentTypes
      * @param string $space
+     * @return $this
      */
-    public function insertAllContentTypesForSpace($contentTypes, $space)
+    public function insertAllContentTypesForSpace(ResourceArray $contentTypes, string $space): ResourceEnvelopeInterface
     {
         $this->contentTypeGroups[$space] = $contentTypes;
         foreach ($contentTypes as $contentType) {
+            /** @var ContentTypeInterface $contentType */
             $this->insertContentType($contentType);
         }
 
@@ -217,12 +221,12 @@ class ResourceEnvelope
 
     /**
      * Gets all content types for a given space if they are saved into the envelope, null otherwise.
-     *
-     * @param string $space
-     * @return ContentTypeInterface[]|null
      */
-    public function getAllContentTypesForSpace($space)
+    public function getAllContentTypesForSpace(?string $space): ?ResourceArray
     {
+        if (null === $space) {
+            return null;
+        }
         if (!isset($this->contentTypeGroups[$space])) {
             return null;
         }
@@ -233,7 +237,7 @@ class ResourceEnvelope
     /**
      * @return int
      */
-    public function getEntryCount()
+    public function getEntryCount(): int
     {
         if (!isset($this->entries[self::WILDCARD_KEY])) {
             return 0;
@@ -245,7 +249,7 @@ class ResourceEnvelope
     /**
      * @return int
      */
-    public function getAssetCount()
+    public function getAssetCount(): int
     {
         if (!isset($this->assets[self::WILDCARD_KEY])) {
             return 0;
@@ -257,7 +261,7 @@ class ResourceEnvelope
     /**
      * @return int
      */
-    public function getContentTypeCount()
+    public function getContentTypeCount(): int
     {
         return count($this->contentTypes);
     }
@@ -266,7 +270,7 @@ class ResourceEnvelope
      * @param string|null $locale
      * @return string
      */
-    private function getIdentifierForLocale($locale)
+    private function getIdentifierForLocale(?string $locale): string
     {
         return $locale ?: self::WILDCARD_KEY;
     }

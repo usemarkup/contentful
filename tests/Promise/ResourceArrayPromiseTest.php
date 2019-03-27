@@ -9,6 +9,7 @@ use Markup\Contentful\EntryInterface;
 use Markup\Contentful\Promise\ResourceArrayPromise;
 use Markup\Contentful\ResourceArrayInterface;
 use Markup\Contentful\ResourceEnvelope;
+use Markup\Contentful\ResourceEnvelopeInterface;
 use Mockery as m;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 
@@ -36,7 +37,7 @@ class ResourceArrayPromiseTest extends MockeryTestCase
 
     public function testGetEnvelope()
     {
-        $envelope = m::mock(ResourceEnvelope::class);
+        $envelope = m::mock(ResourceEnvelopeInterface::class);
         $inner = m::spy(ResourceArrayInterface::class)
             ->shouldReceive('getEnvelope')
             ->andReturn($envelope)
@@ -53,7 +54,7 @@ class ResourceArrayPromiseTest extends MockeryTestCase
             m::mock(EntryInterface::class),
             m::mock(AssetInterface::class),
         ]));
-        $this->assertInstanceOf(ResourceEnvelope::class, $resourceArray->getEnvelope());
+        $this->assertInstanceOf(ResourceEnvelopeInterface::class, $resourceArray->getEnvelope());
         $this->assertCount(2, $resourceArray);
         $this->assertInstanceOf(EntryInterface::class, $resourceArray->first());
         $this->assertInstanceOf(AssetInterface::class, $resourceArray->last());

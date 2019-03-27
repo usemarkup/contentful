@@ -25,7 +25,7 @@ interface ResourceArrayInterface extends \Countable, \IteratorAggregate, Metadat
     public function getLimit();
 
     /**
-     * @return ResourceEnvelope
+     * @return ResourceEnvelopeInterface
      */
     public function getEnvelope();
 

@@ -1016,8 +1016,8 @@ class ContentfulTest extends MockeryTestCase
     private function getContentful($spaces = null, $options = null)
     {
         return new Contentful(
-            $spaces ?: $this->spaces,
-            $options ?: $this->options
+            $spaces ?? $this->spaces,
+            $options ?? $this->options
         );
     }
 }
