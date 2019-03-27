@@ -3,9 +3,11 @@
 namespace Markup\Contentful\Promise;
 
 use GuzzleHttp\Promise\PromiseInterface;
+use Markup\Contentful\MemoizedResourceEnvelope;
 use Markup\Contentful\ResourceArray;
 use Markup\Contentful\ResourceArrayInterface;
 use Markup\Contentful\ResourceEnvelope;
+use Markup\Contentful\ResourceEnvelopeInterface;
 use Markup\Contentful\ResourceInterface;
 
 class ResourceArrayPromise extends ResourcePromise implements ResourceArrayInterface
@@ -65,13 +67,13 @@ class ResourceArrayPromise extends ResourcePromise implements ResourceArrayInter
     }
 
     /**
-     * @return ResourceEnvelope
+     * @return ResourceEnvelopeInterface
      */
     public function getEnvelope()
     {
         $resolved = $this->getResolved();
         if (!$resolved instanceof ResourceArrayInterface) {
-            return new ResourceEnvelope();
+            return new MemoizedResourceEnvelope();
         }
 
         return $resolved->getEnvelope();

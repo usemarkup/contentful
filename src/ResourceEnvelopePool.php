@@ -9,7 +9,7 @@ namespace Markup\Contentful;
 class ResourceEnvelopePool
 {
     /**
-     * @var ResourceEnvelope[]
+     * @var ResourceEnvelopeInterface[]
      */
     private $envelopes;
 
@@ -18,7 +18,7 @@ class ResourceEnvelopePool
         $this->envelopes = [];
     }
 
-    public function getEnvelopeForSpace(string $space): ResourceEnvelope
+    public function getEnvelopeForSpace(string $space): ResourceEnvelopeInterface
     {
         if (!array_key_exists($space, $this->envelopes)) {
             throw new \RuntimeException(sprintf('No resource envelope exists for the space "%s".', $space));
@@ -27,7 +27,7 @@ class ResourceEnvelopePool
         return $this->envelopes[$space];
     }
 
-    public function registerEnvelopeForSpace(ResourceEnvelope $envelope, string $space)
+    public function registerEnvelopeForSpace(ResourceEnvelopeInterface $envelope, string $space)
     {
         $this->envelopes[$space] = $envelope;
     }

@@ -22,16 +22,13 @@ class ResourceBuilder
     private $useDynamicEntries;
 
     /**
-     * @var ResourceEnvelope
+     * @var ResourceEnvelopeInterface
      */
     private $envelope;
 
-    /**
-     * @param ResourceEnvelope|null $envelope
-     */
-    public function __construct(ResourceEnvelope $envelope = null)
+    public function __construct(?ResourceEnvelopeInterface $envelope = null)
     {
-        $this->envelope = $envelope ?: new ResourceEnvelope();
+        $this->envelope = $envelope ?: new MemoizedResourceEnvelope();
     }
 
     /**

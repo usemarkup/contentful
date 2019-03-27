@@ -5,21 +5,27 @@ namespace Markup\Contentful\Tests;
 use Markup\Contentful\AssetInterface;
 use Markup\Contentful\ContentTypeInterface;
 use Markup\Contentful\EntryInterface;
+use Markup\Contentful\MemoizedResourceEnvelope;
 use Markup\Contentful\ResourceArray;
-use Markup\Contentful\ResourceEnvelope;
+use Markup\Contentful\ResourceEnvelopeInterface;
 use Mockery as m;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class ResourceEnvelopeTest extends MockeryTestCase
+class MemoizedResourceEnvelopeTest extends MockeryTestCase
 {
     /**
-     * @var ResourceEnvelope
+     * @var MemoizedResourceEnvelope
      */
     private $envelope;
 
     protected function setUp()
     {
-        $this->envelope = new ResourceEnvelope();
+        $this->envelope = new MemoizedResourceEnvelope();
+    }
+
+    public function testIsResourceEnvelope()
+    {
+        $this->assertInstanceOf(ResourceEnvelopeInterface::class, $this->envelope);
     }
 
     public function testSetAndAccessEntries()
