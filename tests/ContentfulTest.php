@@ -63,7 +63,7 @@ class ContentfulTest extends MockeryTestCase
         $data = $this->getSpaceData();
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $space = $contentful->getSpace();
+        $space = $contentful->getSpace('test');
         $this->assertInstanceOf(SpaceInterface::class, $space);
         $this->assertEquals('Contentful Example API', $space->getName());
     }
@@ -73,7 +73,7 @@ class ContentfulTest extends MockeryTestCase
         $data = $this->getSpaceData();
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $space = $contentful->getSpaceAsync();
+        $space = $contentful->getSpaceAsync('test');
         $this->assertInstanceOf(PromiseInterface::class, $space);
         $this->assertInstanceOf(SpaceInterface::class, $space);
         $this->assertEquals('Contentful Example API', $space->getName());
@@ -105,7 +105,7 @@ class ContentfulTest extends MockeryTestCase
         $data = $this->getEntryData();
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $entry = $contentful->getEntry('cat');
+        $entry = $contentful->getEntry('cat', 'test');
         $this->assertInstanceOf(EntryInterface::class, $entry);
         $this->assertEquals(['rainbows', 'fish'], $entry->getFields()['likes']);
     }
@@ -115,7 +115,7 @@ class ContentfulTest extends MockeryTestCase
         $data = $this->getEntryData();
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $entry = $contentful->getEntryAsync('cat');
+        $entry = $contentful->getEntryAsync('cat', 'test');
         $this->assertInstanceOf(PromiseInterface::class, $entry);
         $this->assertInstanceOf(EntryInterface::class, $entry);
         $this->assertEquals(['rainbows', 'fish'], $entry->getFields()['likes']);
@@ -125,7 +125,7 @@ class ContentfulTest extends MockeryTestCase
     {
         $handlerOption = $this->getExplodyHandlerOption();
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $entry = $contentful->getEntryAsync('cat');
+        $entry = $contentful->getEntryAsync('cat', 'test');
         $this->assertInstanceOf(PromiseInterface::class, $entry);
         $this->assertInstanceOf(EntryInterface::class, $entry);
         $this->assertEquals('', $entry->getField('field'));
@@ -170,7 +170,7 @@ class ContentfulTest extends MockeryTestCase
     {
         $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $asset = $contentful->getAsset('nyancat');
+        $asset = $contentful->getAsset('nyancat', 'test');
         $this->assertInstanceOf(AssetInterface::class, $asset);
         $this->assertEquals(1, $asset->getRevision());
     }
@@ -179,7 +179,7 @@ class ContentfulTest extends MockeryTestCase
     {
         $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $asset = $contentful->getAssetAsync('nyancat');
+        $asset = $contentful->getAssetAsync('nyancat', 'test');
         $this->assertInstanceOf(PromiseInterface::class, $asset);
         $this->assertInstanceOf(AssetInterface::class, $asset);
         $this->assertEquals(1, $asset->getRevision());
@@ -196,7 +196,7 @@ class ContentfulTest extends MockeryTestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['asset_decorator' => $assetDecorator]]);
         $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
-        $asset = $contentful->getAsset('nyancat');
+        $asset = $contentful->getAsset('nyancat', 'test');
         $this->assertSame($asset, $decoratedAsset);
     }
 
@@ -204,7 +204,7 @@ class ContentfulTest extends MockeryTestCase
     {
         $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $assets = $contentful->getAssets();
+        $assets = $contentful->getAssets([], 'test');
         $this->assertInstanceOf(AssetInterface::class, $assets);
     }
 
@@ -212,7 +212,7 @@ class ContentfulTest extends MockeryTestCase
     {
         $handlerOption = $this->getSuccessHandlerOption($this->getSuccessAssetData(), '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $assets = $contentful->getAssetsAsync();
+        $assets = $contentful->getAssetsAsync([], 'test');
         $this->assertInstanceOf(ResourceArrayPromise::class, $assets);
         $this->assertInstanceOf(PromiseInterface::class, $assets);
     }
@@ -221,7 +221,7 @@ class ContentfulTest extends MockeryTestCase
     {
         $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $assetUnlinked = $contentful->isAssetUnlinked('nyancat');
+        $assetUnlinked = $contentful->isAssetUnlinked('nyancat', 'test');
         $this->assertIsBool($assetUnlinked);
         $this->assertFalse($assetUnlinked);
     }
@@ -267,7 +267,7 @@ class ContentfulTest extends MockeryTestCase
         $data = $this->getContentTypesData();
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $contentType = $contentful->getContentType('cat');
+        $contentType = $contentful->getContentType('cat', 'test');
         $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
         $this->assertEquals('Meow.', $contentType->getDescription());
     }
@@ -277,7 +277,7 @@ class ContentfulTest extends MockeryTestCase
         $data = $this->getContentTypesData();
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $contentType = $contentful->getContentTypeAsync('cat');
+        $contentType = $contentful->getContentTypeAsync('cat', 'test');
         $this->assertInstanceOf(PromiseInterface::class, $contentType);
         $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
         $this->assertEquals('Meow.', $contentType->getDescription());
@@ -287,7 +287,7 @@ class ContentfulTest extends MockeryTestCase
     {
         $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $entries = $contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
+        $entries = $contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')], 'test');
         $this->assertInstanceOf(ResourceArrayInterface::class, $entries);
         $this->assertCount(1, $entries);
         $entry = array_values(iterator_to_array($entries))[0];
@@ -299,7 +299,7 @@ class ContentfulTest extends MockeryTestCase
     {
         $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $entries = $contentful->getEntriesAsync([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
+        $entries = $contentful->getEntriesAsync([new EqualFilter(new SystemProperty('id'), 'nyancat')], 'test');
         $this->assertInstanceOf(PromiseInterface::class, $entries);
         $this->assertInstanceOf(ResourceArrayInterface::class, $entries);
         $this->assertCount(1, $entries);
@@ -328,7 +328,7 @@ class ContentfulTest extends MockeryTestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool]]);
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $filters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
-        $contentful->getEntries($filters);
+        $contentful->getEntries($filters, 'test');
     }
 
     public function testBeforeFilterUsesOwnCacheKey()
@@ -348,7 +348,7 @@ class ContentfulTest extends MockeryTestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool]]);
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $filters = [new BeforeFilter(new FieldProperty('published'), 'now')];
-        $contentful->getEntries($filters);
+        $contentful->getEntries($filters, 'test');
     }
 
     public function testCacheHitUsesCacheAndDoesNotFetch()
@@ -371,7 +371,7 @@ class ContentfulTest extends MockeryTestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool]]);
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
-        $entries = $contentful->getEntries($parameters);
+        $entries = $contentful->getEntries($parameters, 'test');
         $entry = array_values(iterator_to_array($entries))[0];
         $this->assertInstanceOf(EntryInterface::class, $entry);
         $this->assertInstanceOf(EntryInterface::class, $entry['bestFriend']);
@@ -405,7 +405,7 @@ class ContentfulTest extends MockeryTestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $frontCachePool, 'fallback_cache' => $fallbackCachePool]]);
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
-        $entries = $contentful->getEntries($parameters);
+        $entries = $contentful->getEntries($parameters, 'test');
         $entry = array_values(iterator_to_array($entries))[0];
         $this->assertInstanceOf(EntryInterface::class, $entry);
         $this->assertInstanceOf(EntryInterface::class, $entry['bestFriend']);
@@ -440,8 +440,8 @@ class ContentfulTest extends MockeryTestCase
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $this->expectException(ResourceUnavailableException::class);
-        $this->expectExceptionMessage('The entries from the space "" were unavailable.');
-        $contentful->getEntries($parameters);
+        $this->expectExceptionMessage('The entries from the space "test" were unavailable.');
+        $contentful->getEntries($parameters, 'test');
     }
 
     public function testFailResponseDoesNotSaveIntoFallbackCacheEvenIfCachingFailResponses()
@@ -467,8 +467,8 @@ class ContentfulTest extends MockeryTestCase
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $this->expectException(ResourceUnavailableException::class);
-        $this->expectExceptionMessage('The entries from the space "" were unavailable.');
-        $contentful->getEntries($parameters);
+        $this->expectExceptionMessage('The entries from the space "test" were unavailable.');
+        $contentful->getEntries($parameters, 'test');
     }
 
     public function testUsesFallbackCacheOnRequestSuccessfulButInvalid()
@@ -499,7 +499,7 @@ class ContentfulTest extends MockeryTestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $frontCachePool, 'fallback_cache' => $fallbackCachePool]]);
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
-        $entries = $contentful->getEntries($parameters, null, [
+        $entries = $contentful->getEntries($parameters, 'test', [
             'test' => function ($builtResponse) {
                 if (!$builtResponse instanceof ResourceArray) {
                     return false;
@@ -537,7 +537,7 @@ class ContentfulTest extends MockeryTestCase
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
         $this->expectException(ResourceUnavailableException::class);
         $this->expectExceptionMessage('Contentful returned a valid response but it did not pass the provided test');
-        $contentful->getEntries($parameters, null, [
+        $contentful->getEntries($parameters, 'test', [
             'test' => function ($builtResponse) {
                 if (!$builtResponse instanceof ResourceArray) {
                     return false;
@@ -571,7 +571,7 @@ class ContentfulTest extends MockeryTestCase
         $metadata->setType($data['type']);
         $metadata->setLinkType($data['linkType']);
         $metadata->setId($data['id']);
-        $link = new Link($metadata);
+        $link = new Link($metadata, 'test');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $contentType = $contentful->resolveLink($link)->wait();
         $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
@@ -583,7 +583,7 @@ class ContentfulTest extends MockeryTestCase
     {
         $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
         $contentful = $this->getContentful($this->spaces, array_merge($this->options, ['logger' => true], $handlerOption));
-        $contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')]);
+        $contentful->getEntries([new EqualFilter(new SystemProperty('id'), 'nyancat')], 'test');
         $logs = $contentful->getLogs();
         $this->assertCount(1, $logs);
         $this->assertContainsOnlyInstancesOf(LogInterface::class, $logs);
@@ -611,7 +611,7 @@ class ContentfulTest extends MockeryTestCase
         $spaces = array_merge_recursive($this->spaces, ['test' => ['cache' => $cachePool, 'preview_mode' => true]]);
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption));
         $parameters = [new LessThanFilter(new FieldProperty('ghosts'), 6), new EqualFilter(new FieldProperty('old'), 6)];
-        $entries = $contentful->getEntries($parameters);
+        $entries = $contentful->getEntries($parameters, 'test');
         $entry = array_values(iterator_to_array($entries))[0];
         $this->assertInstanceOf(EntryInterface::class, $entry);
         $this->assertInstanceOf(EntryInterface::class, $entry['bestFriend']);
@@ -622,7 +622,7 @@ class ContentfulTest extends MockeryTestCase
         $data = [$this->getContentTypeData()];
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $contentTypes = $contentful->getContentTypes();
+        $contentTypes = $contentful->getContentTypes([], 'test');
         $this->assertCount(1, $contentTypes);
         $this->assertContainsOnlyInstancesOf(ContentTypeInterface::class, $contentTypes);
     }
@@ -632,7 +632,7 @@ class ContentfulTest extends MockeryTestCase
         $data = [$this->getContentTypeData()];
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $contentTypes = $contentful->getContentTypesAsync();
+        $contentTypes = $contentful->getContentTypesAsync([], 'test');
         $this->assertInstanceOf(PromiseInterface::class, $contentTypes);
         $this->assertCount(1, $contentTypes);
         $this->assertContainsOnlyInstancesOf(ContentTypeInterface::class, $contentTypes);
@@ -644,7 +644,7 @@ class ContentfulTest extends MockeryTestCase
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $name = 'Cat';
-        $contentType = $contentful->getContentTypeByName($name);
+        $contentType = $contentful->getContentTypeByName($name, 'test');
         $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
         $this->assertEquals($name, $contentType->getName());
     }
@@ -654,7 +654,7 @@ class ContentfulTest extends MockeryTestCase
         $data = [$this->getContentTypeData()];
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
-        $this->assertNull($contentful->getContentTypeByName('Dog'));
+        $this->assertNull($contentful->getContentTypeByName('Dog', 'test'));
     }
 
     public function testGetContentTypeByNameAsync()
@@ -663,7 +663,7 @@ class ContentfulTest extends MockeryTestCase
         $handlerOption = $this->getSuccessHandlerOption($data, '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $name = 'Cat';
-        $contentType = $contentful->getContentTypeByNameAsync($name);
+        $contentType = $contentful->getContentTypeByNameAsync($name, 'test');
         $this->assertInstanceOf(PromiseInterface::class, $contentType);
         $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
         $this->assertEquals($name, $contentType->getName());
@@ -691,7 +691,7 @@ class ContentfulTest extends MockeryTestCase
         $contentful = $this->getContentful($spaces, array_merge($this->options, $handlerOption, ['cache_fail_responses' => true]));
         $this->expectException(ResourceUnavailableException::class);
         $this->expectExceptionMessage('Fetched fail response from cache for key "jskdfjhsdfk-entry↦cat".');
-        $contentful->getEntry('cat');
+        $contentful->getEntry('cat', 'test');
     }
 
     private function getSuccessHandlerOption($data, $accessToken)

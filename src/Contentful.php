@@ -108,7 +108,7 @@ class Contentful
      * @return SpaceInterface|PromiseInterface
      * @throws Exception\ResourceUnavailableException
      */
-    public function getSpace($space = null, array $options = [])
+    public function getSpace($space, array $options = [])
     {
         if ($space instanceof SpaceInterface) {
             return ($this->isAsyncCall($options))
@@ -138,7 +138,7 @@ class Contentful
      * @param array $options
      * @return SpaceInterface|PromiseInterface
      */
-    public function getSpaceAsync($space = null, array $options = [])
+    public function getSpaceAsync($space, array $options = [])
     {
         return new SpacePromise(
             $this->getSpace($space, array_merge($options, ['async' => true]))
@@ -153,7 +153,7 @@ class Contentful
      * @return EntryInterface|PromiseInterface
      * @throws Exception\ResourceUnavailableException
      */
-    public function getEntry($id, $space = null, array $options = [], $locale = null)
+    public function getEntry($id, $space, array $options = [], $locale = null)
     {
         if ($this->envelope->hasEntry($id, $locale)) {
             return ($this->isAsyncCall($options))
@@ -184,7 +184,7 @@ class Contentful
      * @param string|null $locale
      * @return EntryInterface|PromiseInterface
      */
-    public function getEntryAsync($id, $space = null, array $options = [], $locale = null)
+    public function getEntryAsync($id, $space, array $options = [], $locale = null)
     {
         return new EntryPromise(
             $this->getEntry($id, $space, array_merge($options, ['async' => true]), $locale)
@@ -198,7 +198,7 @@ class Contentful
      * @return ResourceArrayInterface|EntryInterface[]|PromiseInterface
      * @throws Exception\ResourceUnavailableException
      */
-    public function getEntries(array $parameters = [], $space = null, array $options = [])
+    public function getEntries(array $parameters, $space, array $options = [])
     {
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         $spaceData = $this->getSpaceDataForName($spaceName);
@@ -223,7 +223,7 @@ class Contentful
      * @param array                $options
      * @return ResourceArrayInterface|PromiseInterface
      */
-    public function getEntriesAsync(array $parameters = [], $space = null, array $options = [])
+    public function getEntriesAsync(array $parameters, $space, array $options = [])
     {
         return new ResourceArrayPromise(
             $this->getEntries($parameters, $space, array_merge($options, ['async' => true]))
@@ -237,7 +237,7 @@ class Contentful
      * @param string|null           $locale
      * @return AssetInterface|PromiseInterface
      */
-    public function getAsset($id, $space = null, array $options = [], $locale = null)
+    public function getAsset($id, $space, array $options = [], $locale = null)
     {
         if ($this->envelope->hasAsset($id, $locale)) {
             return ($this->isAsyncCall($options))
@@ -268,7 +268,7 @@ class Contentful
      * @param string|null           $locale
      * @return AssetInterface|PromiseInterface
      */
-    public function getAssetAsync($id, $space = null, array $options = [], $locale = null)
+    public function getAssetAsync($id, $space, array $options = [], $locale = null)
     {
         return new AssetPromise(
             $this->getAsset($id, $space, array_merge($options, ['async' => true]), $locale)
@@ -281,7 +281,7 @@ class Contentful
      * @param array $options
      * @return PromiseInterface|AssetInterface[]
      */
-    public function getAssets(array $parameters = [], $space = null, array $options = [])
+    public function getAssets(array $parameters, $space, array $options = [])
     {
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         $spaceData = $this->getSpaceDataForName($spaceName);
@@ -306,7 +306,7 @@ class Contentful
      * @param array $options
      * @return ResourceArrayPromise
      */
-    public function getAssetsAsync(array $parameters = [], $space = null, array $options = [])
+    public function getAssetsAsync(array $parameters, $space, array $options = [])
     {
         return new ResourceArrayPromise(
             $this->getAssets($parameters, $space, array_merge($options, ['async' => true]))
@@ -318,7 +318,7 @@ class Contentful
      * @param string|SpaceInterface $space
      * @return bool
      */
-    public function isAssetUnlinked($assetId, $space = null)
+    public function isAssetUnlinked($assetId, $space)
     {
         $filters = [];
         $filters[] = new LinksToAssetFilter($assetId);
@@ -336,7 +336,7 @@ class Contentful
      * @param array                 $options
      * @return ContentTypeInterface|PromiseInterface
      */
-    public function getContentType($id, $space = null, array $options = [])
+    public function getContentType($id, $space, array $options = [])
     {
         if ($this->envelope->hasContentType($id)) {
             return ($this->isAsyncCall($options))
@@ -365,7 +365,7 @@ class Contentful
      * @param array                 $options
      * @return ContentTypeInterface|PromiseInterface
      */
-    public function getContentTypeAsync($id, $space = null, array $options = [])
+    public function getContentTypeAsync($id, $space, array $options = [])
     {
         return new ContentTypePromise(
             $this->getContentType($id, $space, array_merge($options, ['async' => true]))
@@ -378,7 +378,7 @@ class Contentful
      * @param array                 $options
      * @return ResourceArray|ContentTypeInterface[]|PromiseInterface
      */
-    public function getContentTypes(array $parameters = [], $space = null, array $options = [])
+    public function getContentTypes(array $parameters, $space, array $options = [])
     {
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         if (!$parameters) {
@@ -411,7 +411,7 @@ class Contentful
      * @param array                 $options
      * @return ResourceArray|ContentTypeInterface[]|PromiseInterface
      */
-    public function getContentTypesAsync(array $parameters = [], $space = null, array $options = [])
+    public function getContentTypesAsync(array $parameters, $space, array $options = [])
     {
         return new ResourceArrayPromise(
             $this->getContentTypes($parameters, $space, array_merge($options, ['async' => true]))
@@ -426,7 +426,7 @@ class Contentful
      * @param array                 $options
      * @return ContentTypeInterface|PromiseInterface|null
      */
-    public function getContentTypeByName($name, $space = null, array $options = [])
+    public function getContentTypeByName($name, $space, array $options = [])
     {
         $promise = coroutine(
             function () use ($name, $space, $options) {
@@ -459,7 +459,7 @@ class Contentful
      * @param array                 $options
      * @return ContentTypeInterface|PromiseInterface|null
      */
-    public function getContentTypeByNameAsync($name, $space = null, array $options = [])
+    public function getContentTypeByNameAsync($name, $space, array $options = [])
     {
         return new ContentTypePromise(
             $this->getContentTypeByName($name, $space, array_merge($options, ['async' => true]))
@@ -515,7 +515,7 @@ class Contentful
      *
      * @return bool
      */
-    public function flushCache($spaceName = null)
+    public function flushCache($spaceName)
     {
         $spaceData = $this->getSpaceDataForName($spaceName);
 
@@ -839,7 +839,7 @@ class Contentful
         return $map[$queryType];
     }
 
-    private function getSpaceDataForName($spaceName = null)
+    private function getSpaceDataForName($spaceName)
     {
         $defaultData = [
             'cache' => null,
@@ -848,23 +848,11 @@ class Contentful
             'retry_time_after_rate_limit_in_ms' => 750,
             'asset_decorator' => null,
         ];
-        if ($spaceName) {
-            if (!array_key_exists($spaceName, $this->spaces)) {
-                throw new \InvalidArgumentException(sprintf('The space with name "%s" is not known to this client.', $spaceName));
-            }
-
-            return array_merge($defaultData, $this->spaces[$spaceName], ['name' => $spaceName]);
+        if (!array_key_exists($spaceName, $this->spaces)) {
+            throw new \InvalidArgumentException(sprintf('The space with name "%s" is not known to this client.', $spaceName));
         }
 
-        $firstKey = array_keys($this->spaces)[0];
-
-        return array_merge(
-            $defaultData,
-            array_values($this->spaces)[0],
-            [
-                'name' => (!is_numeric($firstKey)) ? $firstKey : null
-            ]
-        );
+        return array_merge($defaultData, $this->spaces[$spaceName], ['name' => $spaceName]);
     }
 
     /**
@@ -926,14 +914,14 @@ class Contentful
 
     /**
      * @param array $data
-     * @param null $spaceName
+     * @param string $spaceName
      * @param AssetDecoratorInterface|null $assetDecorator
      * @param bool $useTypedResources
      * @return PromiseInterface
      */
     private function buildResponseFromRaw(
         array $data,
-        $spaceName = null,
+        $spaceName,
         AssetDecoratorInterface $assetDecorator = null,
         $useTypedResources = true
     ) {
@@ -1065,7 +1053,7 @@ class Contentful
      * @param string             $spaceName
      * @return ParameterInterface
      */
-    private function completeParameter(ParameterInterface $parameter, $spaceName = null)
+    private function completeParameter(ParameterInterface $parameter, $spaceName)
     {
         if (!$parameter instanceof IncompleteParameterInterface) {
             return $parameter;
@@ -1091,7 +1079,7 @@ class Contentful
      * @param string                       $spaceName
      * @return ParameterInterface
      */
-    private function resolveContentTypeNameFilter(IncompleteParameterInterface $filter, $spaceName = null)
+    private function resolveContentTypeNameFilter(IncompleteParameterInterface $filter, $spaceName)
     {
         static $contentTypeFilterProvider;
         if (empty($contentTypeFilterProvider)) {

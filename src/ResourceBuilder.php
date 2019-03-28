@@ -43,7 +43,7 @@ class ResourceBuilder
      */
     public function buildFromData(
         array $data,
-        $spaceName = null,
+        $spaceName,
         AssetDecoratorInterface $assetDecorator = null,
         $locale = null
     ) {

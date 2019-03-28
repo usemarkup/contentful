@@ -27,7 +27,7 @@ class ContentTypeFilterProvider
      * @param string $spaceName
      * @return ContentTypeFilter|null
      */
-    public function createForContentTypeName($contentTypeName, $spaceName = null)
+    public function createForContentTypeName($contentTypeName, $spaceName)
     {
         $contentType = $this->contentful->getContentTypeByName($contentTypeName, $spaceName);
         if (!$contentType) {

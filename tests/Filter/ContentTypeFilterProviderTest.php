@@ -32,7 +32,7 @@ class ContentTypeFilterProviderTest extends MockeryTestCase
             ->shouldReceive('getContentTypeByName')
             ->with($name, m::any())
             ->andReturn($contentType);
-        $filter = $this->provider->createForContentTypeName($name);
+        $filter = $this->provider->createForContentTypeName($name, 'test');
         $this->assertInstanceOf(ContentTypeFilter::class, $filter);
         $this->assertEquals($id, $filter->getValue());
     }
@@ -42,6 +42,6 @@ class ContentTypeFilterProviderTest extends MockeryTestCase
         $this->contentful
             ->shouldReceive('getContentTypeByName')
             ->andReturn(null);
-        $this->assertNull($this->provider->createForContentTypeName('unknown'));
+        $this->assertNull($this->provider->createForContentTypeName('unknown', 'test'));
     }
 }
