@@ -222,7 +222,7 @@ class ContentfulTest extends MockeryTestCase
         $handlerOption = $this->getSuccessHandlerOption($this->getEntriesData(), '235345lj34h53j4h');
         $contentful = $this->getContentful(null, array_merge($this->options, $handlerOption));
         $assetUnlinked = $contentful->isAssetUnlinked('nyancat');
-        $this->assertInternalType('bool', $assetUnlinked);
+        $this->assertIsBool($assetUnlinked);
         $this->assertFalse($assetUnlinked);
     }
 

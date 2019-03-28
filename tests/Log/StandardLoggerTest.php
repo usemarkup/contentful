@@ -45,7 +45,7 @@ class StandardLoggerTest extends TestCase
         $this->assertInstanceOf(LogInterface::class, $log);
         $this->assertEquals($type, $log->getType());
         $this->assertEquals($description, $log->getDescription());
-        $this->assertInternalType('float', $log->getDurationInSeconds());
+        $this->assertIsFloat($log->getDurationInSeconds());
         $this->assertLessThan(1, $log->getDurationInSeconds());
         $this->assertEquals($api, $log->getApi());
     }
