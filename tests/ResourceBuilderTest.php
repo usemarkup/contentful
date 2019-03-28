@@ -343,7 +343,7 @@ class ResourceBuilderTest extends TestCase
         ];
         $entry = $this->builder->buildFromData($data, $spaceName)->wait();
         $links = $entry->getField('bestFriend');
-        $this->assertInternalType('array', $links);
+        $this->assertIsArray($links);
         $this->assertCount(1, $links);
         $this->assertContainsOnlyInstancesOf(Link::class, $links);
     }
