@@ -17,7 +17,7 @@ class Link implements MetadataInterface
      * @param MetadataInterface $metadata
      * @param string            $spaceName
      */
-    public function __construct(MetadataInterface $metadata, $spaceName = null)
+    public function __construct(MetadataInterface $metadata, $spaceName)
     {
         $this->metadata = $metadata;
         $this->spaceName = $spaceName;
