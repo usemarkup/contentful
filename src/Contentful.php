@@ -420,7 +420,7 @@ class Contentful
     {
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         if (!$parameters) {
-            $stashedContentTypes = $this->findEnvelopeForSpace($spaceName)->getAllContentTypesForSpace($spaceName);
+            $stashedContentTypes = $this->findEnvelopeForSpace($spaceName)->getAllContentTypes();
             if (null !== $stashedContentTypes) {
                 return ($this->isAsyncCall($options))
                     ? promise_for($stashedContentTypes)

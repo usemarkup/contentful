@@ -153,7 +153,6 @@ class MemoizedResourceEnvelopeTest extends MockeryTestCase
 
     public function testSetAllContentTypesForSpace()
     {
-        $space = 'ejrhgejkgh';
         $id = 'id';
         $contentType = m::mock(ContentTypeInterface::class);
         $contentType
@@ -166,8 +165,8 @@ class MemoizedResourceEnvelopeTest extends MockeryTestCase
             1,
             $this->envelope
         );
-        $this->envelope->insertAllContentTypesForSpace($resourceArray, $space);
-        $this->assertSame($contentType, $this->envelope->getAllContentTypesForSpace($space)[0]);
+        $this->envelope->insertAllContentTypes($resourceArray);
+        $this->assertSame($contentType, $this->envelope->getAllContentTypes()[0]);
         $this->assertSame($contentType, $this->envelope->findContentType($id));
     }
 }

@@ -33,7 +33,7 @@ class MemoizedResourceEnvelope implements ResourceEnvelopeInterface
     /**
      * A set of all known content types for specific groups.
      *
-     * @var ResourceArray[]
+     * @var ResourceArray
      */
     private $contentTypeGroups;
 
@@ -42,7 +42,6 @@ class MemoizedResourceEnvelope implements ResourceEnvelopeInterface
         $this->entries = [];
         $this->assets = [];
         $this->contentTypes = [];
-        $this->contentTypeGroups = [];
     }
 
     /**
@@ -205,12 +204,11 @@ class MemoizedResourceEnvelope implements ResourceEnvelopeInterface
 
     /**
      * @param ResourceArray $contentTypes
-     * @param string $space
      * @return $this
      */
-    public function insertAllContentTypesForSpace(ResourceArray $contentTypes, string $space): ResourceEnvelopeInterface
+    public function insertAllContentTypes(ResourceArray $contentTypes): ResourceEnvelopeInterface
     {
-        $this->contentTypeGroups[$space] = $contentTypes;
+        $this->contentTypeGroups = $contentTypes;
         foreach ($contentTypes as $contentType) {
             /** @var ContentTypeInterface $contentType */
             $this->insertContentType($contentType);
@@ -222,16 +220,13 @@ class MemoizedResourceEnvelope implements ResourceEnvelopeInterface
     /**
      * Gets all content types for a given space if they are saved into the envelope, null otherwise.
      */
-    public function getAllContentTypesForSpace(?string $space): ?ResourceArray
+    public function getAllContentTypes(): ?ResourceArray
     {
-        if (null === $space) {
-            return null;
-        }
-        if (!isset($this->contentTypeGroups[$space])) {
+        if (!isset($this->contentTypeGroups)) {
             return null;
         }
 
-        return $this->contentTypeGroups[$space];
+        return $this->contentTypeGroups;
     }
 
     /**
