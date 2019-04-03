@@ -47,6 +47,11 @@ abstract class AbstractDecoratedAsset implements AssetInterface
         return $this->decorated->getFilename();
     }
 
+    public function getMimeType()
+    {
+        return $this->decorated->getMimeType();
+    }
+
     /**
      * Gets the content type of the asset. This is a MIME type, *not* a Contentful type.
      *
