@@ -65,11 +65,11 @@ class Asset implements AssetInterface
     }
 
     /**
-     * Gets the content type of the asset. This is a MIME type, *not* a Contentful type.
+     * Gets the "contentType" of the asset. This is a MIME type, *not* a Contentful content type.
      *
      * @return string|null
      */
-    public function getContentType()
+    public function getMimeType()
     {
         $file = $this->getFile();
         if (!$file) {
