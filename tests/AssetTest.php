@@ -27,7 +27,7 @@ class AssetTest extends MockeryTestCase
         $this->assertEquals($title, $asset->getTitle());
         $this->assertEquals($description, $asset->getDescription());
         $this->assertNull($asset->getFilename());
-        $this->assertNull($asset->getContentType());
+        $this->assertNull($asset->getMimeType());
         $this->assertNull($asset->getUrl());
         $this->assertEquals([], $asset->getDetails());
         $this->assertEquals(0, $asset->getFileSizeInBytes());
