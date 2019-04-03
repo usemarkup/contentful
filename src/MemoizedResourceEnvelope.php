@@ -7,6 +7,8 @@ namespace Markup\Contentful;
  */
 class MemoizedResourceEnvelope implements ResourceEnvelopeInterface
 {
+    use ResourceInsertDelegationTrait;
+
     const WILDCARD_KEY = '*';
 
     /**
@@ -133,30 +135,6 @@ class MemoizedResourceEnvelope implements ResourceEnvelopeInterface
     public function hasContentType(string $contentTypeId): bool
     {
         return isset($this->contentTypes[$contentTypeId]);
-    }
-
-    /**
-     * @param ResourceInterface|ResourceArray $resource
-     * @return $this
-     */
-    public function insert($resource): ResourceEnvelopeInterface
-    {
-        if ($resource instanceof ResourceArray) {
-            foreach ($resource as $resourceItem) {
-                $this->insert($resourceItem);
-            }
-        }
-        if ($resource instanceof EntryInterface) {
-            return $this->insertEntry($resource);
-        }
-        if ($resource instanceof AssetInterface) {
-            return $this->insertAsset($resource);
-        }
-        if ($resource instanceof ContentTypeInterface) {
-            return $this->insertContentType($resource);
-        }
-
-        return $this;
     }
 
     /**
