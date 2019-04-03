@@ -64,9 +64,9 @@ class Contentful
     private $cacheFailResponses;
 
     /**
-     * @var ResourceEnvelope
+     * @var ResourceEnvelopePool
      */
-    private $envelope;
+    private $resourcePool;
 
     /**
      * @param array $spaces A list of known spaces keyed by an arbitrary name. The space array must be a hash with:
@@ -99,7 +99,10 @@ class Contentful
         } else {
             $this->logger = ($options['logger'] instanceof LoggerInterface) ? $options['logger'] : new StandardLogger();
         }
-        $this->envelope = new ResourceEnvelope();
+        $this->resourcePool = new ResourceEnvelopePool();
+        foreach ($spaces as $key => $space) {
+            $this->resourcePool->registerEnvelopeForSpace(new ResourceEnvelope(), $key);
+        }
     }
 
     /**
@@ -155,10 +158,11 @@ class Contentful
      */
     public function getEntry($id, $space, array $options = [], $locale = null)
     {
-        if ($this->envelope->hasEntry($id, $locale)) {
+        $envelope = $this->findEnvelopeForSpace($space);
+        if ($envelope->hasEntry($id, $locale)) {
             return ($this->isAsyncCall($options))
-                ? promise_for($this->envelope->findEntry($id, $locale))
-                : $this->envelope->findEntry($id, $locale);
+                ? promise_for($envelope->findEntry($id, $locale))
+                : $envelope->findEntry($id, $locale);
         }
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         $spaceData = $this->getSpaceDataForName(($space instanceof SpaceInterface) ? $space->getName() : $space);
@@ -239,10 +243,11 @@ class Contentful
      */
     public function getAsset($id, $space, array $options = [], $locale = null)
     {
-        if ($this->envelope->hasAsset($id, $locale)) {
+        $envelope = $this->findEnvelopeForSpace($space);
+        if ($envelope->hasAsset($id, $locale)) {
             return ($this->isAsyncCall($options))
-                ? promise_for($this->envelope->findAsset($id, $locale))
-                : $this->envelope->findAsset($id, $locale);
+                ? promise_for($envelope->findAsset($id, $locale))
+                : $envelope->findAsset($id, $locale);
         }
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         $spaceData = $this->getSpaceDataForName($spaceName);
@@ -338,21 +343,22 @@ class Contentful
      */
     public function getContentType($id, $space, array $options = [])
     {
-        if ($this->envelope->hasContentType($id)) {
+        $envelope = $this->findEnvelopeForSpace($space);
+        if ($envelope->hasContentType($id)) {
             return ($this->isAsyncCall($options))
-                ? promise_for($this->envelope->findContentType($id))
-                : $this->envelope->findContentType($id);
+                ? promise_for($envelope->findContentType($id))
+                : $envelope->findContentType($id);
         }
 
         //fetch them all and pick one out, as it is likely we'll want to access others
         $contentTypesPromise = promise_for($this->getContentTypes([], $space, $options))
             ->then(
-                function ($contentTypes) use ($id) {
+                function ($contentTypes) use ($id, $envelope) {
                     foreach ($contentTypes as $contentType) {
-                        $this->envelope->insertContentType($contentType);
+                        $envelope->insertContentType($contentType);
                     }
 
-                    return promise_for($this->envelope->findContentType($id));
+                    return promise_for($envelope->findContentType($id));
                 }
             );
 
@@ -382,7 +388,7 @@ class Contentful
     {
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
         if (!$parameters) {
-            $stashedContentTypes = $this->envelope->getAllContentTypesForSpace($spaceName);
+            $stashedContentTypes = $this->findEnvelopeForSpace($spaceName)->getAllContentTypesForSpace($spaceName);
             if (null !== $stashedContentTypes) {
                 return ($this->isAsyncCall($options))
                     ? promise_for($stashedContentTypes)
@@ -428,9 +434,10 @@ class Contentful
      */
     public function getContentTypeByName($name, $space, array $options = [])
     {
+        $envelope = $this->findEnvelopeForSpace($space);
         $promise = coroutine(
-            function () use ($name, $space, $options) {
-                $contentTypeFromEnvelope = $this->envelope->findContentTypeByName($name);
+            function () use ($name, $space, $envelope, $options) {
+                $contentTypeFromEnvelope = $envelope->findContentTypeByName($name);
                 if ($contentTypeFromEnvelope) {
                     yield promise_for($contentTypeFromEnvelope);
                     return;
@@ -441,7 +448,7 @@ class Contentful
                     if ($contentType->getName() === $name) {
                         $foundContentType = $contentType;
                     }
-                    $this->envelope->insertContentType($contentType);
+                    $envelope->insertContentType($contentType);
                 }
 
                 yield $foundContentType;
@@ -927,7 +934,7 @@ class Contentful
     ) {
         static $resourceBuilder;
         if (empty($resourceBuilder)) {
-            $resourceBuilder = new ResourceBuilder($this->envelope);
+            $resourceBuilder = new ResourceBuilder($this->findEnvelopeForSpace($spaceName));
             $resourceBuilder->setResolveLinkFunction(function ($link, $locale = null) {
                 return $this->resolveLink($link, [], $locale);
             });
@@ -1098,7 +1105,7 @@ class Contentful
         return $this->getContentTypes([], $spaceName, ['async' => true, 'untyped' => true])
             ->then(
                 function ($types) use ($spaceName) {
-                    $this->envelope->insertAllContentTypesForSpace($types, $spaceName);
+                    $this->findEnvelopeForSpace($spaceName)->insertAllContentTypesForSpace($types, $spaceName);
 
                     return $types;
                 }
@@ -1112,5 +1119,12 @@ class Contentful
     private function isAsyncCall(array $options)
     {
         return isset($options['async']) && true === $options['async'];
+    }
+
+    private function findEnvelopeForSpace($space)
+    {
+        $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
+
+        return $this->resourcePool->getEnvelopeForSpace($spaceName);
     }
 }
