@@ -66,7 +66,7 @@ class NullCacheItemPool implements CacheItemPoolInterface
     public function deleteItem($key)
     {
         // do nothing
-        return $this;
+        return true;
     }
 
     /**
