@@ -52,6 +52,16 @@ class AssetPromise extends ResourcePromise implements AssetInterface
         return $resolved->getFilename();
     }
 
+    public function getMimeType()
+    {
+        $resolved = $this->getResolved();
+        if (!$resolved instanceof AssetInterface) {
+            return '';
+        }
+
+        return $resolved->getMimeType();
+    }
+
     /**
      * @param array|ImageApiOptions $options Options for rendering the image using the Image API @see http://docs.contentfulimagesapi.apiary.io/
      * @return string

@@ -20,14 +20,14 @@ interface AssetInterface extends ResourceInterface
     public function getFilename();
 
     /**
-     * Gets the content type of the asset. This is a MIME type, *not* a Contentful type.
+     * Gets the "contentType" of the asset. This is a MIME type, *not* a Contentful content type.
      *
      * @return string
      */
-    public function getContentType();
+    public function getMimeType();
 
     /**
-     * @param array|ImageApiOptions $options Options for rendering the image using the Image API @see http://docs.contentfulimagesapi.apiary.io/
+     * @param array|ImageApiOptions $imageApiOptions Options for rendering the image using the Image API @see http://docs.contentfulimagesapi.apiary.io/
      * @return string
      */
     public function getUrl($imageApiOptions = null);
