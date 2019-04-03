@@ -557,7 +557,7 @@ class Contentful
         $endpointUrl,
         $exceptionMessage,
         $api,
-        $queryType = null,
+        $queryType,
         $cacheDisambiguator = '',
         array $parameters = [],
         array $options = []
