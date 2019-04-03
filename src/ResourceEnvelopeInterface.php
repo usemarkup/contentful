@@ -33,9 +33,9 @@ interface ResourceEnvelopeInterface
 
     public function insertContentType(ContentTypeInterface $contentType): self;
 
-    public function insertAllContentTypesForSpace(ResourceArray $contentTypes, string $space): self;
+    public function insertAllContentTypes(ResourceArray $contentTypes): self;
 
-    public function getAllContentTypesForSpace(?string $space): ?ResourceArray;
+    public function getAllContentTypes(): ?ResourceArray;
 
     public function getEntryCount(): int;
 
