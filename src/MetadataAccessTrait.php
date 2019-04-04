@@ -66,7 +66,7 @@ trait MetadataAccessTrait
     }
 
     /**
-     * @return \DateTime
+     * @return \DateTimeInterface
      */
     public function getCreatedAt()
     {
@@ -74,7 +74,7 @@ trait MetadataAccessTrait
     }
 
     /**
-     * @return \DateTime
+     * @return \DateTimeInterface
      */
     public function getUpdatedAt()
     {
