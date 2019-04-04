@@ -44,7 +44,7 @@ class DynamicEntryTest extends MockeryTestCase
             ->with($key)
             ->andReturn('2014-07-27T08:00:00Z');
         $date = $this->dynamicEntry->getField($key);
-        $this->assertInstanceOf('DateTime', $date);
+        $this->assertInstanceOf(\DateTimeInterface::class, $date);
         $this->assertEquals('2014-07-27 08:00:00', $date->format('Y-m-d H:i:s'));
     }
 

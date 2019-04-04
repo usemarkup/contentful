@@ -170,7 +170,7 @@ abstract class AbstractDecoratedAsset implements AssetInterface
     /**
      * The time this resource was created.
      *
-     * @return \DateTime
+     * @return \DateTimeInterface
      */
     public function getCreatedAt()
     {
@@ -180,7 +180,7 @@ abstract class AbstractDecoratedAsset implements AssetInterface
     /**
      * The time this resource was last updated.
      *
-     * @return \DateTime
+     * @return \DateTimeInterface
      */
     public function getUpdatedAt()
     {

@@ -109,7 +109,7 @@ trait DelegatingMetadataPropertyAccessTrait
     /**
      * The time this resource was created.
      *
-     * @return \DateTime
+     * @return \DateTimeInterface
      */
     public function getCreatedAt()
     {
@@ -119,7 +119,7 @@ trait DelegatingMetadataPropertyAccessTrait
     /**
      * The time this resource was last updated.
      *
-     * @return \DateTime
+     * @return \DateTimeInterface
      */
     public function getUpdatedAt()
     {
