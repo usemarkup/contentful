@@ -17,7 +17,7 @@ interface ContentTypeInterface extends ResourceInterface
     /**
      * Returns the content type fields, keyed by ID.
      *
-     * @return ContentTypeField[]
+     * @return ContentTypeFieldInterface[]
      */
     public function getFields();
 
@@ -25,12 +25,12 @@ interface ContentTypeInterface extends ResourceInterface
      * Returns the content type field matching the passed ID, or null if field does not exist.
      *
      * @param string $fieldId
-     * @return ContentTypeField|null
+     * @return ContentTypeFieldInterface|null
      */
     public function getField($fieldId);
 
     /**
-     * @return ContentTypeField|null
+     * @return ContentTypeFieldInterface|null
      */
     public function getDisplayField();
 }

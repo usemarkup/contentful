@@ -3,7 +3,7 @@
 namespace Markup\Contentful\Tests;
 
 use Markup\Contentful\AssetInterface;
-use Markup\Contentful\ContentTypeField;
+use Markup\Contentful\ContentTypeFieldInterface;
 use Markup\Contentful\ContentTypeInterface;
 use Markup\Contentful\EntryInterface;
 use Markup\Contentful\Link;
@@ -223,7 +223,7 @@ class ResourceBuilderTest extends TestCase
         $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
         $this->assertEquals('Cat', $contentType->getName());
         $fields = $contentType->getFields();
-        $this->assertContainsOnlyInstancesOf(ContentTypeField::class, $fields);
+        $this->assertContainsOnlyInstancesOf(ContentTypeFieldInterface::class, $fields);
         $this->assertTrue($fields['name']->isLocalized());
         $this->assertFalse($fields['likes']->isLocalized());
         $this->assertEquals([], $fields['lifes']->getItems());

@@ -5,7 +5,7 @@ namespace Markup\Contentful;
 /**
  * A single field defined against a content type.
  */
-class ContentTypeField
+class ContentTypeField implements ContentTypeFieldInterface
 {
     /**
      * @var string
@@ -62,7 +62,7 @@ class ContentTypeField
     /**
      * @return string
      */
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
@@ -70,7 +70,7 @@ class ContentTypeField
     /**
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -78,7 +78,7 @@ class ContentTypeField
     /**
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
@@ -86,7 +86,7 @@ class ContentTypeField
     /**
      * @return array
      */
-    public function getItems()
+    public function getItems(): array
     {
         return $this->items;
     }
@@ -94,7 +94,7 @@ class ContentTypeField
     /**
      * @return bool
      */
-    public function isLocalized()
+    public function isLocalized(): bool
     {
         return $this->isLocalized;
     }
@@ -102,7 +102,7 @@ class ContentTypeField
     /**
      * @return bool
      */
-    public function isRequired()
+    public function isRequired(): bool
     {
         return $this->isRequired;
     }
