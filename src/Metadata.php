@@ -35,12 +35,12 @@ class Metadata implements MetadataInterface
     private $revision;
 
     /**
-     * @var \DateTimeInterface
+     * @var \DateTimeInterface|null
      */
     private $createdAt;
 
     /**
-     * @var \DateTimeInterface
+     * @var \DateTimeInterface|null
      */
     private $updatedAt;
 
@@ -157,7 +157,7 @@ class Metadata implements MetadataInterface
     }
 
     /**
-     * @return \DateTimeInterface
+     * @return \DateTimeInterface|null
      */
     public function getCreatedAt()
     {
@@ -173,7 +173,7 @@ class Metadata implements MetadataInterface
     }
 
     /**
-     * @return \DateTimeInterface
+     * @return \DateTimeInterface|null
      */
     public function getUpdatedAt()
     {

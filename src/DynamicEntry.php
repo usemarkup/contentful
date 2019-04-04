@@ -143,7 +143,7 @@ class DynamicEntry implements EntryInterface
     /**
      * The time this resource was created.
      *
-     * @return \DateTimeInterface
+     * @return \DateTimeInterface|null
      */
     public function getCreatedAt()
     {
@@ -153,7 +153,7 @@ class DynamicEntry implements EntryInterface
     /**
      * The time this resource was last updated.
      *
-     * @return \DateTimeInterface
+     * @return \DateTimeInterface|null
      */
     public function getUpdatedAt()
     {
