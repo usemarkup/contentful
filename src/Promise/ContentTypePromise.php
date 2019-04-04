@@ -4,7 +4,7 @@ namespace Markup\Contentful\Promise;
 
 use GuzzleHttp\Promise\PromiseInterface;
 use Markup\Contentful\ContentType;
-use Markup\Contentful\ContentTypeField;
+use Markup\Contentful\ContentTypeFieldInterface;
 use Markup\Contentful\ContentTypeInterface;
 use Markup\Contentful\Metadata;
 
@@ -39,7 +39,7 @@ class ContentTypePromise extends ResourcePromise implements ContentTypeInterface
     /**
      * Returns the content type fields, keyed by ID.
      *
-     * @return ContentTypeField[]
+     * @return ContentTypeFieldInterface[]
      */
     public function getFields()
     {
@@ -55,7 +55,7 @@ class ContentTypePromise extends ResourcePromise implements ContentTypeInterface
      * Returns the content type field matching the passed ID, or null if field does not exist.
      *
      * @param string $fieldId
-     * @return ContentTypeField|null
+     * @return ContentTypeFieldInterface|null
      */
     public function getField($fieldId)
     {
@@ -68,7 +68,7 @@ class ContentTypePromise extends ResourcePromise implements ContentTypeInterface
     }
 
     /**
-     * @return ContentTypeField|null
+     * @return ContentTypeFieldInterface|null
      */
     public function getDisplayField()
     {

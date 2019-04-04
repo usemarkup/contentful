@@ -19,7 +19,7 @@ class ContentType implements ContentTypeInterface
     /**
      * The fields, keyed by ID.
      *
-     * @var ContentTypeField[]
+     * @var ContentTypeFieldInterface[]
      */
     private $fields;
 
@@ -29,11 +29,11 @@ class ContentType implements ContentTypeInterface
     private $displayField;
 
     /**
-     * @param string             $name
-     * @param string             $description
-     * @param ContentTypeField[] $fields
-     * @param MetadataInterface  $metadata
-     * @param string             $displayField
+     * @param string                      $name
+     * @param string                      $description
+     * @param ContentTypeFieldInterface[] $fields
+     * @param MetadataInterface           $metadata
+     * @param string                      $displayField
      */
     public function __construct($name, $description, $fields, MetadataInterface $metadata, $displayField = null)
     {
@@ -64,7 +64,7 @@ class ContentType implements ContentTypeInterface
     }
 
     /**
-     * @return ContentTypeField[]
+     * @return ContentTypeFieldInterface[]
      */
     public function getFields()
     {
@@ -73,7 +73,7 @@ class ContentType implements ContentTypeInterface
 
     /**
      * @param string $fieldId
-     * @return ContentTypeField|null
+     * @return ContentTypeFieldInterface|null
      */
     public function getField($fieldId)
     {
@@ -85,7 +85,7 @@ class ContentType implements ContentTypeInterface
     }
 
     /**
-     * @return \Markup\Contentful\ContentTypeField|null
+     * @return ContentTypeFieldInterface|null
      */
     public function getDisplayField()
     {
