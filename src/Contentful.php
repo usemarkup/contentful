@@ -104,7 +104,7 @@ class Contentful
         $this->resourcePool = new ResourceEnvelopePool();
         foreach ($spaces as $key => $space) {
             $this->resourcePool->registerEnvelopeForSpace(
-                $options['resource_envelope'] ?? new MemoizedResourceEnvelope(),
+                $space['resource_envelope'] ?? new MemoizedResourceEnvelope(),
                 $key
             );
         }
