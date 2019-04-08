@@ -1154,7 +1154,7 @@ class Contentful
         return $contentTypes
             ->then(
                 function ($types) use ($spaceName) {
-                    $this->findEnvelopeForSpace($spaceName)->insertAllContentTypesForSpace($types, $spaceName);
+                    $this->findEnvelopeForSpace($spaceName)->insertAllContentTypes($types);
 
                     return $types;
                 }
