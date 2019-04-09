@@ -59,7 +59,7 @@ class Entry implements EntryInterface
             return null;
         }
         if (null !== $this->resolveLinkFunction) {
-            if ($this->fields[$key] instanceof Link) {
+            if ($this->fields[$key] instanceof LinkInterface) {
                 if (!isset($this->resolvedLinks[$key])) {
                     try {
                         $resolvedLink = call_user_func($this->resolveLinkFunction, $this->fields[$key], $this->getLocale())->wait();
@@ -99,7 +99,7 @@ class Entry implements EntryInterface
     public function getContentType()
     {
         $metadataContentType = $this->getMetadataContentType();
-        if (!$metadataContentType instanceof Link) {
+        if (!$metadataContentType instanceof LinkInterface) {
             return $metadataContentType;
         }
         if (null === $this->resolveLinkFunction) {
@@ -147,7 +147,7 @@ class Entry implements EntryInterface
     private function containsLink(array $resources)
     {
         foreach ($resources as $resource) {
-            if ($resource instanceof Link) {
+            if ($resource instanceof LinkInterface) {
                 return true;
             }
         }
