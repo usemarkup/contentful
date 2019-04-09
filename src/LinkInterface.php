@@ -9,17 +9,17 @@ namespace Markup\Contentful;
 interface LinkInterface
 {
     /**
-     * @var string
+     * @return string
      */
     public function getId();
 
     /**
-     * @var string
+     * @return string
      */
     public function getLinkType();
 
     /**
-     * @var string
+     * @return string
      */
     public function getSpaceName();
 }
