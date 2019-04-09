@@ -3,6 +3,7 @@
 namespace Markup\Contentful\Tests;
 
 use Markup\Contentful\AssetInterface;
+use Markup\Contentful\CanResolveResourcesInterface;
 use Markup\Contentful\ContentTypeFieldInterface;
 use Markup\Contentful\ContentTypeInterface;
 use Markup\Contentful\EntryInterface;
@@ -530,5 +531,10 @@ class ResourceBuilderTest extends TestCase
         $array = $this->builder->buildFromData($data, $spaceName)->wait();
         $this->assertInstanceOf(ResourceArray::class, $array);
         $this->assertCount(1, $array);
+    }
+
+    public function testCanResolveResources()
+    {
+        $this->assertInstanceOf(CanResolveResourcesInterface::class, $this->builder);
     }
 }
