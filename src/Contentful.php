@@ -102,10 +102,9 @@ class Contentful
         }
         $this->resourcePool = new ResourceEnvelopePool();
         foreach ($spaces as $key => $space) {
-            $this->resourcePool->registerEnvelopeForSpace(
-                $space['resource_envelope'] ?? new MemoizedResourceEnvelope(),
-                $key
-            );
+            $envelope = $space['resource_envelope'] ?? new MemoizedResourceEnvelope();
+            $this->setResolveLinkFunctionOntoEnvelope($envelope);
+            $this->resourcePool->registerEnvelopeForSpace($envelope, $key);
         }
     }
 
@@ -980,9 +979,7 @@ class Contentful
         static $resourceBuilder;
         if (empty($resourceBuilder)) {
             $resourceBuilder = new ResourceBuilder($this->findEnvelopeForSpace($spaceName));
-            $resourceBuilder->setResolveLinkFunction(function ($link, $locale = null) {
-                return $this->resolveLink($link, [], $locale);
-            });
+            $resourceBuilder->setResolveLinkFunction($this->createResolveLinkFunction());
         }
         $resourceBuilder->setUseDynamicEntries($useTypedResources);
 
@@ -1174,5 +1171,19 @@ class Contentful
         $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
 
         return $this->resourcePool->getEnvelopeForSpace($spaceName);
+    }
+
+    private function createResolveLinkFunction(): callable
+    {
+        return function ($link, $locale = null) {
+            return $this->resolveLink($link, [], $locale);
+        };
+    }
+
+    private function setResolveLinkFunctionOntoEnvelope(ResourceEnvelopeInterface $envelope)
+    {
+        if ($envelope instanceof CanResolveResourcesInterface) {
+            $envelope->setResolveLinkFunction($this->createResolveLinkFunction());
+        }
     }
 }

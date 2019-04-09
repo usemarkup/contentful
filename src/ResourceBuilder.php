@@ -9,7 +9,7 @@ use GuzzleHttp\Promise\PromiseInterface;
 use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\Decorator\NullAssetDecorator;
 
-class ResourceBuilder
+class ResourceBuilder implements CanResolveResourcesInterface
 {
     /**
      * @var callable
