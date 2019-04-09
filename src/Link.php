@@ -2,7 +2,7 @@
 
 namespace Markup\Contentful;
 
-class Link implements MetadataInterface
+class Link implements LinkInterface, MetadataInterface
 {
     use MetadataAccessTrait;
 
