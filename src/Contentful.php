@@ -29,7 +29,6 @@ use Markup\Contentful\Promise\ResourceArrayPromise;
 use Markup\Contentful\Promise\SpacePromise;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
-use Psr\Http\Message\ResponseInterface;
 
 class Contentful
 {
@@ -511,9 +510,9 @@ class Contentful
     }
 
     /**
-     * @param Link        $link
-     * @param array       $options
-     * @param string|null $locale
+     * @param LinkInterface $link
+     * @param array         $options
+     * @param string|null   $locale
      * @return PromiseInterface
      */
     public function resolveLink($link, array $options = [], $locale = null)
