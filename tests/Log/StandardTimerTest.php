@@ -8,6 +8,11 @@ use PHPUnit\Framework\TestCase;
 
 class StandardTimerTest extends TestCase
 {
+    /**
+     * @var StandardTimer
+     */
+    private $timer;
+
     protected function setUp()
     {
         $this->timer = new StandardTimer();
@@ -38,5 +43,7 @@ class StandardTimerTest extends TestCase
         $this->timer->start();
         $this->timer->stop();
         $this->assertEquals($finalDuration, $this->timer->getDurationInSeconds(), 'the timer cannot be reused');
+        $this->assertInstanceOf(\DateTimeInterface::class, $this->timer->getStartTime());
+        $this->assertInstanceOf(\DateTimeInterface::class, $this->timer->getStopTime());
     }
 }

@@ -24,4 +24,8 @@ interface TimerInterface
      * @return float
      */
     public function getDurationInSeconds();
+
+    public function getStartTime(): ?\DateTimeInterface;
+
+    public function getStopTime(): ?\DateTimeInterface;
 }
