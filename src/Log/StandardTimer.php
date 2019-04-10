@@ -23,9 +23,19 @@ class StandardTimer implements TimerInterface
     private $initialTimestamp;
 
     /**
+     * @var \DateTimeInterface|null
+     */
+    private $initialTime;
+
+    /**
      * @var float
      */
     private $finalTimestamp;
+
+    /**
+     * \DateTimeInterface|null
+     */
+    private $finalTime;
 
     public function __construct()
     {
@@ -39,6 +49,7 @@ class StandardTimer implements TimerInterface
             return;
         }
         $this->initialTimestamp = $this->getCurrentTimestamp();
+        $this->initialTime = \DateTimeImmutable::createFromFormat('U.u', strval($this->initialTimestamp)) ?: null;
         $this->wasStarted = true;
     }
 
@@ -48,6 +59,7 @@ class StandardTimer implements TimerInterface
             return;
         }
         $this->finalTimestamp = $this->getCurrentTimestamp();
+        $this->finalTime = \DateTimeImmutable::createFromFormat('U.u', strval($this->finalTimestamp)) ?: null;
         $this->wasStopped = true;
     }
 
@@ -77,6 +89,16 @@ class StandardTimer implements TimerInterface
         }
 
         return (($this->isStopped()) ? $this->finalTimestamp : $this->getCurrentTimestamp()) - $this->initialTimestamp;
+    }
+
+    public function getStartTime(): ?\DateTimeInterface
+    {
+        return $this->initialTime;
+    }
+
+    public function getStopTime(): ?\DateTimeInterface
+    {
+        return $this->finalTime;
     }
 
     /**

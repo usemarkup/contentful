@@ -15,6 +15,16 @@ class Log implements LogInterface
     private $durationInSeconds;
 
     /**
+     * @var \DateTimeInterface|null
+     */
+    private $startTime;
+
+    /**
+     * @var \DateTimeInterface|null
+     */
+    private $stopTime;
+
+    /**
      * @var bool
      */
     private $isCacheHit;
@@ -34,18 +44,20 @@ class Log implements LogInterface
      */
     private $api;
 
-    /**
-     * @param string $description
-     * @param float|null $durationInSeconds
-     * @param bool $isCacheHit
-     * @param string $type
-     * @param string $resourceType
-     * @param string $api
-     */
-    public function __construct($description, $durationInSeconds, $isCacheHit, $type, $resourceType, $api)
-    {
+    public function __construct(
+        string $description,
+        ?float $durationInSeconds,
+        ?\DateTimeInterface $startTime,
+        ?\DateTimeInterface $stopTime,
+        bool $isCacheHit,
+        string $type,
+        string $resourceType,
+        string $api
+    ) {
         $this->description = $description;
         $this->durationInSeconds = $durationInSeconds;
+        $this->startTime = $startTime;
+        $this->stopTime = $stopTime;
         $this->isCacheHit = $isCacheHit;
         $this->type = $type;
         $this->resourceType = $resourceType;
@@ -80,6 +92,16 @@ class Log implements LogInterface
     public function getDurationInSeconds()
     {
         return $this->durationInSeconds;
+    }
+
+    public function getStartTime(): ?\DateTimeInterface
+    {
+        return $this->startTime;
+    }
+
+    public function getStopTime(): ?\DateTimeInterface
+    {
+        return $this->stopTime;
     }
 
     /**

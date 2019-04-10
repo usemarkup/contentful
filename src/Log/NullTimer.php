@@ -35,4 +35,14 @@ class NullTimer implements TimerInterface
     {
         return 0.0;
     }
+
+    public function getStartTime(): ?\DateTimeInterface
+    {
+        return null;
+    }
+
+    public function getStopTime(): ?\DateTimeInterface
+    {
+        return null;
+    }
 }

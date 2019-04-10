@@ -39,6 +39,10 @@ interface LogInterface
      */
     public function getDurationInSeconds();
 
+    public function getStartTime(): ?\DateTimeInterface;
+
+    public function getStopTime(): ?\DateTimeInterface;
+
     /**
      * Gets whether this lookup had a cache hit.
      *
