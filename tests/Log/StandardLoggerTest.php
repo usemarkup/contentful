@@ -35,15 +35,13 @@ class StandardLoggerTest extends TestCase
         $this->assertTrue($timer->isStarted());
         $description = 'description goes here';
         $isCacheHit = true;
-        $type = LogInterface::TYPE_RESOURCE;
         $resourceType = LogInterface::RESOURCE_ASSET;
         $api = Contentful::CONTENT_DELIVERY_API;
-        $this->logger->log($description, $isCacheHit, $timer, $type, $resourceType, $api);
+        $this->logger->log($description, $isCacheHit, $timer, $resourceType, $api);
         $finalLogs = $this->logger->getLogs();
         $this->assertCount(1, $finalLogs);
         $log = reset($finalLogs);
         $this->assertInstanceOf(LogInterface::class, $log);
-        $this->assertEquals($type, $log->getType());
         $this->assertEquals($description, $log->getDescription());
         $this->assertIsFloat($log->getDurationInSeconds());
         $this->assertLessThan(1, $log->getDurationInSeconds());

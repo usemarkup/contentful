@@ -7,18 +7,9 @@ namespace Markup\Contentful\Log;
  */
 interface LogInterface
 {
-    const TYPE_RESPONSE = 'response';
-    const TYPE_RESOURCE = 'resource';
     const RESOURCE_CONTENT_TYPE = 'ContentType';
     const RESOURCE_ENTRY = 'Entry';
     const RESOURCE_ASSET = 'Asset';
-
-    /**
-     * The type of log. Possible values: TYPE_* interface constants.
-     *
-     * @return string
-     */
-    public function getType();
 
     /**
      * The resource type. Possible values: RESOURCE_* interface constants.
