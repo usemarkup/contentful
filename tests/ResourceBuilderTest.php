@@ -9,8 +9,10 @@ use Markup\Contentful\ContentTypeInterface;
 use Markup\Contentful\EntryInterface;
 use Markup\Contentful\Link;
 use Markup\Contentful\Locale;
+use Markup\Contentful\MemoizedResourceEnvelope;
 use Markup\Contentful\ResourceArray;
 use Markup\Contentful\ResourceBuilder;
+use Markup\Contentful\ResourceEnvelopePool;
 use Markup\Contentful\SpaceInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -21,14 +23,21 @@ class ResourceBuilderTest extends TestCase
      */
     private $builder;
 
+    /**
+     * @var string
+     */
+    private $spaceName;
+
     protected function setUp()
     {
-        $this->builder = new ResourceBuilder();
+        $this->spaceName = 'example_name';
+        $pool = new ResourceEnvelopePool();
+        $pool->registerEnvelopeForSpace(new MemoizedResourceEnvelope(), $this->spaceName);
+        $this->builder = new ResourceBuilder($pool);
     }
 
     public function testBuildSpace()
     {
-        $spaceName = 'example_name';
         $spaceId = 'cfexampleapi';
         $data = [
             'sys' => [
@@ -47,7 +56,7 @@ class ResourceBuilderTest extends TestCase
                 ],
             ],
         ];
-        $space = $this->builder->buildFromData($data, $spaceName)->wait();
+        $space = $this->builder->buildFromData($data, $this->spaceName)->wait();
         $this->assertInstanceOf(SpaceInterface::class, $space);
         $this->assertEquals('cfexampleapi', $space->getId());
         $locale = $space->getLocales()[1];
@@ -57,7 +66,6 @@ class ResourceBuilderTest extends TestCase
 
     public function testBuildEntry()
     {
-        $spaceName = 'example_name';
         $spaceId = 'example';
         $data = [
             'sys' => [
@@ -90,7 +98,7 @@ class ResourceBuilderTest extends TestCase
                 ],
             ]
         ];
-        $entry = $this->builder->buildFromData($data, $spaceName)->wait();
+        $entry = $this->builder->buildFromData($data, $this->spaceName)->wait();
         $this->assertInstanceOf(EntryInterface::class, $entry);
         $this->assertEquals('cat', $entry->getId());
         $spaceLink = $entry->getSpace();
@@ -106,7 +114,6 @@ class ResourceBuilderTest extends TestCase
 
     public function testBuildAsset()
     {
-        $spaceName = 'example_name';
         $spaceId = 'example';
         $data = [
             'sys' => [
@@ -140,7 +147,7 @@ class ResourceBuilderTest extends TestCase
                 ],
             ],
         ];
-        $asset = $this->builder->buildFromData($data, $spaceName)->wait();
+        $asset = $this->builder->buildFromData($data, $this->spaceName)->wait();
         $this->assertInstanceOf(AssetInterface::class, $asset);
         $this->assertEquals('nyancat.png', $asset->getFilename());
         $this->assertEquals('//images.contentful.com/cfexampleapi/4gp6taAwW4CmSgumq2ekUm/9da0cd1936871b8d72343e895a00d611/Nyan_cat_250px_frame.png', $asset->getUrl());
@@ -150,7 +157,6 @@ class ResourceBuilderTest extends TestCase
 
     public function testBuildAssetFromUploadDataForm()
     {
-        $spaceName = 'example_name';
         $spaceId = 'example';
         $data = [
             'sys' => [
@@ -177,7 +183,7 @@ class ResourceBuilderTest extends TestCase
                 ],
             ],
         ];
-        $asset = $this->builder->buildFromData($data, $spaceName)->wait();
+        $asset = $this->builder->buildFromData($data, $this->spaceName)->wait();
         $this->assertInstanceOf(AssetInterface::class, $asset);
         $this->assertEquals('//images.contentful.com/cfexampleapi/4gp6taAwW4CmSgumq2ekUm/9da0cd1936871b8d72343e895a00d611/Nyan_cat_250px_frame.png', $asset->getUrl());
         $this->assertNull($asset->getFileSizeInBytes());
@@ -185,7 +191,6 @@ class ResourceBuilderTest extends TestCase
 
     public function testBuildContentType()
     {
-        $spaceName = 'example_name';
         $data = [
             'sys' => [
                 'type' => 'ContentType',
@@ -220,7 +225,7 @@ class ResourceBuilderTest extends TestCase
                 ],
             ],
         ];
-        $contentType = $this->builder->buildFromData($data, $spaceName)->wait();
+        $contentType = $this->builder->buildFromData($data, $this->spaceName)->wait();
         $this->assertInstanceOf(ContentTypeInterface::class, $contentType);
         $this->assertEquals('Cat', $contentType->getName());
         $fields = $contentType->getFields();
@@ -233,7 +238,6 @@ class ResourceBuilderTest extends TestCase
 
     public function testBuildEntryArray()
     {
-        $spaceName = 'example_name';
         $spaceId = 'example';
         $data = [
             [
@@ -299,7 +303,7 @@ class ResourceBuilderTest extends TestCase
                 ]
             ],
         ];
-        $entries = $this->builder->buildFromData($data, $spaceName)->wait();
+        $entries = $this->builder->buildFromData($data, $this->spaceName)->wait();
         $this->assertCount(2, $entries);
         $this->assertContainsOnlyInstancesOf(EntryInterface::class, $entries);
         $this->assertEquals('cat2', $entries[1]->getId());
@@ -307,7 +311,6 @@ class ResourceBuilderTest extends TestCase
 
     public function testBuildEntryWithArrayOfLinks()
     {
-        $spaceName = 'example_name';
         $spaceId = 'example';
         $data = [
             'sys' => [
@@ -342,7 +345,7 @@ class ResourceBuilderTest extends TestCase
                 ],
             ]
         ];
-        $entry = $this->builder->buildFromData($data, $spaceName)->wait();
+        $entry = $this->builder->buildFromData($data, $this->spaceName)->wait();
         $links = $entry->getField('bestFriend');
         $this->assertIsArray($links);
         $this->assertCount(1, $links);
@@ -351,7 +354,6 @@ class ResourceBuilderTest extends TestCase
 
     public function testBuildArrayOfEntries()
     {
-        $spaceName = 'example_name';
         $spaceId = 'cfexampleapi';
         $data = [
             'sys' => [
@@ -528,7 +530,7 @@ class ResourceBuilderTest extends TestCase
                 ],
             ],
         ];
-        $array = $this->builder->buildFromData($data, $spaceName)->wait();
+        $array = $this->builder->buildFromData($data, $this->spaceName)->wait();
         $this->assertInstanceOf(ResourceArray::class, $array);
         $this->assertCount(1, $array);
     }

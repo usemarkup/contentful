@@ -973,7 +973,7 @@ class Contentful
     ) {
         static $resourceBuilder;
         if (empty($resourceBuilder)) {
-            $resourceBuilder = new ResourceBuilder($this->findEnvelopeForSpace($spaceName));
+            $resourceBuilder = new ResourceBuilder($this->resourcePool);
             $resourceBuilder->setResolveLinkFunction($this->createResolveLinkFunction());
         }
         $resourceBuilder->setUseDynamicEntries($useTypedResources);

@@ -22,13 +22,13 @@ class ResourceBuilder implements CanResolveResourcesInterface
     private $useDynamicEntries;
 
     /**
-     * @var ResourceEnvelopeInterface
+     * @var ResourceEnvelopePool
      */
-    private $envelope;
+    private $resourcePool;
 
-    public function __construct(?ResourceEnvelopeInterface $envelope = null)
+    public function __construct(ResourceEnvelopePool $resourcePool)
     {
-        $this->envelope = $envelope ?: new MemoizedResourceEnvelope();
+        $this->resourcePool = $resourcePool;
     }
 
     /**
@@ -46,6 +46,7 @@ class ResourceBuilder implements CanResolveResourcesInterface
     ) {
         return coroutine(
             function () use ($data, $spaceName, $assetDecorator, $locale) {
+                $envelope = $this->findEnvelopeForSpace($spaceName);
                 $assetDecorator = $assetDecorator ?: new NullAssetDecorator();
                 $dataLocale = $locale ?: ((isset($data['sys']['locale'])) ? $data['sys']['locale'] : null);
                 $buildFromData = function ($data) use ($spaceName, $assetDecorator, $dataLocale) {
@@ -105,7 +106,7 @@ class ResourceBuilder implements CanResolveResourcesInterface
                             }
                             $entry = new DynamicEntry($entry, $contentType);
                         }
-                        $this->envelope->insert($entry);
+                        $envelope->insert($entry);
 
                         yield promise_for($entry);
                         return;
@@ -122,7 +123,7 @@ class ResourceBuilder implements CanResolveResourcesInterface
                             $metadata
                         );
                         $asset = $assetDecorator->decorate($asset);
-                        $this->envelope->insert($asset);
+                        $envelope->insert($asset);
 
                         yield promise_for($asset);
                         return;
@@ -154,21 +155,21 @@ class ResourceBuilder implements CanResolveResourcesInterface
                             $metadata,
                             (isset($data['displayField'])) ? $data['displayField'] : null
                         );
-                        $this->envelope->insert($contentType);
+                        $envelope->insert($contentType);
 
                         yield promise_for($contentType);
                         return;
                     case 'Link':
                         switch ($metadata->getLinkType()) {
                             case 'Entry':
-                                $entry = $this->envelope->findEntry($metadata->getId(), $dataLocale);
+                                $entry = $envelope->findEntry($metadata->getId(), $dataLocale);
                                 if ($entry) {
                                     yield promise_for($entry);
                                     return;
                                 }
                                 break;
                             case 'Asset':
-                                $asset = $this->envelope->findAsset($metadata->getId(), $dataLocale);
+                                $asset = $envelope->findAsset($metadata->getId(), $dataLocale);
                                 if ($asset) {
                                     yield promise_for($asset);
                                     return;
@@ -183,21 +184,25 @@ class ResourceBuilder implements CanResolveResourcesInterface
                     case 'Array':
                         yield $this->addToEnvelope(
                             (isset($data['includes'])) ? $data['includes'] : [],
-                            $buildFromData
+                            $buildFromData,
+                            $envelope
                         );
 
                         $resolveResourceData = all(
                             array_map(
-                                function ($itemData) use ($buildFromData) {
+                                function ($itemData) use ($buildFromData, $envelope) {
                                      return coroutine(
-                                         function () use ($itemData, $buildFromData) {
-                                             $envelopeResource = $this->resolveResourceDataToEnvelopeResource($itemData);
+                                         function () use ($itemData, $buildFromData, $envelope) {
+                                             $envelopeResource = $this->resolveResourceDataToEnvelopeResource(
+                                                 $itemData,
+                                                 $envelope
+                                             );
                                              if ($envelopeResource) {
                                                  yield $envelopeResource;
                                                  return;
                                              }
                                              $resource = (yield $buildFromData($itemData));
-                                             $this->envelope->insert($resource);
+                                             $envelope->insert($resource);
 
                                              yield $resource;
                                          }
@@ -212,7 +217,7 @@ class ResourceBuilder implements CanResolveResourcesInterface
                             intval($data['total']),
                             intval($data['limit']),
                             intval($data['skip']),
-                            $this->envelope
+                            $envelope
                         ));
                         return;
                     default:
@@ -288,7 +293,7 @@ class ResourceBuilder implements CanResolveResourcesInterface
      * @param array $data
      * @return ResourceInterface|null
      */
-    private function resolveResourceDataToEnvelopeResource(array $data)
+    private function resolveResourceDataToEnvelopeResource(array $data, ResourceEnvelopeInterface $envelope)
     {
         if (!isset($data['sys']['id']) || !isset($data['sys']['type'])) {
             return null;
@@ -296,13 +301,13 @@ class ResourceBuilder implements CanResolveResourcesInterface
         $dataLocale = (isset($data['sys']['locale'])) ? $data['sys']['locale'] : null;
         switch ($data['sys']['type']) {
             case 'Entry':
-                return $this->envelope->findEntry($data['sys']['id'], $dataLocale);
+                return $envelope->findEntry($data['sys']['id'], $dataLocale);
                 break;
             case 'Asset':
-                return $this->envelope->findAsset($data['sys']['id'], $dataLocale);
+                return $envelope->findAsset($data['sys']['id'], $dataLocale);
                 break;
             case 'ContentType':
-                return $this->envelope->findContentType($data['sys']['id']);
+                return $envelope->findContentType($data['sys']['id']);
                 break;
             default:
                 return null;
@@ -345,31 +350,38 @@ class ResourceBuilder implements CanResolveResourcesInterface
      * @param callable $buildFromData
      * @return PromiseInterface
      */
-    private function addToEnvelope(array $includesData, callable $buildFromData)
+    private function addToEnvelope(array $includesData, callable $buildFromData, ResourceEnvelopeInterface $envelope)
     {
         return coroutine(
-            function () use ($includesData, $buildFromData) {
+            function () use ($includesData, $buildFromData, $envelope) {
                 if (isset($includesData['Entry'])) {
                     foreach ($includesData['Entry'] as $entryData) {
                         $entryLocale = (isset($entryData['sys']['locale'])) ? $entryData['sys']['locale'] : null;
-                        if (!isset($entryData['sys']['id']) || $this->envelope->hasEntry($entryData['sys']['id'], $entryLocale)) {
+                        if (!isset($entryData['sys']['id']) || $envelope->hasEntry($entryData['sys']['id'], $entryLocale)) {
                             continue;
                         }
-                        $this->envelope->insertEntry((yield $buildFromData($entryData)));
+                        $envelope->insertEntry((yield $buildFromData($entryData)));
                     }
                 }
                 if (isset($includesData['Asset'])) {
                     foreach ($includesData['Asset'] as $assetData) {
                         $assetLocale = (isset($assetData['sys']['locale'])) ? $assetData['sys']['locale'] : null;
-                        if (!isset($assetData['sys']['id']) || $this->envelope->hasAsset($assetData['sys']['id'], $assetLocale)) {
+                        if (!isset($assetData['sys']['id']) || $envelope->hasAsset($assetData['sys']['id'], $assetLocale)) {
                             continue;
                         }
-                        $this->envelope->insertAsset((yield $buildFromData($assetData)));
+                        $envelope->insertAsset((yield $buildFromData($assetData)));
                     }
                 }
 
-                yield promise_for($this->envelope);
+                yield promise_for($envelope);
             }
         );
+    }
+
+    private function findEnvelopeForSpace($space)
+    {
+        $spaceName = ($space instanceof SpaceInterface) ? $space->getName() : $space;
+
+        return $this->resourcePool->getEnvelopeForSpace($spaceName);
     }
 }
