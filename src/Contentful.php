@@ -605,7 +605,6 @@ class Contentful
     ) {
         $promise = coroutine(
             function () use ($spaceData, $spaceName, $endpointUrl, $exceptionMessage, $api, $queryType, $cacheDisambiguator, $parameters, $options) {
-                $timer = $this->logger->getStartedTimer();
                 $options = $this->mergeOptions($options);
                 $shouldBuildTypedResources = !$options['untyped'];
                 $test = $options['test'];
@@ -646,28 +645,12 @@ class Contentful
                         }
                     );
                 };
-                $log = function ($description, $isCacheHit, $type) use ($timer, $queryType, $api) {
-                    $this->logger->log(
-                        $description,
-                        $isCacheHit,
-                        $timer,
-                        $type,
-                        $this->getLogResourceTypeForQueryType($queryType),
-                        $api
-                    );
-                };
                 if ($readCacheItem->isHit()) {
                     $cacheItemJson = $readCacheItem->get();
                     if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
                         $cacheItemData = json_decode($cacheItemJson, true);
                         //if we are caching fail responses, and this cache item has null content, it's a fail
                         if (null !== $cacheItemData) {
-                            $log(
-                                sprintf('Fetched response from cache for key "%s".', $cacheKey),
-                                true,
-                                LogInterface::TYPE_RESPONSE
-                            );
-
                             $builtResponse = (yield $buildResponseFromJson($cacheItemJson));
                             if ($builtResponse) {
                                 yield promise_for($builtResponse);
@@ -682,11 +665,6 @@ class Contentful
                             if ($api === self::CONTENT_DELIVERY_API && $fallbackCacheItem->isHit()) {
                                 $fallbackJson = $fallbackCacheItem->get();
                                 if (is_string($fallbackJson) && $fallbackJson !== json_encode(null) && strlen($fallbackJson) > 0) {
-                                    $log(
-                                        sprintf('Used successful fallback cache value as main cache has a fail response for key "%s".', $cacheKey),
-                                        true,
-                                        LogInterface::TYPE_RESOURCE
-                                    );
                                     $builtResponse = (yield $buildResponseFromJson($fallbackJson));
                                     if ($builtResponse) {
                                         yield promise_for($builtResponse);
@@ -717,6 +695,19 @@ class Contentful
 
                 $unavailableException = null;
                 $response = null;
+                $didFetch = false;
+                $timer = $this->logger->getStartedTimer();
+
+                $log = function ($description) use ($timer, $queryType, $api) {
+                    $this->logger->log(
+                        $description,
+                        true,
+                        $timer,
+                        $this->getLogResourceTypeForQueryType($queryType),
+                        $api
+                    );
+                };
+
                 try {
                     /** @var Response $response */
                     $response = ($shouldBuildTypedResources)
@@ -725,6 +716,7 @@ class Contentful
                             $this->ensureContentTypesLoaded($spaceName)
                         ])))[0]
                         : (yield $this->sendRequestWithQueryParams($request, $queryParams));
+                    $didFetch = true;
                 } catch (RequestException $e) {
                     /**
                      * @var CacheItemInterface $fallbackCacheItem
@@ -733,11 +725,6 @@ class Contentful
                     if (in_array($api, [self::CONTENT_DELIVERY_API, self::PREVIEW_API]) && $fallbackCacheItem->isHit()) {
                         $fallbackJson = $fallbackCacheItem->get();
                         if (is_string($fallbackJson) && $fallbackJson !== json_encode(null) && strlen($fallbackJson) > 0) {
-                            $log(
-                                sprintf('Fetched response from fallback cache for key "%s".', $cacheKey),
-                                true,
-                                LogInterface::TYPE_RESOURCE
-                            );
                             //save fallback value into main cache
                             $writeCacheItem->set($fallbackJson);
                             $writeCache->save($writeCacheItem);
@@ -771,6 +758,13 @@ class Contentful
                         return;
                     }
                     $unavailableException = new ResourceUnavailableException($exceptionResponse, $exceptionMessage, 0, $e);
+                } finally {
+                    if ($didFetch) {
+                        $log(sprintf(
+                            'Fetched a fresh response from URL "%s".',
+                            $this->getUriForRequest($request, $queryParams)
+                        ));
+                    }
                 }
                 if (!$unavailableException && $response && $response->getStatusCode() != '200') {
                     $unavailableException = new ResourceUnavailableException(
@@ -816,14 +810,6 @@ class Contentful
                 }
                 //if built response did not pass provided test
                 if (!$builtResponse) {
-                    $log(
-                        sprintf(
-                            'Fetched a fresh response from URL "%s" that did not pass provided test',
-                            $this->getUriForRequest($request, $queryParams)
-                        ),
-                        false,
-                        LogInterface::TYPE_RESOURCE
-                    );
                     //try to load a valid response from fallback cache
                     /**
                      * @var CacheItemInterface $fallbackCacheItem
@@ -832,11 +818,6 @@ class Contentful
                     if ($api === self::CONTENT_DELIVERY_API && $fallbackCacheItem->isHit()) {
                         $fallbackJson = $fallbackCacheItem->get();
                         if (is_string($fallbackJson) && $fallbackJson !== json_encode(null) && strlen($fallbackJson) > 0) {
-                            $log(
-                                sprintf('Used successful fallback cache value as fresh fetch for key "%s" did not pass provided test.', $cacheKey),
-                                true,
-                                LogInterface::TYPE_RESOURCE
-                            );
                             $builtResponse = (yield $buildResponseFromJson($fallbackJson));
                             if ($builtResponse) {
                                 yield promise_for($builtResponse);
@@ -849,14 +830,6 @@ class Contentful
                         'Contentful returned a valid response but it did not pass the provided test'
                     );
                 }
-                $log(
-                    sprintf(
-                        'Fetched a fresh response from URL "%s".',
-                        $this->getUriForRequest($request, $queryParams)
-                    ),
-                    false,
-                    LogInterface::TYPE_RESPONSE
-                );
 
                 yield promise_for($builtResponse);
             }

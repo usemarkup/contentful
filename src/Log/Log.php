@@ -32,11 +32,6 @@ class Log implements LogInterface
     /**
      * @var string
      */
-    private $type;
-
-    /**
-     * @var string
-     */
     private $resourceType;
 
     /**
@@ -50,7 +45,6 @@ class Log implements LogInterface
         ?\DateTimeInterface $startTime,
         ?\DateTimeInterface $stopTime,
         bool $isCacheHit,
-        string $type,
         string $resourceType,
         string $api
     ) {
@@ -59,19 +53,8 @@ class Log implements LogInterface
         $this->startTime = $startTime;
         $this->stopTime = $stopTime;
         $this->isCacheHit = $isCacheHit;
-        $this->type = $type;
         $this->resourceType = $resourceType;
         $this->api = $api;
-    }
-
-    /**
-     * The type of log. Possible values: TYPE_* interface constants
-     *
-     * @return string
-     */
-    public function getType()
-    {
-        return $this->type;
     }
 
     /**

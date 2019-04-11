@@ -12,7 +12,6 @@ class LogTest extends TestCase
 {
     public function testLog()
     {
-        $type = LogInterface::TYPE_RESOURCE;
         $resourceType = LogInterface::RESOURCE_ENTRY;
         $api = Contentful::PREVIEW_API;
         $isCacheHit = true;
@@ -26,12 +25,10 @@ class LogTest extends TestCase
             $startTime,
             $stopTime,
             $isCacheHit,
-            $type,
             $resourceType,
             $api
         );
         $this->assertInstanceOf(LogInterface::class, $log);
-        $this->assertEquals($type, $log->getType());
         $this->assertEquals($isCacheHit, $log->isCacheHit());
         $this->assertEquals($description, $log->getDescription());
         $this->assertEquals($duration, $log->getDurationInSeconds());
