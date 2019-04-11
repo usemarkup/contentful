@@ -35,7 +35,6 @@ class Contentful
     use GuzzleAbstractionTrait;
 
     const CONTENT_DELIVERY_API = 'cda';
-    const CONTENT_MANAGEMENT_API = 'cma';
     const PREVIEW_API = 'preview';
 
     /**
@@ -659,7 +658,7 @@ class Contentful
                         $api
                     );
                 };
-                if ($api !== self::CONTENT_MANAGEMENT_API && $readCacheItem->isHit()) {
+                if ($readCacheItem->isHit()) {
                     $cacheItemJson = $readCacheItem->get();
                     if (is_string($cacheItemJson) && strlen($cacheItemJson) > 0) {
                         $cacheItemData = json_decode($cacheItemJson, true);
@@ -703,7 +702,7 @@ class Contentful
                 }
                 $request = $this->createRequest($endpointUrl, 'GET');
                 $request = $this->setAuthHeaderOnRequest($request, $spaceData['access_token']);
-                $request = $this->setApiVersionHeaderOnRequest($request, $api);
+                $request = $this->setApiVersionHeaderOnRequest($request);
 
                 $queryParams = [];
                 //set the include level
@@ -797,24 +796,22 @@ class Contentful
                 $isValidResponse = (bool) $builtResponse;
 
                 //save into cache
-                if ($api !== self::CONTENT_MANAGEMENT_API) {
-                    $isSuccessResponseData = !$unavailableException && $isValidResponse;
+                $isSuccessResponseData = !$unavailableException && $isValidResponse;
 
-                    if ($isSuccessResponseData || $this->cacheFailResponses) {
-                        $writeCacheItem->set($responseJson);
-                        $writeCache->save($writeCacheItem);
-                    }
+                if ($isSuccessResponseData || $this->cacheFailResponses) {
+                    $writeCacheItem->set($responseJson);
+                    $writeCache->save($writeCacheItem);
+                }
 
-                    if (!isset($fallbackCacheItem)) {
-                        /**
-                         * @var CacheItemInterface $fallbackCacheItem
-                         */
-                        $fallbackCacheItem = $getItemFromCache($writeFallbackCache);
-                    }
-                    if ((!$unavailableException || $fallbackCacheItem->get() === null) && $isSuccessResponseData) {
-                        $fallbackCacheItem->set($responseJson);
-                        $writeFallbackCache->save($fallbackCacheItem);
-                    }
+                if (!isset($fallbackCacheItem)) {
+                    /**
+                     * @var CacheItemInterface $fallbackCacheItem
+                     */
+                    $fallbackCacheItem = $getItemFromCache($writeFallbackCache);
+                }
+                if ((!$unavailableException || $fallbackCacheItem->get() === null) && $isSuccessResponseData) {
+                    $fallbackCacheItem->set($responseJson);
+                    $writeFallbackCache->save($fallbackCacheItem);
                 }
                 if ($unavailableException instanceof \Exception) {
                     throw $unavailableException;
@@ -915,7 +912,6 @@ class Contentful
         $domainMap = [
             self::CONTENT_DELIVERY_API => 'cdn.contentful.com',
             self::PREVIEW_API => 'preview.contentful.com',
-            self::CONTENT_MANAGEMENT_API => 'api.contentful.com',
         ];
 
         return $domainMap[$api];
@@ -947,10 +943,9 @@ class Contentful
 
     /**
      * @param \GuzzleHttp\Psr7\Request $request
-     * @param string                                    $api
      * @return \GuzzleHttp\Psr7\Request
      */
-    private function setApiVersionHeaderOnRequest($request, $api)
+    private function setApiVersionHeaderOnRequest($request)
     {
         //specify version 1 header
         return $this->setHeaderOnRequest(
@@ -958,7 +953,7 @@ class Contentful
             'Content-Type',
             sprintf(
                 'application/vnd.contentful.%s.v1+json',
-                ($api === self::CONTENT_MANAGEMENT_API) ? 'management' : 'delivery'
+                'delivery'
             )
         );
     }
