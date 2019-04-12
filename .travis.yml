@@ -3,13 +3,13 @@ sudo: false
 dist: xenial
 group: edge
 php:
-    - 7.1.19
-    - 7.2.7
-    - 7.3
+    - '7.1'
+    - '7.2'
+    - '7.3'
 
 matrix:
     include:
-        - php: 7.1.19
+        - php: '7.1'
           env: deps=low
 
 env:
