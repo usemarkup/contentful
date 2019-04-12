@@ -358,9 +358,7 @@ class Contentful
         /** @var ResourceArrayInterface $linkedEntries */
         $linkedEntries = $this->getEntries($filters, $space);
 
-        $totalEntries = $linkedEntries->getTotal();
-
-        return ($totalEntries > 0) ? false : true;
+        return $linkedEntries->getTotal() === 0;
     }
 
     /**
