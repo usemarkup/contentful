@@ -18,8 +18,10 @@ use Markup\Contentful\Filter\ContentTypeFilterProvider;
 use Markup\Contentful\Filter\DecidesCacheKeyInterface;
 use Markup\Contentful\Filter\LinksToAssetFilter;
 use Markup\Contentful\Filter\LocaleFilter;
+use Markup\Contentful\Log\LinkResolveCounterInterface;
 use Markup\Contentful\Log\LoggerInterface;
 use Markup\Contentful\Log\LogInterface;
+use Markup\Contentful\Log\NullLinkResolveCounter;
 use Markup\Contentful\Log\NullLogger;
 use Markup\Contentful\Log\StandardLogger;
 use Markup\Contentful\Promise\AssetPromise;
@@ -46,6 +48,11 @@ class Contentful
      * @var LoggerInterface
      */
     private $logger;
+
+    /**
+     * @var LinkResolveCounterInterface
+     */
+    private $linkResolveCounter;
 
     /**
      * @var int
@@ -83,6 +90,7 @@ class Contentful
      *                      'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle)
      *                      'guzzle_proxy' (defines a HTTP Proxy URL which will is used for requesting the Contentful API)
      *                      'include_level' (the levels of linked content to include in responses by default)
+     *                      'link_resolve_counter' (an instance of a link resolve counter for counting resolved links)
      */
     public function __construct(array $spaces, array $options = [])
     {
@@ -98,6 +106,11 @@ class Contentful
             $this->logger = new NullLogger();
         } else {
             $this->logger = ($options['logger'] instanceof LoggerInterface) ? $options['logger'] : new StandardLogger();
+        }
+        if (($options['link_resolve_counter'] ?? null) instanceof LinkResolveCounterInterface) {
+            $this->linkResolveCounter = $options['link_resolve_counter'];
+        } else {
+            $this->linkResolveCounter = new NullLinkResolveCounter();
         }
         $this->resourcePool = new ResourceEnvelopePool();
         foreach ($spaces as $key => $space) {
@@ -1141,6 +1154,10 @@ class Contentful
     private function createResolveLinkFunction(): callable
     {
         return function ($link, $locale = null) {
+            if ($link instanceof LinkInterface) {
+                $this->linkResolveCounter->logLink($link);
+            }
+
             return $this->resolveLink($link, [], $locale);
         };
     }
