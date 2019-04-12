@@ -18,12 +18,11 @@ class NullLogger implements LoggerInterface
      * Logs a lookup.
      *
      * @param string         $description A description of what this lookup was, including pertinent information such as URLs and cache keys.
-     * @param bool           $isCacheHit
      * @param TimerInterface $timer       A timer. If it is started but not stopped, it will be stopped and a reading taken. If
      * @param string         $resourceType
      * @param string         $api
      */
-    public function log($description, $isCacheHit, TimerInterface $timer = null, $resourceType, $api)
+    public function log($description, TimerInterface $timer = null, $resourceType, $api)
     {
         // do nothing
     }

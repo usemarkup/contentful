@@ -34,12 +34,11 @@ class StandardLogger implements LoggerInterface
      * Logs a lookup.
      *
      * @param string         $description A description of what this lookup was, including pertinent information such as URLs and cache keys.
-     * @param bool           $isCacheHit
      * @param TimerInterface $timer       A timer. If it is started but not stopped, it will be stopped and a reading taken. If not started, no reading.
      * @param string         $resourceType
      * @param string         $api
      */
-    public function log($description, $isCacheHit, TimerInterface $timer, $resourceType, $api)
+    public function log($description, TimerInterface $timer, $resourceType, $api)
     {
         if ($timer->isStarted()) {
             $timer->stop();//will have no effect if already stopped
@@ -52,7 +51,6 @@ class StandardLogger implements LoggerInterface
             $duration,
             $timer->getStartTime(),
             $timer->getStopTime(),
-            $isCacheHit,
             $resourceType,
             $api
         );

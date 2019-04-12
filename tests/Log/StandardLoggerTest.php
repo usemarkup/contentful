@@ -34,10 +34,9 @@ class StandardLoggerTest extends TestCase
         $this->assertInstanceOf(TimerInterface::class, $timer);
         $this->assertTrue($timer->isStarted());
         $description = 'description goes here';
-        $isCacheHit = true;
         $resourceType = LogInterface::RESOURCE_ASSET;
         $api = Contentful::CONTENT_DELIVERY_API;
-        $this->logger->log($description, $isCacheHit, $timer, $resourceType, $api);
+        $this->logger->log($description, $timer, $resourceType, $api);
         $finalLogs = $this->logger->getLogs();
         $this->assertCount(1, $finalLogs);
         $log = reset($finalLogs);
