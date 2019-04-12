@@ -25,11 +25,6 @@ class Log implements LogInterface
     private $stopTime;
 
     /**
-     * @var bool
-     */
-    private $isCacheHit;
-
-    /**
      * @var string
      */
     private $resourceType;
@@ -44,7 +39,6 @@ class Log implements LogInterface
         ?float $durationInSeconds,
         ?\DateTimeInterface $startTime,
         ?\DateTimeInterface $stopTime,
-        bool $isCacheHit,
         string $resourceType,
         string $api
     ) {
@@ -52,7 +46,6 @@ class Log implements LogInterface
         $this->durationInSeconds = $durationInSeconds;
         $this->startTime = $startTime;
         $this->stopTime = $stopTime;
-        $this->isCacheHit = $isCacheHit;
         $this->resourceType = $resourceType;
         $this->api = $api;
     }
@@ -85,16 +78,6 @@ class Log implements LogInterface
     public function getStopTime(): ?\DateTimeInterface
     {
         return $this->stopTime;
-    }
-
-    /**
-     * Gets whether this lookup had a cache hit.
-     *
-     * @return bool
-     */
-    public function isCacheHit()
-    {
-        return $this->isCacheHit;
     }
 
     /**

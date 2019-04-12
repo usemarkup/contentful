@@ -14,7 +14,6 @@ class LogTest extends TestCase
     {
         $resourceType = LogInterface::RESOURCE_ENTRY;
         $api = Contentful::PREVIEW_API;
-        $isCacheHit = true;
         $description = 'It all happened very quickly';
         $duration = 0.032;
         $startTime = new \DateTimeImmutable();
@@ -24,12 +23,10 @@ class LogTest extends TestCase
             $duration,
             $startTime,
             $stopTime,
-            $isCacheHit,
             $resourceType,
             $api
         );
         $this->assertInstanceOf(LogInterface::class, $log);
-        $this->assertEquals($isCacheHit, $log->isCacheHit());
         $this->assertEquals($description, $log->getDescription());
         $this->assertEquals($duration, $log->getDurationInSeconds());
         $this->assertSame($startTime, $log->getStartTime());

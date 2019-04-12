@@ -701,7 +701,6 @@ class Contentful
                 $log = function ($description) use ($timer, $queryType, $api) {
                     $this->logger->log(
                         $description,
-                        true,
                         $timer,
                         $this->getLogResourceTypeForQueryType($queryType),
                         $api
