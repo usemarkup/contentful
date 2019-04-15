@@ -18,8 +18,10 @@ interface LoggerInterface
      * @param TimerInterface  $timer A timer. If it is started but not stopped, it will be stopped and a reading taken. If
      * @param string $resourceType
      * @param string $api
+     * @param int|null $responseCount
+     * @param bool $wasError
      */
-    public function log($description, TimerInterface $timer, $resourceType, $api);
+    public function log($description, TimerInterface $timer, $resourceType, $api, ?int $responseCount, bool $wasError = false);
 
     /**
      * Gets the collected logs.

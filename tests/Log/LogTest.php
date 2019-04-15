@@ -18,13 +18,17 @@ class LogTest extends TestCase
         $duration = 0.032;
         $startTime = new \DateTimeImmutable();
         $stopTime = new \DateTimeImmutable();
+        $responseCount = 42;
+        $wasError = false;
         $log = new Log(
             $description,
             $duration,
             $startTime,
             $stopTime,
             $resourceType,
-            $api
+            $api,
+            $responseCount,
+            $wasError
         );
         $this->assertInstanceOf(LogInterface::class, $log);
         $this->assertEquals($description, $log->getDescription());
@@ -33,5 +37,7 @@ class LogTest extends TestCase
         $this->assertSame($stopTime, $log->getStopTime());
         $this->assertEquals($resourceType, $log->getResourceType());
         $this->assertEquals($api, $log->getApi());
+        $this->assertEquals($responseCount, $log->getResponseCount());
+        $this->assertEquals($wasError, $log->wasError());
     }
 }

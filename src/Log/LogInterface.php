@@ -34,6 +34,10 @@ interface LogInterface
 
     public function getStopTime(): ?\DateTimeInterface;
 
+    public function wasError(): bool;
+
+    public function getResponseCount(): int;
+
     /**
      * Gets the name of the API being used.
      *

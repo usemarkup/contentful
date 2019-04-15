@@ -22,7 +22,7 @@ class NullLogger implements LoggerInterface
      * @param string         $resourceType
      * @param string         $api
      */
-    public function log($description, TimerInterface $timer = null, $resourceType, $api)
+    public function log($description, TimerInterface $timer = null, $resourceType, $api, ?int $resourceCount, bool $wasError = false)
     {
         // do nothing
     }

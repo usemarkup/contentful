@@ -37,8 +37,10 @@ class StandardLogger implements LoggerInterface
      * @param TimerInterface $timer       A timer. If it is started but not stopped, it will be stopped and a reading taken. If not started, no reading.
      * @param string         $resourceType
      * @param string         $api
+     * @param int|null $responseCount
+     * @param bool $wasError
      */
-    public function log($description, TimerInterface $timer, $resourceType, $api)
+    public function log($description, TimerInterface $timer, $resourceType, $api, ?int $responseCount, bool $wasError = false)
     {
         if ($timer->isStarted()) {
             $timer->stop();//will have no effect if already stopped
@@ -52,7 +54,9 @@ class StandardLogger implements LoggerInterface
             $timer->getStartTime(),
             $timer->getStopTime(),
             $resourceType,
-            $api
+            $api,
+            $responseCount,
+            $wasError
         );
     }
 
