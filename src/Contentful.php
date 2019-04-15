@@ -9,6 +9,7 @@ use function GuzzleHttp\Promise\coroutine;
 use function GuzzleHttp\Promise\promise_for;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Response;
+use Markup\Contentful\Analysis\ResponseAnalyzer;
 use Markup\Contentful\Cache\NullCacheItemPool;
 use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\Decorator\NullAssetDecorator;
@@ -711,12 +712,16 @@ class Contentful
                 $didFetch = false;
                 $timer = $this->logger->getStartedTimer();
 
-                $log = function ($description) use ($timer, $queryType, $api) {
+                $log = function ($description, $responseBody) use ($timer, $queryType, $api) {
+                    //fake data for now
+                    $analysis = (new ResponseAnalyzer())->analyze($responseBody);
                     $this->logger->log(
                         $description,
                         $timer,
                         $this->getLogResourceTypeForQueryType($queryType),
-                        $api
+                        $api,
+                        $analysis->getIndicatedResponseCount(),
+                        $analysis->indicatesError()
                     );
                 };
 
@@ -772,10 +777,13 @@ class Contentful
                     $unavailableException = new ResourceUnavailableException($exceptionResponse, $exceptionMessage, 0, $e);
                 } finally {
                     if ($didFetch) {
-                        $log(sprintf(
-                            'Fetched a fresh response from URL "%s".',
-                            $this->getUriForRequest($request, $queryParams)
-                        ));
+                        $log(
+                            sprintf(
+                                'Fetched a fresh response from URL "%s".',
+                                $this->getUriForRequest($request, $queryParams)
+                            ),
+                            (isset($response)) ? strval($response->getBody()) : ''
+                        );
                     }
                 }
                 if (!$unavailableException && $response && $response->getStatusCode() != '200') {

@@ -34,13 +34,25 @@ class Log implements LogInterface
      */
     private $api;
 
+    /**
+     * @var int
+     */
+    private $responseCount;
+
+    /**
+     * @var bool
+     */
+    private $wasError;
+
     public function __construct(
         string $description,
         ?float $durationInSeconds,
         ?\DateTimeInterface $startTime,
         ?\DateTimeInterface $stopTime,
         string $resourceType,
-        string $api
+        string $api,
+        ?int $responseCount,
+        bool $wasError = false
     ) {
         $this->description = $description;
         $this->durationInSeconds = $durationInSeconds;
@@ -48,6 +60,8 @@ class Log implements LogInterface
         $this->stopTime = $stopTime;
         $this->resourceType = $resourceType;
         $this->api = $api;
+        $this->responseCount = $responseCount ?? 0;
+        $this->wasError = $wasError;
     }
 
     /**
@@ -96,5 +110,15 @@ class Log implements LogInterface
     public function getApi()
     {
         return $this->api;
+    }
+
+    public function getResponseCount(): int
+    {
+        return $this->responseCount;
+    }
+
+    public function wasError(): bool
+    {
+        return $this->wasError;
     }
 }

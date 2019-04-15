@@ -36,7 +36,9 @@ class StandardLoggerTest extends TestCase
         $description = 'description goes here';
         $resourceType = LogInterface::RESOURCE_ASSET;
         $api = Contentful::CONTENT_DELIVERY_API;
-        $this->logger->log($description, $timer, $resourceType, $api);
+        $responseCount = 43;
+        $wasError = false;
+        $this->logger->log($description, $timer, $resourceType, $api, $responseCount, $wasError);
         $finalLogs = $this->logger->getLogs();
         $this->assertCount(1, $finalLogs);
         $log = reset($finalLogs);
@@ -45,5 +47,7 @@ class StandardLoggerTest extends TestCase
         $this->assertIsFloat($log->getDurationInSeconds());
         $this->assertLessThan(1, $log->getDurationInSeconds());
         $this->assertEquals($api, $log->getApi());
+        $this->assertEquals($responseCount, $log->getResponseCount());
+        $this->assertEquals($wasError, $log->wasError());
     }
 }
