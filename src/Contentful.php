@@ -86,6 +86,7 @@ class Contentful
      *                      an 'asset_decorator' value, which must be an object implementing AssetDecoratorInterface - any asset being generated in this space will be decorated by this on the way out
      *                      a 'cache_fail_responses' value, which is a boolean defaulting to FALSE - this should be set to true in a production mode to prevent repeated calls against nonexistent resources
      *                      a 'resource_envelope' value, which must be an object implementing ResourceEnvelopeInterface
+     *                      a 'forced_include_level' value, which forces the include_level used for a space, taking precedence over all other indications of include_level including specifying inline in method calls
      * @param array $options A set of options, including:
      *                      'guzzle_handler' (a Guzzle handler object)
      *                      'guzzle_timeout' (a number of seconds to set as the timeout for lookups using Guzzle)
@@ -696,8 +697,9 @@ class Contentful
 
                 $queryParams = [];
                 //set the include level
-                if (null !== $options['include_level']) {
-                    $queryParams['include'] = $options['include_level'];
+                $includeLevel = $this->getAnyForcedIncludeLevel($spaceName) ?? $options['include_level'] ?? null;
+                if (null !== $includeLevel) {
+                    $queryParams['include'] = $includeLevel;
                 }
                 //set parameters onto the request
                 foreach ($parameters as $param) {
@@ -1175,5 +1177,15 @@ class Contentful
         if ($envelope instanceof CanResolveResourcesInterface) {
             $envelope->setResolveLinkFunction($this->createResolveLinkFunction());
         }
+    }
+
+    private function getAnyForcedIncludeLevel(string $space): ?int
+    {
+        $spaceData = $this->getSpaceDataForName($space);
+        if (!isset($spaceData['forced_include_level']) || !is_numeric($spaceData['forced_include_level'])) {
+            return null;
+        }
+
+        return intval($spaceData['forced_include_level']);
     }
 }
