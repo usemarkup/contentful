@@ -13,6 +13,7 @@ use Markup\Contentful\Analysis\ResponseAnalyzer;
 use Markup\Contentful\Cache\NullCacheItemPool;
 use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\Decorator\NullAssetDecorator;
+use Markup\Contentful\Exception\InvalidIdException;
 use Markup\Contentful\Exception\LinkUnresolvableException;
 use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Filter\ContentTypeFilterProvider;
@@ -179,6 +180,7 @@ class Contentful
      */
     public function getEntry($id, $space, array $options = [], $locale = null)
     {
+        $this->ensureValidId($id);
         $envelope = $this->findEnvelopeForSpace($space);
         if ($envelope->hasEntry($id, $locale)) {
             /** @var EntryInterface|PromiseInterface $entry */
@@ -277,6 +279,7 @@ class Contentful
      */
     public function getAsset($id, $space, array $options = [], $locale = null)
     {
+        $this->ensureValidId($id);
         $envelope = $this->findEnvelopeForSpace($space);
         if ($envelope->hasAsset($id, $locale)) {
             return ($this->isAsyncCall($options))
@@ -384,6 +387,7 @@ class Contentful
      */
     public function getContentType($id, $space, array $options = [])
     {
+        $this->ensureValidId($id);
         $envelope = $this->findEnvelopeForSpace($space);
         if ($envelope->hasContentType($id)) {
             return ($this->isAsyncCall($options))
@@ -1187,5 +1191,12 @@ class Contentful
         }
 
         return intval($spaceData['forced_include_level']);
+    }
+
+    private function ensureValidId(string $id): void
+    {
+        if (!preg_match('/^[a-zA-Z0-9\-_\.]{1,64}$/', $id)) {
+            throw new InvalidIdException($id);
+        }
     }
 }

@@ -10,6 +10,7 @@ use Markup\Contentful\Contentful;
 use Markup\Contentful\ContentTypeInterface;
 use Markup\Contentful\Decorator\AssetDecoratorInterface;
 use Markup\Contentful\EntryInterface;
+use Markup\Contentful\Exception\InvalidIdException;
 use Markup\Contentful\Exception\ResourceUnavailableException;
 use Markup\Contentful\Filter\BeforeFilter;
 use Markup\Contentful\Filter\EqualFilter;
@@ -692,6 +693,30 @@ class ContentfulTest extends MockeryTestCase
         $this->expectException(ResourceUnavailableException::class);
         $this->expectExceptionMessage('Fetched fail response from cache for key "jskdfjhsdfk-entry↦cat".');
         $contentful->getEntry('cat', 'test');
+    }
+
+    public function testUseInvalidIdWithEntry()
+    {
+        $this->expectException(InvalidIdException::class);
+        $spaces = array_merge_recursive($this->spaces);
+        $contentful = $this->getContentful($spaces);
+        $contentful->getEntry('🦈', 'test');
+    }
+
+    public function testUseInvalidIdWithAsset()
+    {
+        $this->expectException(InvalidIdException::class);
+        $spaces = array_merge_recursive($this->spaces);
+        $contentful = $this->getContentful($spaces);
+        $contentful->getAsset('🎣', 'test');
+    }
+
+    public function testUseInvalidIdWithContentType()
+    {
+        $this->expectException(InvalidIdException::class);
+        $spaces = array_merge_recursive($this->spaces);
+        $contentful = $this->getContentful($spaces);
+        $contentful->getContentType('🐠', 'test');
     }
 
     private function getSuccessHandlerOption($data, $accessToken)
