@@ -119,6 +119,7 @@ class Contentful
         foreach ($spaces as $key => $space) {
             $envelope = $space['resource_envelope'] ?? new MemoizedResourceEnvelope();
             $this->setResolveLinkFunctionOntoEnvelope($envelope);
+            $this->setAssetDecoratorOntoEnvelope($envelope, $space['asset_decorator'] ?? null);
             $this->resourcePool->registerEnvelopeForSpace($envelope, $key);
         }
     }
@@ -1180,6 +1181,13 @@ class Contentful
     {
         if ($envelope instanceof CanResolveResourcesInterface) {
             $envelope->setResolveLinkFunction($this->createResolveLinkFunction());
+        }
+    }
+
+    private function setAssetDecoratorOntoEnvelope(ResourceEnvelopeInterface $envelope, $candidate)
+    {
+        if ($envelope instanceof CanDecorateAssetsInterface) {
+            $envelope->setAssetDecorator($this->ensureAssetDecorator($candidate));
         }
     }
 
