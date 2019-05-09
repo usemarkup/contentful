@@ -548,7 +548,9 @@ class Contentful
                         $locale
                     );
 
-                    return $entry;
+                    return $entry->otherwise(function () {
+                        return null;
+                    });
                 case 'Asset':
                     /** @var PromiseInterface $asset */
                     $asset = $this->getAsset(
@@ -558,7 +560,9 @@ class Contentful
                         $locale
                     );
 
-                    return $asset;
+                    return $asset->otherwise(function () {
+                        return null;
+                    });
                 case 'ContentType':
                     /** @var PromiseInterface $contentType */
                     $contentType = $this->getContentType(
@@ -567,7 +571,9 @@ class Contentful
                         array_merge($options, ['async' => true])
                     );
 
-                    return $contentType;
+                    return $contentType->otherwise(function () {
+                        return null;
+                    });
                 default:
                     throw new \InvalidArgumentException(
                         sprintf('Tried to resolve unknown link type "%s".', $link->getLinkType())
