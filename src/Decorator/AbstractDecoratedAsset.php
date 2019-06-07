@@ -147,6 +147,11 @@ abstract class AbstractDecoratedAsset implements AssetInterface
         return $this->decorated->getSpace();
     }
 
+    public function getSpaceName(): string
+    {
+        return $this->decorated->getSpaceName();
+    }
+
     /**
      * Gets the link type. (Only applicable for Link resources.)
      *

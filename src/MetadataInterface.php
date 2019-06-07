@@ -29,6 +29,11 @@ interface MetadataInterface
     public function getSpace();
 
     /**
+     * Gets the name used for the space that this resource is associated with.
+     */
+    public function getSpaceName(): string;
+
+    /**
      * Gets the content type for an entry. (Only applicable for Entry resources.)
      *
      * @return ContentTypeInterface|null
