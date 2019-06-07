@@ -97,6 +97,16 @@ class Metadata implements MetadataInterface
         return $this->space;
     }
 
+    public function getSpaceName(): string
+    {
+        $space = $this->space;
+        if ($this->space instanceof Link) {
+            return $space->getSpaceName();
+        }
+
+        return $space->getName();
+    }
+
     /**
      * @param \Markup\Contentful\ContentTypeInterface $contentType
      */

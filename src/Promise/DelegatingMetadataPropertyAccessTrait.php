@@ -76,6 +76,11 @@ trait DelegatingMetadataPropertyAccessTrait
         return $this->getResolved()->getSpace();
     }
 
+    public function getSpaceName(): string
+    {
+        return $this->getResolved()->getSpaceName();
+    }
+
     /**
      * Gets the content type for an entry. (Only applicable for Entry resources.)
      *

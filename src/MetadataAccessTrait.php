@@ -41,6 +41,11 @@ trait MetadataAccessTrait
         return $this->getMetadata()->getSpace();
     }
 
+    public function getSpaceName(): string
+    {
+        return $this->getMetadata()->getSpaceName();
+    }
+
     /**
      * @return ContentTypeInterface|null
      */

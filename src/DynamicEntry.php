@@ -110,6 +110,11 @@ class DynamicEntry implements EntryInterface
         return $this->entry->getSpace();
     }
 
+    public function getSpaceName(): string
+    {
+        return $this->entry->getSpaceName();
+    }
+
     /**
      * Gets the content type for an entry. (Only applicable for Entry resources.)
      *

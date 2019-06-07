@@ -13,11 +13,7 @@ class Link implements LinkInterface, MetadataInterface
      */
     private $spaceName;
 
-    /**
-     * @param MetadataInterface $metadata
-     * @param string            $spaceName
-     */
-    public function __construct(MetadataInterface $metadata, $spaceName)
+    public function __construct(MetadataInterface $metadata, string $spaceName)
     {
         $this->metadata = $metadata;
         $this->spaceName = $spaceName;
@@ -25,10 +21,8 @@ class Link implements LinkInterface, MetadataInterface
 
     /**
      * Gets a space name (not intrinsic, but how the space is referred to in configuration) that this link is associated with, if available.
-     *
-     * @return string
      */
-    public function getSpaceName()
+    public function getSpaceName(): string
     {
         return $this->spaceName;
     }
