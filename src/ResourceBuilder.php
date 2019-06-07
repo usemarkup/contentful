@@ -161,6 +161,19 @@ class ResourceBuilder implements CanResolveResourcesInterface
                         return;
                     case 'Link':
                         switch ($metadata->getLinkType()) {
+                            case 'Space':
+                                $locales = [];
+                                $defaultLocale = null;
+                                foreach ($data['locales'] as $locale) {
+                                    $localeObj = new Locale($locale['code'], $locale['name']);
+                                    if (isset($locale['default']) && $locale['default']) {
+                                        $defaultLocale = $localeObj;
+                                    }
+                                    $locales[] = $localeObj;
+                                }
+
+                                yield promise_for(new Space($data['name'], $metadata, $locales, $defaultLocale));
+                                return;
                             case 'Entry':
                                 $entry = $envelope->findEntry($metadata->getId(), $dataLocale);
                                 if ($entry) {
