@@ -179,9 +179,11 @@ class DynamicEntry implements EntryInterface
     {
         $contentTypeField = $this->contentType->getField($key);
         $raw = $this->entry->getField($key);
+
         if (!$contentTypeField) {
             return $raw;
         }
+
         switch ($contentTypeField->getType()) {
             case 'Symbol':
             case 'Text':
@@ -198,8 +200,38 @@ class DynamicEntry implements EntryInterface
             case 'Location':
                 list($lat, $lon) = explode(',', $raw);
                 return new Location(floatval($lat), floatval($lon));
+            case 'Array':
+                return $this->formatArray($raw);
+            case 'Link':
+                return $raw->getFields();
             default:
                 return $raw;
         }
     }
+
+    /**
+     * Formats arrays with single value | Array with DynamicEntries
+     *
+     * @param $array
+     * @return string|array
+     */
+    private function formatArray($array)
+    {
+        if (count($array) == 1) {
+            return array_first($array);
+        }
+
+        $returnArray = [];
+        foreach ($array as $id => $dynamicEntry) {
+            // If its not an instance, but array with multiple strings
+            if (is_string($dynamicEntry)) {
+                return $array;
+            }
+
+            $returnArray[$id] = $dynamicEntry->getFields();
+        }
+
+        return $returnArray;
+    }
+
 }
